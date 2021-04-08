@@ -1,21 +1,17 @@
 # By Joel Hellewell.
 library(data.table)
-library(ggplot2)
-library(magrittr)
-library(rockchalk)
-library(cowplot)
 library(reshape2)
 library(readxl)
+library(dplyr)
+library(lubridate)
 
 # table of interest
-table <- "20210324_Reference_Table.xlsx"
+table <- "data-raw/20210324_Reference_Table.xlsx"
 
 # Read in data
 ons_dt <- readxl::read_xlsx(table,
   sheet = "1i", skip = 6, col_types = c("date", "date", rep("numeric", 27))
 )
-
-
 
 ons_eng <- readxl::read_xlsx(table,
   sheet = "1d", skip = 7, col_types = c("date", "date", rep("numeric", 13))
@@ -33,7 +29,6 @@ places <- c(
   "East Midlands", "West Midlands", "East of England",
   "London", "South East", "South West"
 )
-
 
 colnames(ons_dt) <- c(
   "start_date", "end_date",
@@ -66,6 +61,11 @@ ons_dt$geography <- as.factor(ons_dt$geography)
 
 ons_dt <- as.data.table(ons_dt)
 
-ons_pop <- fread("ons_data.csv")
+# Join England to regions
+ons_dt <- data.table::rbindlist(list(ons_eng, ons_dt), use.names = TRUE)
 
-ons_dt <- merge.data.table(ons_dt, ons_pop, by = "geography")
+# Variable for midpoint of 14 day intervals
+ons_dt[, date := lubridate::ymd(ons_dt$start_date) + 7]
+
+# save
+data.table::fwrite(ons_dt, "data/ons-prev.csv")
