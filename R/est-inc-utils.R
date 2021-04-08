@@ -91,3 +91,24 @@ plot_trend <- function(fit, var, date_start) {
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
     theme_minimal()
 }
+
+plot_prev <- function(fit, prev) {
+  fit$summary(
+    variables = "odcases",
+    ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
+  ) %>%
+    mutate(
+      date = prev$date + 3
+    ) %>%
+    ggplot() +
+    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    geom_point(
+      data = prev, aes(y = middle, ymin = NULL, ymax = NULL),
+      col = "black"
+    ) +
+    geom_linerange(data = prev, aes(y = NULL, ymin = lower, ymax = upper)) +
+    geom_point(col = "lightblue", size = 1.3) +
+    geom_linerange(col = "lightblue", size = 1.2) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
+    theme_minimal()
+}

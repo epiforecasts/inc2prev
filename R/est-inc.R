@@ -19,7 +19,11 @@ prob_detectable <- fread("data/prob_detectable.csv")
 min_date <- min(prev$date)
 
 # format data for fitting
-dat <- stan_data(prev, prob_detectable)
+region <- "England"
+dat <- stan_data(prev, prob_detectable,
+  region = region,
+  population = 56286961
+)
 
 inits <- stan_inits(dat)
 
@@ -43,20 +47,23 @@ fit$cmdstan_diagnose()
 # summarise fit
 fit$cmdstan_summary()
 
+# plot prevalence
+plot_prev(fit, prev[geography %in% region])
+ggsave("figures/prevalence.png", width = 7, height = 5)
+
 # plot infections
 plot_trend(fit, "infections", date_start = min_date - dat$ut) +
   labs(y = "Infections", x = "Date")
-
 ggsave("figures/infections.png", width = 7, height = 5)
 
+# plot growth
 plot_trend(fit, "r", date_start = min_date - dat$ut - 1) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
-
 ggsave("figures/growth.png", width = 7, height = 5)
 
+# plot Rt
 plot_trend(fit, "R", date_start = min_date - dat$ut + 7) +
   labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
-
 ggsave("figures/Rt.png", width = 7, height = 5)
