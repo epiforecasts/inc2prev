@@ -46,7 +46,6 @@ transformed parameters {
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   prob_inf = inv_logit(gp);
-  prob_inf = prob_inf ./ sum(prob_inf);
   infections = N * prob_inf;
   // calculate detectable cases
   dcases = detectable_cases(infections, prob_detect, pbt + 1, t);
