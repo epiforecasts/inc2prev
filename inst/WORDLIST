@@ -1,4 +1,7 @@
+conv
+convolve
 ctdist
+dcases
 epiforecasts
 github
 gp
@@ -8,8 +11,10 @@ gtsd
 https
 inv
 lengthscale
+odcases
 ot
 pbt
+pmf
 prev
 rng
 sd

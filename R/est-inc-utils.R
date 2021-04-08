@@ -3,6 +3,7 @@ library(EpiNow2)
 
 # define required stan data
 stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
+                      population = 56286961,
                       gt = list(
                         mean = 3.64, mean_sd = 0.71, sd = 3.08,
                         sd_sd = 0.77, max = 15
@@ -29,12 +30,12 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     obs = length(prev$prev),
     prev = prev$prev,
     prev_time = prev$time,
-    prob_detect = prob_detectable$p,
-    pbt = max(prob_detectable$time)
+    prob_detect = rev(prob_detectable$p),
+    pbt = max(prob_detectable$time),
+    N = population
   )
 
   # gaussian process parameters
-
   dat$M <- ceiling(dat$t * gp_m)
   dat$L <- 2
   if (is.na(gp_ls[2])) {
@@ -50,4 +51,32 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   dat$gtmax <- unlist(gt[c("max")])
   # nolint end
   return(dat)
+}
+
+library(dplyr)
+library(ggplot2)
+
+# plot trend with date over time
+plot_trend <- function(fit, var, date_start) {
+  fit$summary(
+    variables = var,
+    ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
+  ) %>%
+    mutate(
+      time = 1:n(),
+      date = date_start + time - 1
+    ) %>%
+    ggplot() +
+    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    geom_line(col = "lightblue", size = 1.4) +
+    geom_ribbon(
+      fill = "lightblue", alpha = 0.4,
+      col = "lightblue", size = 0.6
+    ) +
+    geom_ribbon(
+      fill = "lightblue", alpha = 0.4,
+      col = NA, aes(ymin = `20%`, ymax = `80%`)
+    ) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
+    theme_minimal()
 }
