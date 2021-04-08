@@ -21,6 +21,8 @@ min_date <- min(prev$date)
 # format data for fitting
 dat <- stan_data(prev, prob_detectable)
 
+inits <- stan_inits(dat)
+
 # load model
 mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions"),
@@ -29,7 +31,9 @@ mod <- cmdstan_model("stan/model.stan",
 
 # fit model
 fit <- mod$sample(
-  data = dat, parallel_chains = 4,
+  data = dat,
+  init = inits,
+  parallel_chains = 4,
   threads_per_chain = 1
 )
 

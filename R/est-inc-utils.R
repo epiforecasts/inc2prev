@@ -3,12 +3,12 @@ library(EpiNow2)
 
 # define required stan data
 stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
-                      population = 56286961,
+                      population = 56286961, baseline_inc = 0.001,
                       gt = list(
                         mean = 3.64, mean_sd = 0.71, sd = 3.08,
                         sd_sd = 0.77, max = 15
                       ),
-                      gp_m = 0.3, gp_ls = c(7, 60)) {
+                      gp_m = 0.3, gp_ls = c(14, 120)) {
   # nolint start
   # extract a single region for prevalence and build features
   prev <- copy(prev)[geography %in% region][, .(date, prev = middle)]
@@ -32,7 +32,8 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     prev_time = prev$time,
     prob_detect = rev(prob_detectable$p),
     pbt = max(prob_detectable$time),
-    N = population
+    N = population,
+    inc_zero = log(baseline_inc / (baseline_inc + 1))
   )
 
   # gaussian process parameters
@@ -51,6 +52,16 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   dat$gtmax <- unlist(gt[c("max")])
   # nolint end
   return(dat)
+}
+
+
+stan_inits <- function(dat) {
+  inits <- function() {
+    list(
+      eta = array(rnorm(dat$M, mean = 0, sd = 0.1))
+    )
+  }
+  return(inits)
 }
 
 library(dplyr)

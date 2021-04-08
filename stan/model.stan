@@ -22,46 +22,46 @@ data {
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
   int N;
+  real inc_zero;
 }
   
 transformed data {
   // set up approximate gaussian process
-  matrix[t, M] PHI = setup_gp(M, L, t);  
+  matrix[t, M] PHI = setup_gp(M, L, t); 
 }
   
 parameters {
   real<lower = 0> rho; // length scale
   real<lower = 0> alpha; // scale
   vector[M] eta; // eta
-  real<lower = 0> kappa;
+  real<lower = 0> sigma;
 }
 
 transformed parameters {
   vector[t] gp;
-  vector[t] prob_inf;
   vector[t] infections;
   vector[t] dcases;
   vector[obs] odcases;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
-  prob_inf = inv_logit(gp);
-  infections = N * prob_inf;
+  infections = N * inv_logit(inc_zero + gp);
   // calculate detectable cases
   dcases = detectable_cases(infections, prob_detect, pbt + 1, t);
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_time, ut, obs);
+  odcases = odcases / N;
 }
 
 model {
   // gaussian process priors
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
-  alpha ~ normal(0, 1);
+  alpha ~ std_normal() T[0,];
   eta ~ std_normal();
 
-  //log likelihood
-  kappa ~ exponential(1);
-  prev ~ beta_proportion(odcases / N, kappa);
+  // prevalence observation model
+  sigma ~ normal(0, 0.01) T[0, ];
+  prev ~ normal(odcases, sigma);
 }
 
 generated quantities {
@@ -71,7 +71,7 @@ generated quantities {
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
-  R = calculate_Rt(prob_inf, 7, gtm_sample, gtsd_sample, gtmax, 1);
+  R = calculate_Rt(infections, 7, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
-  r = calculate_growth(prob_inf, 1);
+  r = calculate_growth(infections, 1);
 }
