@@ -8,10 +8,11 @@ data {
   int ut;
   int ot;
   int t;
-  real prev;
-  int prev_time;
-  real prob_detect;
+  int obs;
+  real prev[obs];
+  int prev_time[obs];
   int pbt;
+  real prob_detect[pbt + 1];
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions

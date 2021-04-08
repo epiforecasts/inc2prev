@@ -23,7 +23,7 @@ mod <- cmdstan_model("stan/model.stan",
 
 # fit model
 fit <- mod$sample(
-  data = stan_data, parallel_chains = 4,
+  data = dat, parallel_chains = 4,
   threads_per_chain = 1
 )
 
