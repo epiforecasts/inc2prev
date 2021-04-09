@@ -3,12 +3,12 @@ library(EpiNow2)
 
 # define required stan data
 stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
-                      population = 56286961, baseline_inc = 0.001,
+                      population = 56286961,
                       gt = list(
                         mean = 3.64, mean_sd = 0.71, sd = 3.08,
                         sd_sd = 0.77, max = 15
                       ),
-                      gp_m = 0.3, gp_ls = c(14, 120)) {
+                      gp_m = 0.4, gp_ls = c(14, 90)) {
   # nolint start
   # extract a single region for prevalence and build features
   prev <- copy(prev)[geography %in% region][, .(date, prev = middle)]
@@ -21,6 +21,9 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   )
   prob_detectable <- prob_detectable[, .(p = median(p)), by = variable]
   prob_detectable[, time := as.numeric(as.character(variable))]
+
+  # define baseline incidence
+  baseline_inc <- prev$prev[1] * prob_detectable$p[ut]
 
   # build stan data
   dat <- list(
@@ -42,6 +45,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   if (is.na(gp_ls[2])) {
     gp_ls[2] <- dat$t
   }
+  gp_ls
   lsp <- EpiNow2::tune_inv_gamma(gp_ls[1], gp_ls[2])
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
@@ -54,11 +58,14 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   return(dat)
 }
 
+library(truncnorm)
 
 stan_inits <- function(dat) {
   inits <- function() {
     list(
-      eta = array(rnorm(dat$M, mean = 0, sd = 0.1))
+      eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
+      alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
+      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
     )
   }
   return(inits)
@@ -94,7 +101,7 @@ plot_trend <- function(fit, var, date_start) {
 
 plot_prev <- function(fit, prev) {
   fit$summary(
-    variables = "odcases",
+    variables = "est_prev",
     ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
   ) %>%
     mutate(

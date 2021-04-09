@@ -2,4 +2,4 @@
 data-raw
 stan/model_threads
 figures
-*.pdf
+*.pdf       

@@ -60,13 +60,16 @@ model {
   eta ~ std_normal();
 
   // prevalence observation model
-  sigma ~ normal(0, 0.01) T[0, ];
+  sigma ~ normal(0.005, 0.0025) T[0,];
   prev ~ normal(odcases, sigma);
 }
 
 generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
+  real est_prev[obs];
+  // sample estimated prevalence
+  est_prev = normal_rng(odcases, sigma);
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);

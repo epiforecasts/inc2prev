@@ -9,6 +9,7 @@ library(ggplot2)
 library(bayesplot)
 library(posterior)
 library(rstan)
+library(truncnorm)
 color_scheme_set("brightblue")
 
 ## Get tools
@@ -20,22 +21,21 @@ prob_detectable <- fread("data/prob_detectable.csv")
 min_date <- min(prev$date)
 
 ## Format data
-
-# format data for fitting
 region <- "England"
 dat <- stan_data(prev, prob_detectable,
   region = region,
   population = 56286961
 )
 
-inits <- stan_inits(dat)
-
-## Fit model
+## Model prep
 mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions"),
   cpp_options = list(stan_threads = TRUE)
 )
 
+inits <- stan_inits(dat)
+
+## Fit model
 fit <- mod$sample(
   data = dat,
   init = inits,
@@ -46,8 +46,6 @@ fit <- mod$sample(
 ## Fit diagnostics
 fit$cmdstan_diagnose()
 
-fit$cmdstan_summary()
-
 # get posterior samples
 draws <- fit$draws()
 draws <- as_draws_df(draws)
@@ -55,10 +53,21 @@ draws <- as_draws_df(draws)
 # get fit as stanfit object
 stanfit <- read_stan_csv(fit$output_files())
 np <- nuts_params(stanfit)
-mcmc_parcoord(fit$draws(),
+
+# plot dts
+dts <- mcmc_parcoord(fit$draws(),
   np = np,
-  pars = vars(c("alpha", "rho", contains("eta"), "sigma"))
+  pars = c("alpha", "rho", "eta[1]", "eta[3]", "eta[2]", "sigma")
 )
+ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
+
+# pairs plot
+pairs <- mcmc_pairs(fit$draws(),
+  np = np,
+  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
+)
+pairs
+ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
 ## Output
 
