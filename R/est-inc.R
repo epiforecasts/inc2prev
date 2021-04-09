@@ -57,7 +57,7 @@ np <- nuts_params(stanfit)
 # plot dts
 dts <- mcmc_parcoord(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "eta[3]", "eta[2]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
 )
 ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
 
