@@ -1,4 +1,4 @@
-# packages
+## Packages
 # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos"))) # nolint
 library(cmdstanr)
 # install_cmdstan() # nolint
@@ -7,16 +7,19 @@ library(EpiNow2)
 library(dplyr)
 library(ggplot2)
 library(bayesplot)
+library(posterior)
+library(rstan)
 color_scheme_set("brightblue")
 
-
-# get tools
+## Get tools
 source("R/est-inc-utils.R")
 
-# read in data
+## Read in data
 prev <- fread("data/ons-prev.csv")
 prob_detectable <- fread("data/prob_detectable.csv")
 min_date <- min(prev$date)
+
+## Format data
 
 # format data for fitting
 region <- "England"
@@ -27,13 +30,12 @@ dat <- stan_data(prev, prob_detectable,
 
 inits <- stan_inits(dat)
 
-# load model
+## Fit model
 mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions"),
   cpp_options = list(stan_threads = TRUE)
 )
 
-# fit model
 fit <- mod$sample(
   data = dat,
   init = inits,
@@ -41,11 +43,24 @@ fit <- mod$sample(
   threads_per_chain = 1
 )
 
-# check
+## Fit diagnostics
 fit$cmdstan_diagnose()
 
-# summarise fit
 fit$cmdstan_summary()
+
+# get posterior samples
+draws <- fit$draws()
+draws <- as_draws_df(draws)
+
+# get fit as stanfit object
+stanfit <- read_stan_csv(fit$output_files())
+np <- nuts_params(stanfit)
+mcmc_parcoord(fit$draws(),
+  np = np,
+  pars = vars(c("alpha", "rho", contains("eta"), "sigma"))
+)
+
+## Output
 
 # plot prevalence
 plot_prev(fit, prev[geography %in% region])
