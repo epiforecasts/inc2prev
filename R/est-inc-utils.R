@@ -12,34 +12,54 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   # nolint start
   # extract a single region for prevalence and build features
   prev <- copy(prev)[geography %in% region]
-  prev <- prev[, .(date,
+  prev <- prev[, .(
+    start_date = as.Date(start_date),
+    end_date = as.Date(end_date),
+    date = as.Date(date),
     prev = middle,
     sd = (upper - lower) / (2 * 1.96)
   )]
-  prev[, time := date - min(date)]
+  prev[, `:=`(
+    time = as.integer(date - min(start_date)),
+    stime = as.integer(start_date - min(start_date)),
+    etime = as.integer(end_date - min(start_date))
+  )]
 
   # summarise prob_detectable for simplicity
   prob_detectable <- melt(
     copy(prob_detectable),
     value.name = "p", id.vars = "sample"
   )
-  prob_detectable <- prob_detectable[, .(p = median(p)), by = variable]
   prob_detectable[, time := as.numeric(as.character(variable))]
-
+  prob_detectable <- prob_detectable[, .(
+    median = median(p),
+    mean = mean(p),
+    sd = sd(p)
+  ),
+  by = time
+  ]
+  prob_detectable <- prob_detectable[,
+    purrr::map(.SD, signif, digits = 3),
+    .SDcols = c("mean", "median", "sd"),
+    by = time
+  ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$p[ut]
+  baseline_inc <- prev$prev[1] * prob_detectable$mean[ut]
 
   # build stan data
   dat <- list(
     ut = ut,
-    ot = max(prev$time),
-    t = ut + max(prev$time),
+    ot = max(prev$etime),
+    t = ut + max(prev$etime),
     obs = length(prev$prev),
     prev = prev$prev,
     prev_sd2 = prev$sd^2,
     prev_time = prev$time,
-    prob_detect = rev(prob_detectable$p),
-    pbt = max(prob_detectable$time),
+    prev_stime = prev$stime,
+    prev_etime = prev$etime,
+    prob_detect_mean = rev(prob_detectable$mean),
+    prob_detect_sd = rev(prob_detectable$sd),
+    pbt = max(prob_detectable$time) + 1,
     N = population,
     inc_zero = log(baseline_inc / (baseline_inc + 1))
   )
@@ -64,6 +84,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
 }
 
 library(truncnorm)
+library(purrr)
 
 stan_inits <- function(dat) {
   inits <- function() {
@@ -71,7 +92,11 @@ stan_inits <- function(dat) {
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
-      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90))
+      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
+      prob_detect = purrr::map2_dbl(
+        dat$prob_detect_mean, dat$prob_detect_sd / 10,
+        ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
+      )
     )
   }
   return(inits)
@@ -105,26 +130,90 @@ plot_trend <- function(fit, var, date_start) {
     theme_minimal()
 }
 
-plot_prev <- function(fit, prev) {
-  fit$summary(
+plot_trace <- function(fit, var, date_start, samples = 100, alpha = 0.05,
+                       rev_time = FALSE) {
+  draws <- fit$draws(var) %>%
+    as_draws_df() %>%
+    as_tibble() %>%
+    mutate(sample = 1:n()) %>%
+    select(-.chain, -.iteration, -.draw) %>%
+    pivot_longer(
+      cols = -sample,
+      names_to = "date",
+      values_to = "value"
+    ) %>%
+    filter(sample <= samples) %>%
+    group_by(sample) %>%
+    mutate(time = 1:n(), date = date_start + time - 1)
+
+  if (rev_time) {
+    draws <- draws %>%
+      mutate(date = rev(date))
+  }
+  draws <- draws %>%
+    ungroup()
+
+  plot <- draws %>%
+    ggplot() +
+    aes(x = date, y = value, group = sample) +
+    geom_line(
+      data = draws, alpha = alpha
+    ) +
+    theme_minimal() +
+    labs(x = "Date")
+
+  if (!rev_time) {
+    plot <- plot +
+      scale_x_date(date_breaks = "1 month", date_labels = "%b %d")
+  }
+  return(plot)
+}
+
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+
+plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05) {
+  trace_plot <- plot_trace(
+    fit,
+    "pop_prev",
+    date_start = date_start,
+    samples = samples,
+    alpha = alpha
+  )
+
+  summary_prev <- fit$summary(
     variables = "est_prev",
     ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
   ) %>%
     mutate(
       date = prev$date + 3
-    ) %>%
-    ggplot() +
-    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    )
+
+  trace_plot +
+    scale_y_continuous(labels = scales::percent) +
+    labs(y = "Prevalence", x = "Date") +
     geom_linerange(
-      data = prev, aes(y = NULL, ymin = lower, ymax = upper),
-      size = 1.1
+      data = prev,
+      aes(y = NULL, ymin = lower, ymax = upper, group = NULL),
+      size = 1.1, col = "#331a1ab4",
     ) +
     geom_point(
-      data = prev, aes(y = middle, ymin = NULL, ymax = NULL),
-      col = "black", size = 1.1
+      data = prev,
+      aes(y = middle, ymin = NULL, ymax = NULL, group = NULL),
+      col = "black", size = 1.3
     ) +
-    geom_linerange(col = "lightblue", size = 1.1) +
-    geom_point(col = "#0eace0", size = 1.3) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
-    theme_minimal()
+    geom_linerange(
+      data = summary_prev,
+      aes(y = `50%`, ymin = `5%`, ymax = `95%`, group = NULL),
+      col = "lightblue", size = 1.1
+    ) +
+    geom_point(
+      data = summary_prev,
+      aes(y = `50%`, group = NULL),
+      col = "#0eace0",
+      size = 1.3
+    )
 }

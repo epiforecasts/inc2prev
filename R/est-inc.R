@@ -10,7 +10,9 @@ library(bayesplot)
 library(posterior)
 library(rstan)
 library(truncnorm)
-color_scheme_set("brightblue")
+library(purrr)
+library(scales)
+cols <- color_scheme_set("brightblue")
 
 ## Get tools
 source("R/est-inc-utils.R")
@@ -18,7 +20,7 @@ source("R/est-inc-utils.R")
 ## Read in data
 prev <- fread("data/ons-prev.csv")
 prob_detectable <- fread("data/prob_detectable.csv")
-min_date <- min(prev$date)
+min_date <- as.Date(min(prev$start_date))
 
 ## Format data
 region <- "England"
@@ -30,7 +32,7 @@ dat <- stan_data(prev, prob_detectable,
 ## Model prep
 mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions"),
-  cpp_options = list(stan_threads = TRUE)
+  cpp_options = list(stan_threads = FALSE)
 )
 
 inits <- stan_inits(dat)
@@ -57,37 +59,43 @@ np <- nuts_params(stanfit)
 # plot dts
 dts <- mcmc_parcoord(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
 )
 ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
 
 # pairs plot
 pairs <- mcmc_pairs(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
 )
 pairs
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
+# plot probability of detection prior vs posterior
 ## Output
 
-# plot prevalence
-plot_prev(fit, prev[geography %in% region])
-ggsave("figures/prevalence.png", width = 7, height = 5)
+# plot estimated prevalence
+plot_prev(fit, prev[geography %in% region], date_start = min_date, alpha = 0.03)
+ggsave("figures/prevalence.png", width = 9, height = 6)
+
+plot_trace(fit, "prob_detect", date_start = 0, rev_time = TRUE) +
+  labs(x = "Days since infection", y = "Probability of detection")
+ggsave("figures/probability-detection.png", width = 9, height = 6)
 
 # plot infections
-plot_trend(fit, "infections", date_start = min_date - dat$ut) +
-  labs(y = "Infections", x = "Date")
-ggsave("figures/infections.png", width = 7, height = 5)
+plot_trace(fit, "infections", date_start = min_date - dat$ut) +
+  labs(y = "Infections", x = "Date") +
+  scale_y_continuous(labels = scales::comma)
+ggsave("figures/infections.png", width = 9, height = 6)
 
 # plot growth
-plot_trend(fit, "r", date_start = min_date - dat$ut - 1) +
+plot_trace(fit, "r", date_start = min_date - dat$ut - 1) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
-ggsave("figures/growth.png", width = 7, height = 5)
+ggsave("figures/growth.png", width = 9, height = 6)
 
 # plot Rt
-plot_trend(fit, "R", date_start = min_date - dat$ut + 7) +
+plot_trace(fit, "R", date_start = min_date - dat$ut + 7) +
   labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
-ggsave("figures/Rt.png", width = 7, height = 5)
+ggsave("figures/Rt.png", width = 9, height = 6)
