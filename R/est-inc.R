@@ -18,7 +18,7 @@ source("R/est-inc-utils.R")
 ## Read in data
 prev <- fread("data/ons-prev.csv")
 prob_detectable <- fread("data/prob_detectable.csv")
-min_date <- min(prev$date)
+min_date <- min(prev$start_date)
 
 ## Format data
 region <- "England"
@@ -30,7 +30,7 @@ dat <- stan_data(prev, prob_detectable,
 ## Model prep
 mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions"),
-  cpp_options = list(stan_threads = TRUE)
+  cpp_options = list(stan_threads = FALSE)
 )
 
 inits <- stan_inits(dat)

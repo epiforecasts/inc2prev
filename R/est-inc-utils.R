@@ -12,11 +12,18 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   # nolint start
   # extract a single region for prevalence and build features
   prev <- copy(prev)[geography %in% region]
-  prev <- prev[, .(date,
+  prev <- prev[, .(
+    start_date = as.Date(start_date),
+    end_date = as.Date(end_date),
+    date = as.Date(date),
     prev = middle,
     sd = (upper - lower) / (2 * 1.96)
   )]
-  prev[, time := date - min(date)]
+  prev[, `:=`(
+    time = as.integer(date - min(start_date)),
+    stime = as.integer(start_date - min(start_date)),
+    etime = as.integer(end_date - min(start_date))
+  )]
 
   # summarise prob_detectable for simplicity
   prob_detectable <- melt(
@@ -32,12 +39,14 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   # build stan data
   dat <- list(
     ut = ut,
-    ot = max(prev$time),
-    t = ut + max(prev$time),
+    ot = max(prev$etime),
+    t = ut + max(prev$etime),
     obs = length(prev$prev),
     prev = prev$prev,
     prev_sd2 = prev$sd^2,
     prev_time = prev$time,
+    prev_stime = prev$stime,
+    prev_etime = prev$etime,
     prob_detect = rev(prob_detectable$p),
     pbt = max(prob_detectable$time),
     N = population,

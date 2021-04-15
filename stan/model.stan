@@ -12,7 +12,8 @@ data {
   int obs;
   vector[obs] prev;
   vector[obs] prev_sd2;
-  int prev_time[obs];
+  int prev_stime[obs];
+  int prev_etime[obs];
   int pbt;
   vector[pbt + 1] prob_detect;
   real lengthscale_alpha; // alpha for gp lengthscale prior
@@ -51,7 +52,7 @@ transformed parameters {
   // calculate detectable cases
   dcases = detectable_cases(infections, prob_detect, pbt + 1, t);
   // calculate observed detectable cases
-  odcases = observed_cases(dcases, prev_time, ut, obs);
+  odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
   odcases = odcases / N;
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
@@ -72,6 +73,9 @@ generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
   real est_prev[obs];
+  vector[t] pop_prev;
+  // population prevelence
+  pop_prev = dcases / N;
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   // sample generation time

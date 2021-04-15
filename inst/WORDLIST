@@ -3,6 +3,9 @@ convolve
 ctdist
 dcases
 epiforecasts
+EpiNow
+etime
+fns
 github
 gp
 gtm
@@ -16,8 +19,10 @@ ot
 pbt
 pmf
 prev
+prevelence
 rng
 sd
 stan
+stime
 submodule
 ut
