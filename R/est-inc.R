@@ -18,7 +18,7 @@ source("R/est-inc-utils.R")
 ## Read in data
 prev <- fread("data/ons-prev.csv")
 prob_detectable <- fread("data/prob_detectable.csv")
-min_date <- min(prev$start_date)
+min_date <- as.Date(min(prev$start_date))
 
 ## Format data
 region <- "England"
