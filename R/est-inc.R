@@ -11,6 +11,7 @@ library(posterior)
 library(rstan)
 library(truncnorm)
 library(purrr)
+library(scales)
 color_scheme_set("brightblue")
 
 ## Get tools
@@ -71,13 +72,11 @@ pairs
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
 # plot probability of detection prior vs posterior
-draws %>%
-  filter()
 ## Output
 
 # plot estimated prevalence
-plot_prev(fit, prev[geography %in% region])
-ggsave("figures/prevalence.png", width = 7, height = 5)
+plot_prev(fit, prev[geography %in% region], date_start = min_date)
+ggsave("figures/prevalence.png", width = 9, height = 6)
 
 plot_trend(fit, "prob_detect", date_start = min_date)
 ggsave("figures/probability-detection.png", width = 7, height = 5)
@@ -86,11 +85,6 @@ ggsave("figures/probability-detection.png", width = 7, height = 5)
 plot_trend(fit, "infections", date_start = min_date - dat$ut) +
   labs(y = "Infections", x = "Date")
 ggsave("figures/infections.png", width = 7, height = 5)
-
-# plot population prevalence
-plot_trend(fit, "pop_prev", date_start = min_date) +
-  labs(y = "Prevalence", x = "Date")
-ggsave("figures/population-prevalence.png", width = 7, height = 5)
 
 # plot growth
 plot_trend(fit, "r", date_start = min_date - dat$ut - 1) +

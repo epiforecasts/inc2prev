@@ -130,26 +130,57 @@ plot_trend <- function(fit, var, date_start) {
     theme_minimal()
 }
 
-plot_prev <- function(fit, prev) {
-  fit$summary(
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+
+plot_prev <- function(fit, prev, samples = 100, date_start) {
+  draws <- fit$draws("pop_prev") %>%
+    as_draws_df() %>%
+    as_tibble() %>%
+    mutate(sample = 1:n()) %>%
+    select(-.chain, -.iteration, -.draw) %>%
+    pivot_longer(
+      cols = -sample,
+      names_to = "date",
+      values_to = "value"
+    ) %>%
+    filter(sample <= samples) %>%
+    group_by(sample) %>%
+    mutate(time = 1:n(), date = date_start + time - 1) %>%
+    ungroup()
+
+  summary_prev <- fit$summary(
     variables = "est_prev",
     ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
   ) %>%
     mutate(
       date = prev$date + 3
-    ) %>%
+    )
+
+  summary_prev %>%
     ggplot() +
-    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    aes(x = date, y = `50%`) +
+    geom_line(
+      data = draws,
+      aes(y = value, group = sample), alpha = 0.03
+    ) +
     geom_linerange(
       data = prev, aes(y = NULL, ymin = lower, ymax = upper),
-      size = 1.1
+      size = 1.1, col = "#331a1ab4",
     ) +
     geom_point(
       data = prev, aes(y = middle, ymin = NULL, ymax = NULL),
-      col = "black", size = 1.1
+      col = "black", size = 1.3
     ) +
-    geom_linerange(col = "lightblue", size = 1.1) +
+    geom_linerange(
+      aes(ymin = `5%`, ymax = `95%`),
+      col = "lightblue", size = 1.1
+    ) +
     geom_point(col = "#0eace0", size = 1.3) +
+    scale_y_continuous(labels = scales::percent) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
-    theme_minimal()
+    theme_minimal() +
+    labs(y = "Prevalence", x = "Date")
 }
