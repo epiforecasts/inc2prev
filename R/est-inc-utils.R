@@ -8,10 +8,14 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
                         mean = 3.64, mean_sd = 0.71, sd = 3.08,
                         sd_sd = 0.77, max = 15
                       ),
-                      gp_m = 0.4, gp_ls = c(14, 90)) {
+                      gp_m = 0.3, gp_ls = c(14, 90)) {
   # nolint start
   # extract a single region for prevalence and build features
-  prev <- copy(prev)[geography %in% region][, .(date, prev = middle)]
+  prev <- copy(prev)[geography %in% region]
+  prev <- prev[, .(date,
+    prev = middle,
+    sd = (upper - lower) / (2 * 1.96)
+  )]
   prev[, time := date - min(date)]
 
   # summarise prob_detectable for simplicity
@@ -32,6 +36,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     t = ut + max(prev$time),
     obs = length(prev$prev),
     prev = prev$prev,
+    prev_sd2 = prev$sd^2,
     prev_time = prev$time,
     prob_detect = rev(prob_detectable$p),
     pbt = max(prob_detectable$time),
@@ -65,7 +70,8 @@ stan_inits <- function(dat) {
     list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
-      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
+      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
+      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90))
     )
   }
   return(inits)
@@ -109,13 +115,16 @@ plot_prev <- function(fit, prev) {
     ) %>%
     ggplot() +
     aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    geom_linerange(
+      data = prev, aes(y = NULL, ymin = lower, ymax = upper),
+      size = 1.1
+    ) +
     geom_point(
       data = prev, aes(y = middle, ymin = NULL, ymax = NULL),
-      col = "black"
+      col = "black", size = 1.1
     ) +
-    geom_linerange(data = prev, aes(y = NULL, ymin = lower, ymax = upper)) +
-    geom_point(col = "lightblue", size = 1.3) +
-    geom_linerange(col = "lightblue", size = 1.2) +
+    geom_linerange(col = "lightblue", size = 1.1) +
+    geom_point(col = "#0eace0", size = 1.3) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
     theme_minimal()
 }

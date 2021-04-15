@@ -10,7 +10,8 @@ data {
   int ot;
   int t;
   int obs;
-  real prev[obs];
+  vector[obs] prev;
+  vector[obs] prev_sd2;
   int prev_time[obs];
   int pbt;
   vector[pbt + 1] prob_detect;
@@ -42,6 +43,7 @@ transformed parameters {
   vector[t] infections;
   vector[t] dcases;
   vector[obs] odcases;
+  vector[obs] combined_sigma;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
@@ -51,6 +53,8 @@ transformed parameters {
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_time, ut, obs);
   odcases = odcases / N;
+  //combined standard error
+  combined_sigma = sqrt(square(sigma) + prev_sd2);
 }
 
 model {
@@ -61,7 +65,7 @@ model {
 
   // prevalence observation model
   sigma ~ normal(0.005, 0.0025) T[0,];
-  prev ~ normal(odcases, sigma);
+  prev ~ normal(odcases, combined_sigma);
 }
 
 generated quantities {
@@ -69,7 +73,7 @@ generated quantities {
   vector[t - 1] r;
   real est_prev[obs];
   // sample estimated prevalence
-  est_prev = normal_rng(odcases, sigma);
+  est_prev = normal_rng(odcases, combined_sigma);
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
