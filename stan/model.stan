@@ -67,7 +67,7 @@ model {
   eta ~ std_normal();
 
   // prevalence observation model
-  for (i in 1:(pbt + 1)) {
+  for (i in 1:pbt) {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
   }
   sigma ~ normal(0.005, 0.0025) T[0,];

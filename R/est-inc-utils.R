@@ -44,7 +44,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     by = time
   ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$p[ut]
+  baseline_inc <- prev$prev[1] * prob_detectable$mean[ut]
 
   # build stan data
   dat <- list(
