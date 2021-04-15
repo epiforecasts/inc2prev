@@ -30,9 +30,19 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     copy(prob_detectable),
     value.name = "p", id.vars = "sample"
   )
-  prob_detectable <- prob_detectable[, .(p = median(p)), by = variable]
   prob_detectable[, time := as.numeric(as.character(variable))]
-
+  prob_detectable <- prob_detectable[, .(
+    median = median(p),
+    mean = mean(p),
+    sd = sd(p)
+  ),
+  by = time
+  ]
+  prob_detectable <- prob_detectable[,
+    purrr::map(.SD, signif, digits = 3),
+    .SDcols = c("mean", "median", "sd"),
+    by = time
+  ]
   # define baseline incidence
   baseline_inc <- prev$prev[1] * prob_detectable$p[ut]
 
@@ -47,8 +57,9 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     prev_time = prev$time,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    prob_detect = rev(prob_detectable$p),
-    pbt = max(prob_detectable$time),
+    prob_detect_mean = rev(prob_detectable$mean),
+    prob_detect_sd = rev(prob_detectable$sd),
+    pbt = max(prob_detectable$time) + 1,
     N = population,
     inc_zero = log(baseline_inc / (baseline_inc + 1))
   )
@@ -73,6 +84,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
 }
 
 library(truncnorm)
+library(purrr)
 
 stan_inits <- function(dat) {
   inits <- function() {
@@ -80,7 +92,11 @@ stan_inits <- function(dat) {
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
-      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90))
+      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
+      prob_detect = purrr::map2_dbl(
+        dat$prob_detect_mean, dat$prob_detect_sd / 10,
+        ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
+      )
     )
   }
   return(inits)

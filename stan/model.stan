@@ -15,7 +15,8 @@ data {
   int prev_stime[obs];
   int prev_etime[obs];
   int pbt;
-  vector[pbt + 1] prob_detect;
+  vector[pbt] prob_detect_mean;
+  vector[pbt] prob_detect_sd;
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -31,12 +32,13 @@ transformed data {
   // set up approximate gaussian process
   matrix[t, M] PHI = setup_gp(M, L, t); 
 }
-  
+
 parameters {
   real<lower = 0> rho; // length scale
   real<lower = 0> alpha; // scale
   vector[M] eta; // eta
   real<lower = 0> sigma;
+  vector<lower = 0, upper = 1>[pbt] prob_detect;
 }
 
 transformed parameters {
@@ -50,7 +52,7 @@ transformed parameters {
   // relative probability of infection
   infections = N * inv_logit(inc_zero + gp);
   // calculate detectable cases
-  dcases = detectable_cases(infections, prob_detect, pbt + 1, t);
+  dcases = detectable_cases(infections, prob_detect, pbt, t);
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
   odcases = odcases / N;
@@ -65,6 +67,9 @@ model {
   eta ~ std_normal();
 
   // prevalence observation model
+  for (i in 1:(pbt + 1)) {
+    prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
+  }
   sigma ~ normal(0.005, 0.0025) T[0,];
   prev ~ normal(odcases, combined_sigma);
 }
@@ -73,9 +78,9 @@ generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
   real est_prev[obs];
-  vector[t] pop_prev;
+  vector[ot] pop_prev;
   // population prevelence
-  pop_prev = dcases / N;
+  pop_prev = dcases[(ut + 1):t] / N;
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   // sample generation time
