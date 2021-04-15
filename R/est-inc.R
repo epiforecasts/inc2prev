@@ -75,7 +75,7 @@ ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 ## Output
 
 # plot estimated prevalence
-plot_prev(fit, prev[geography %in% region], date_start = min_date)
+plot_prev(fit, prev[geography %in% region], date_start = min_date, alpha = 0.03)
 ggsave("figures/prevalence.png", width = 9, height = 6)
 
 plot_trace(fit, "prob_detect", date_start = 0, rev_time = TRUE) +

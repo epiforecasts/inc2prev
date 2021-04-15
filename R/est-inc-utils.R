@@ -175,7 +175,7 @@ library(ggplot2)
 library(tidyr)
 library(scales)
 
-plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.03) {
+plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05) {
   trace_plot <- plot_trace(
     fit,
     "pop_prev",
@@ -193,25 +193,26 @@ plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.03) {
     )
 
   trace_plot +
-    aes(group = NULL) +
     scale_y_continuous(labels = scales::percent) +
     labs(y = "Prevalence", x = "Date") +
     geom_linerange(
-      data = prev, aes(y = NULL, ymin = lower, ymax = upper),
+      data = prev,
+      aes(y = NULL, ymin = lower, ymax = upper, group = NULL),
       size = 1.1, col = "#331a1ab4",
     ) +
     geom_point(
-      data = prev, aes(y = middle, ymin = NULL, ymax = NULL),
+      data = prev,
+      aes(y = middle, ymin = NULL, ymax = NULL, group = NULL),
       col = "black", size = 1.3
     ) +
     geom_linerange(
       data = summary_prev,
-      aes(y = `50%`, ymin = `5%`, ymax = `95%`),
+      aes(y = `50%`, ymin = `5%`, ymax = `95%`, group = NULL),
       col = "lightblue", size = 1.1
     ) +
     geom_point(
       data = summary_prev,
-      aes(y = `50%`),
+      aes(y = `50%`, group = NULL),
       col = "#0eace0",
       size = 1.3
     )

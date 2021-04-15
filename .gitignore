@@ -1,5 +1,6 @@
 *.xlsx
 data-raw
 stan/model_threads
-figures
+figures/*
+!figures/readme
 *.pdf       
