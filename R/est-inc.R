@@ -58,23 +58,29 @@ np <- nuts_params(stanfit)
 # plot dts
 dts <- mcmc_parcoord(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
 )
 ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
 
 # pairs plot
 pairs <- mcmc_pairs(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "eta[2]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
 )
 pairs
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
+# plot probability of detection prior vs posterior
+draws %>%
+  filter()
 ## Output
 
 # plot estimated prevalence
 plot_prev(fit, prev[geography %in% region])
 ggsave("figures/prevalence.png", width = 7, height = 5)
+
+plot_trend(fit, "prob_detect", date_start = min_date)
+ggsave("figures/probability-detection.png", width = 7, height = 5)
 
 # plot infections
 plot_trend(fit, "infections", date_start = min_date - dat$ut) +
