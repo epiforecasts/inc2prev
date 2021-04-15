@@ -130,13 +130,9 @@ plot_trend <- function(fit, var, date_start) {
     theme_minimal()
 }
 
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(scales)
-
-plot_prev <- function(fit, prev, samples = 100, date_start) {
-  draws <- fit$draws("pop_prev") %>%
+plot_trace <- function(fit, var, date_start, samples = 100, alpha = 0.05,
+                       rev_time = FALSE) {
+  draws <- fit$draws(var) %>%
     as_draws_df() %>%
     as_tibble() %>%
     mutate(sample = 1:n()) %>%
@@ -148,8 +144,45 @@ plot_prev <- function(fit, prev, samples = 100, date_start) {
     ) %>%
     filter(sample <= samples) %>%
     group_by(sample) %>%
-    mutate(time = 1:n(), date = date_start + time - 1) %>%
+    mutate(time = 1:n(), date = date_start + time - 1)
+
+  if (rev_time) {
+    draws <- draws %>%
+      mutate(date = rev(date))
+  }
+  draws <- draws %>%
     ungroup()
+
+  plot <- draws %>%
+    ggplot() +
+    aes(x = date, y = value, group = sample) +
+    geom_line(
+      data = draws, alpha = alpha
+    ) +
+    theme_minimal() +
+    labs(x = "Date")
+
+  if (!rev_time) {
+    plot <- plot +
+      scale_x_date(date_breaks = "1 month", date_labels = "%b %d")
+  }
+  return(plot)
+}
+
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+
+plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.03) {
+  trace_plot <- plot_trace(
+    fit,
+    "pop_prev",
+    date_start = date_start,
+    samples = samples,
+    alpha = alpha
+  )
 
   summary_prev <- fit$summary(
     variables = "est_prev",
@@ -159,13 +192,10 @@ plot_prev <- function(fit, prev, samples = 100, date_start) {
       date = prev$date + 3
     )
 
-  summary_prev %>%
-    ggplot() +
-    aes(x = date, y = `50%`) +
-    geom_line(
-      data = draws,
-      aes(y = value, group = sample), alpha = 0.03
-    ) +
+  trace_plot +
+    aes(group = NULL) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(y = "Prevalence", x = "Date") +
     geom_linerange(
       data = prev, aes(y = NULL, ymin = lower, ymax = upper),
       size = 1.1, col = "#331a1ab4",
@@ -175,12 +205,14 @@ plot_prev <- function(fit, prev, samples = 100, date_start) {
       col = "black", size = 1.3
     ) +
     geom_linerange(
-      aes(ymin = `5%`, ymax = `95%`),
+      data = summary_prev,
+      aes(y = `50%`, ymin = `5%`, ymax = `95%`),
       col = "lightblue", size = 1.1
     ) +
-    geom_point(col = "#0eace0", size = 1.3) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
-    theme_minimal() +
-    labs(y = "Prevalence", x = "Date")
+    geom_point(
+      data = summary_prev,
+      aes(y = `50%`),
+      col = "#0eace0",
+      size = 1.3
+    )
 }
