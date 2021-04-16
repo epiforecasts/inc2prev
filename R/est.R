@@ -1,7 +1,5 @@
 ## Packages
-# install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos"))) # nolint
 library(cmdstanr)
-# install_cmdstan() # nolint
 library(data.table)
 library(EpiNow2)
 library(dplyr)
