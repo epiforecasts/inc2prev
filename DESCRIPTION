@@ -1,0 +1,32 @@
+Package: inc2prev
+Title: Estimate incidence from Prevalence Estimates
+Version: 0.1.0
+Authors@R: 
+    c(person(given = "Sam",
+             family = "Abbott",
+             role = c("aut", "cre"),
+             email = "sam.abbott@lshtm.ac.uk",
+             comment = c(ORCID = "0000-0001-8057-8037")))
+Description: Estimate incidence from prevalence estimates, currently
+    demonstrated using the Office for National Statistics COVID-19
+    prevalence estimates.
+License: BSD 3-Clause + file LICENSE
+Imports:
+    cmdstanr,
+    rstan,
+    EpiNow2, 
+    data.table,
+    dplyr,
+    ggplot2,
+    bayesplot,
+    posterior,
+    truncnorm,
+    purrr,
+    scales
+Additional_repositories: 
+    https://mc-stan.org/r-packages/,
+    https://epiforecasts.io/drat/
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
