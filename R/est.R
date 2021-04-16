@@ -69,7 +69,6 @@ pairs <- mcmc_pairs(fit$draws(),
 pairs
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
-# plot probability of detection prior vs posterior
 ## Output
 
 # plot estimated prevalence

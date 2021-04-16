@@ -175,7 +175,8 @@ library(ggplot2)
 library(tidyr)
 library(scales)
 
-plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05) {
+plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05,
+                      data_source = "ONS Prevalence") {
   trace_plot <- plot_trace(
     fit,
     "pop_prev",
@@ -189,31 +190,37 @@ plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05) {
     ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
   ) %>%
     mutate(
-      date = prev$date + 3
-    )
+      middle = `50%`,
+      lower = `5%`,
+      upper = `95%`,
+      date = prev$date + 2,
+      type = "Modelled"
+    ) %>%
+    bind_rows(prev %>%
+      mutate(
+        type = "Estimate",
+        date = date - 2
+      ))
 
   trace_plot +
     scale_y_continuous(labels = scales::percent) +
     labs(y = "Prevalence", x = "Date") +
     geom_linerange(
-      data = prev,
-      aes(y = NULL, ymin = lower, ymax = upper, group = NULL),
-      size = 1.1, col = "#331a1ab4",
-    ) +
-    geom_point(
-      data = prev,
-      aes(y = middle, ymin = NULL, ymax = NULL, group = NULL),
-      col = "black", size = 1.3
-    ) +
-    geom_linerange(
       data = summary_prev,
-      aes(y = `50%`, ymin = `5%`, ymax = `95%`, group = NULL),
-      col = "lightblue", size = 1.1
+      aes(
+        y = NULL, ymin = lower, ymax = upper, group = NULL,
+        col = type
+      ),
+      size = 1, alpha = 0.8
     ) +
     geom_point(
       data = summary_prev,
-      aes(y = `50%`, group = NULL),
-      col = "#0eace0",
-      size = 1.3
-    )
+      aes(
+        y = middle, ymin = NULL, ymax = NULL, group = NULL,
+        col = type
+      ), size = 1.1
+    ) +
+    theme(legend.position = "bottom") +
+    scale_color_brewer(palette = "Dark2") +
+    guides(col = guide_legend(title = data_source))
 }
