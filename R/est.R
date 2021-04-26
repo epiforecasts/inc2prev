@@ -18,6 +18,7 @@ cols <- color_scheme_set("brightblue")
 
 ## Get tools
 source("R/utils.R")
+source("R/fit.R")
 
 ## Read in data
 prev <- fread("data/ons-prev.csv")
@@ -37,58 +38,26 @@ mod <- cmdstan_model("stan/model.stan",
   include_paths = c("stan/functions", "ctdist/stan/functions")
 )
 
-incidence <- function(dat, model, cores = 4, p, ...) {
-  inits <- stan_inits(dat)
-
-  fit <- model$sample(
-    data = dat,
-    init = inits,
-    parallel_chains = cores,
-    ...
-  )
-  if (!missing(p)) {
-    p()
-  }
-  return(fit)
-}
-
-incidence_lapply <- function(dat_list, model, cores = 1, ...) {
-  p <- progressor(along = dat_list)
-  fits <- future_lapply(dat_list,
-    incidence,
-    model = model,
-    cores = cores,
-    p = p,
-    ...
-  )
-  return(fits)
-}
 
 plan("multicore")
 with_progress({
   fits <- incidence_lapply(dat_list, model = mod)
 })
 ## Fit diagnostics
+fit <- combine_incidence_fits(fits)
 
-fit$cmdstan_diagnose()
-
-# get posterior samples
-draws <- fit$draws()
-draws <- as_draws_df(draws)
-
-# get fit as stanfit object
-stanfit <- read_stan_csv(fit$output_files())
-np <- nuts_params(stanfit)
+draws <- as.array(fit)
+np <- nuts_params(fit)
 
 # plot dts
-dts <- mcmc_parcoord(fit$draws(),
+dts <- mcmc_parcoord(draws,
   np = np,
   pars = c("alpha", "rho", "eta[1]", "eta[10]", "sigma")
 )
 ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
 
 # pairs plot
-pairs <- mcmc_pairs(fit$draws(),
+pairs <- mcmc_pairs(draws,
   np = np,
   pars = c("alpha", "rho", "eta[1]", "eta[10]", "sigma")
 )

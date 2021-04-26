@@ -79,21 +79,6 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   return(dat_list)
 }
 
-library(truncnorm)
-library(purrr)
-
-stan_inits <- function(dat, n) {
-  inits <- function() {
-    list(
-      eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
-      alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
-      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
-      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90))
-    )
-  }
-  return(inits)
-}
-
 library(dplyr)
 library(ggplot2)
 
