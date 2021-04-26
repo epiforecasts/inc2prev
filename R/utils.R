@@ -26,25 +26,30 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   )]
 
   # summarise prob_detectable for simplicity
-  prob_detectable <- melt(
+  summarised_pb <- melt(
     copy(prob_detectable),
     value.name = "p", id.vars = "sample"
   )
-  prob_detectable[, time := as.numeric(as.character(variable))]
-  prob_detectable <- prob_detectable[, .(
+  summarised_pb[, time := as.numeric(as.character(variable))]
+  summarised_pb <- summarised_pb[, .(
     median = median(p),
     mean = mean(p),
     sd = sd(p)
   ),
   by = time
   ]
-  prob_detectable <- prob_detectable[,
+  summarised_pb <- summarised_pb[,
     purrr::map(.SD, signif, digits = 3),
     .SDcols = c("mean", "median", "sd"),
     by = time
   ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$mean[ut]
+  baseline_inc <- prev$prev[1] * summarised_pb$mean[ut]
+
+  # boostrapped probability of detection
+  pb_samples <- copy(prob_detectable)
+  pb_samples <- split(pb_samples, by = "sample")
+  pb_samples <- map(pb_samples, ~ rev(unlist(.[, sample := NULL])))
 
   # build stan data
   dat <- list(
@@ -57,9 +62,9 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     prev_time = prev$time,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    prob_detect_mean = rev(prob_detectable$mean),
-    prob_detect_sd = rev(prob_detectable$sd),
-    pbt = max(prob_detectable$time) + 1,
+    prob_detect = pb_samples,
+    pbt = length(pb_samples[1]),
+    pbn = length(pb_samples),
     N = population,
     inc_zero = log(baseline_inc / (baseline_inc + 1))
   )

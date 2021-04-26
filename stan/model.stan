@@ -15,8 +15,8 @@ data {
   int prev_stime[obs];
   int prev_etime[obs];
   int pbt;
-  int n;
-  vector[pbt] prob_detect[n];
+  int pbn;
+  vector[pbt] prob_detect[pbn];
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -43,14 +43,14 @@ parameters {
 transformed parameters {
   vector[t] gp;
   vector[t] infections;
-  vector[t] dcases[n];
-  vector[obs] odcases[n];
+  vector[t] dcases[pbn];
+  vector[obs] odcases[pbn];
   vector[obs] combined_sigma;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   infections = N * inv_logit(inc_zero + gp);
-  for (i in 1:n) {
+  for (i in 1:pbn) {
     // calculate detectable cases
     dcases[i] = detectable_cases(infections, prob_detect[i], pbt, t);
     // calculate observed detectable cases
@@ -69,7 +69,7 @@ model {
 
   // prevalence observation model
   sigma ~ normal(0.005, 0.0025) T[0,];
-  for (i in 1:n) {
+  for (i in 1:pbn) {
     prev ~ normal(odcases[i], combined_sigma);
   }
 }
@@ -77,15 +77,15 @@ model {
 generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
-  vector[obs] est_prev[n];
-  vector[ot] pop_prev[n];
+  vector[obs] est_prev[pbn];
+  vector[ot] pop_prev[pbn];
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, 7, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
   r = calculate_growth(infections, 1);
-  for (i in 1:n) {
+  for (i in 1:pbn) {
     // population prevelence
     pop_prev[i] = dcases[i][(ut + 1):t] / N;
     // sample estimated prevalence

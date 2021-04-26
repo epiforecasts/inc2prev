@@ -22,7 +22,8 @@ min_date <- as.Date(min(prev$start_date))
 
 ## Format data
 region <- "England"
-dat <- stan_data(prev, prob_detectable,
+dat <- stan_data(prev,
+  copy(prob_detectable)[sample <= 100],
   region = region,
   population = 56286961
 )
