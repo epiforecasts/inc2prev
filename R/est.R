@@ -10,6 +10,10 @@ library(rstan)
 library(truncnorm)
 library(purrr)
 library(scales)
+library(future.apply)
+library(progressr)
+library(future)
+
 cols <- color_scheme_set("brightblue")
 
 ## Get tools
@@ -22,29 +26,50 @@ min_date <- as.Date(min(prev$start_date))
 
 ## Format data
 region <- "England"
-dat <- stan_data(prev,
-  copy(prob_detectable)[sample <= 100],
+dat_list <- stan_data(prev,
+  copy(prob_detectable)[sample <= 10],
   region = region,
   population = 56286961
 )
 
 ## Model prep
 mod <- cmdstan_model("stan/model.stan",
-  include_paths = c("stan/functions", "ctdist/stan/functions"),
-  cpp_options = list(stan_threads = FALSE)
+  include_paths = c("stan/functions", "ctdist/stan/functions")
 )
 
-inits <- stan_inits(dat)
+incidence <- function(dat, model, cores = 4, p, ...) {
+  inits <- stan_inits(dat)
 
-## Fit model
-fit <- mod$sample(
-  data = dat,
-  init = inits,
-  parallel_chains = 4,
-  threads_per_chain = 1
-)
+  fit <- model$sample(
+    data = dat,
+    init = inits,
+    parallel_chains = cores,
+    ...
+  )
+  if (!missing(p)) {
+    p()
+  }
+  return(fit)
+}
 
+incidence_lapply <- function(dat_list, model, cores = 1, ...) {
+  p <- progressor(along = dat_list)
+  fits <- future_lapply(dat_list,
+    incidence,
+    model = model,
+    cores = cores,
+    p = p,
+    ...
+  )
+  return(fits)
+}
+
+plan("multicore")
+with_progress({
+  fits <- incidence_lapply(dat_list, model = mod)
+})
 ## Fit diagnostics
+
 fit$cmdstan_diagnose()
 
 # get posterior samples
@@ -58,14 +83,14 @@ np <- nuts_params(stanfit)
 # plot dts
 dts <- mcmc_parcoord(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "eta[10]", "sigma")
 )
 ggsave("figures/divergent-transitions.png", dts, width = 7, height = 5)
 
 # pairs plot
 pairs <- mcmc_pairs(fit$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
+  pars = c("alpha", "rho", "eta[1]", "eta[10]", "sigma")
 )
 pairs
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)

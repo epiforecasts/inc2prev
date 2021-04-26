@@ -4,3 +4,4 @@ stan/model_threads
 figures/*
 !figures/readme
 *.pdf       
+stan/model

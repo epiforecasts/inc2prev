@@ -25,33 +25,12 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     etime = as.integer(end_date - min(start_date))
   )]
 
-  # summarise prob_detectable for simplicity
-  summarised_pb <- melt(
-    copy(prob_detectable),
-    value.name = "p", id.vars = "sample"
-  )
-  summarised_pb[, time := as.numeric(as.character(variable))]
-  summarised_pb <- summarised_pb[, .(
-    median = median(p),
-    mean = mean(p),
-    sd = sd(p)
-  ),
-  by = time
-  ]
-  summarised_pb <- summarised_pb[,
-    purrr::map(.SD, signif, digits = 3),
-    .SDcols = c("mean", "median", "sd"),
-    by = time
-  ]
-  # define baseline incidence
-  baseline_inc <- prev$prev[1] * summarised_pb$mean[ut]
-
   # boostrapped probability of detection
   pb_samples <- copy(prob_detectable)
   pb_samples <- split(pb_samples, by = "sample")
   pb_samples <- map(pb_samples, ~ rev(unlist(.[, sample := NULL])))
 
-  # build stan data
+  # define common data
   dat <- list(
     ut = ut,
     ot = max(prev$etime),
@@ -62,11 +41,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     prev_time = prev$time,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    prob_detect = pb_samples,
-    pbt = length(pb_samples[1]),
-    pbn = length(pb_samples),
-    N = population,
-    inc_zero = log(baseline_inc / (baseline_inc + 1))
+    N = population
   )
 
   # gaussian process parameters
@@ -85,23 +60,35 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   dat$gtsd <- unlist(gt[c("sd", "sd_sd")])
   dat$gtmax <- unlist(gt[c("max")])
   # nolint end
-  return(dat)
+
+  dat_list <- map(seq_along(pb_samples), function(i) {
+    # define baseline incidence
+    baseline_inc <- prev$prev[1] * pb_samples[[i]][length(pb_samples[[i]]) - ut]
+
+    # build stan data
+    sample_dat <- list(
+      prob_detect = pb_samples[[i]],
+      pbt = length(pb_samples[[i]]),
+      inc_zero = log(baseline_inc / (baseline_inc + 1))
+    )
+
+    return(c(dat, sample_dat))
+  })
+
+  # nolint end
+  return(dat_list)
 }
 
 library(truncnorm)
 library(purrr)
 
-stan_inits <- function(dat) {
+stan_inits <- function(dat, n) {
   inits <- function() {
     list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
-      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      prob_detect = purrr::map2_dbl(
-        dat$prob_detect_mean, dat$prob_detect_sd / 10,
-        ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
-      )
+      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90))
     )
   }
   return(inits)

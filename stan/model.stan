@@ -15,8 +15,7 @@ data {
   int prev_stime[obs];
   int prev_etime[obs];
   int pbt;
-  int pbn;
-  vector[pbt] prob_detect[pbn];
+  vector[pbt] prob_detect;
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -43,20 +42,18 @@ parameters {
 transformed parameters {
   vector[t] gp;
   vector[t] infections;
-  vector[t] dcases[pbn];
-  vector[obs] odcases[pbn];
+  vector[t] dcases;
+  vector[obs] odcases;
   vector[obs] combined_sigma;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   infections = N * inv_logit(inc_zero + gp);
-  for (i in 1:pbn) {
-    // calculate detectable cases
-    dcases[i] = detectable_cases(infections, prob_detect[i], pbt, t);
-    // calculate observed detectable cases
-    odcases[i] = observed_cases(dcases[i], prev_stime, prev_etime, ut, obs);
-    odcases[i] = odcases[i] / N;
-  }
+  // calculate detectable cases
+  dcases = detectable_cases(infections, prob_detect, pbt, t);
+  // calculate observed detectable cases
+  odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
+  odcases = odcases / N;
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
 }
@@ -69,27 +66,23 @@ model {
 
   // prevalence observation model
   sigma ~ normal(0.005, 0.0025) T[0,];
-  for (i in 1:pbn) {
-    prev ~ normal(odcases[i], combined_sigma);
-  }
+  prev ~ normal(odcases, combined_sigma);
 }
 
 generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
-  vector[obs] est_prev[pbn];
-  vector[ot] pop_prev[pbn];
+  vector[obs] est_prev;
+  vector[ot] pop_prev;
+  // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, 7, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
   r = calculate_growth(infections, 1);
-  for (i in 1:pbn) {
-    // population prevelence
-    pop_prev[i] = dcases[i][(ut + 1):t] / N;
-    // sample estimated prevalence
-    est_prev[i] = to_vector(normal_rng(odcases[i], combined_sigma));
-    // sample generation time
-  }
+  // population prevelence
+  pop_prev = dcases[(ut + 1):t] / N;
+  // sample estimated prevalence
+  est_prev = to_vector(normal_rng(odcases, combined_sigma));
 }
