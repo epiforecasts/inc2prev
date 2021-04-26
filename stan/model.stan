@@ -15,8 +15,8 @@ data {
   int prev_stime[obs];
   int prev_etime[obs];
   int pbt;
-  vector[pbt] prob_detect_mean;
-  vector[pbt] prob_detect_sd;
+  int n;
+  vector[pbt] prob_detect[n];
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -38,24 +38,25 @@ parameters {
   real<lower = 0> alpha; // scale
   vector[M] eta; // eta
   real<lower = 0> sigma;
-  vector<lower = 0, upper = 1>[pbt] prob_detect;
 }
 
 transformed parameters {
   vector[t] gp;
   vector[t] infections;
-  vector[t] dcases;
-  vector[obs] odcases;
+  vector[t] dcases[n];
+  vector[obs] odcases[n];
   vector[obs] combined_sigma;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   infections = N * inv_logit(inc_zero + gp);
-  // calculate detectable cases
-  dcases = detectable_cases(infections, prob_detect, pbt, t);
-  // calculate observed detectable cases
-  odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
-  odcases = odcases / N;
+  for (i in 1:n) {
+    // calculate detectable cases
+    dcases[i] = detectable_cases(infections, prob_detect[i], pbt, t);
+    // calculate observed detectable cases
+    odcases[i] = observed_cases(dcases[i], prev_stime, prev_etime, ut, obs);
+    odcases[i] = odcases[i] / N;
+  }
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
 }
@@ -67,18 +68,17 @@ model {
   eta ~ std_normal();
 
   // prevalence observation model
-  for (i in 1:pbt) {
-    prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
-  }
   sigma ~ normal(0.005, 0.0025) T[0,];
-  prev ~ normal(odcases, combined_sigma);
+  for (i in 1:n) {
+    prev ~ normal(odcases[i], combined_sigma);
+  }
 }
 
 generated quantities {
   vector[t - 7] R;
   vector[t - 1] r;
   real est_prev[obs];
-  vector[ot] pop_prev;
+  vector[ot] pop_prev[n];
   // population prevelence
   pop_prev = dcases[(ut + 1):t] / N;
   // sample estimated prevalence
