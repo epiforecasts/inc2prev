@@ -1,5 +1,4 @@
 ## Packages
-library(cmdstanr)
 library(data.table)
 library(EpiNow2)
 library(dplyr)
@@ -18,34 +17,37 @@ cols <- color_scheme_set("brightblue")
 
 ## Get tools
 source("R/utils.R")
-source("R/fit.R")
+source("R/incidence.R")
 
 ## Read in data
 prev <- fread("data/ons-prev.csv")
-prob_detectable <- fread("data/prob_detectable.csv")
+load("data/prob_detectable.rda")
 min_date <- as.Date(min(prev$start_date))
 
 ## Format data
-region <- "England"
-dat_list <- stan_data(prev,
+dat_list <- incidence_data(copy(prev)[geography %in% "England"],
   copy(prob_detectable)[sample <= 10],
-  region = region,
   population = 56286961
 )
 
 ## Model prep
-mod <- cmdstan_model("stan/model.stan",
-  include_paths = c("stan/functions", "ctdist/stan/functions")
-)
+mod <- stan_model("stan/inc2prev.stan")
+options(mc.cores = 4)
+fit <- incidence(dat_list[[1]], mod, iter = 1000, warmup = 500, chains = 4)
 
-
-plan("multicore")
-with_progress({
-  fits <- incidence_lapply(dat_list, model = mod)
-})
+# nolint start
+# plan("multicore")
+# with_progress({
+#  fits <- incidence_lapply(dat_list,
+#    model = mod, iter = 500,
+#    warmup = 250, chains = 2, refresh = -1
+#  )
+# })
 ## Fit diagnostics
-fit <- combine_incidence_fits(fits)
+# fit <- combine_incidence_fits(fits)
+# nolint end
 
+draws <- spread_draws(fit)
 draws <- as.array(fit)
 np <- nuts_params(fit)
 

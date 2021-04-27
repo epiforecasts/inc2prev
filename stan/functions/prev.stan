@@ -1,10 +1,10 @@
 // Test using EpiNow2::expose_stan_fns("prev.stan", "stan/functions")
 // convolve a pdf and case vector
-vector detectable_cases(vector cases, vector pmf, int max_pmf, int t) {
+vector detectable_cases(vector cases, vector[] pmf, int max_pmf, int t) {
     vector[t] conv_cases = rep_vector(1e-5, t);
     for (s in 1:t) {
         conv_cases[s] += dot_product(cases[max(1, (s - max_pmf + 1)):s],
-                                     tail(pmf, min(max_pmf, s)));
+                                     tail(pmf[t], min(max_pmf, s)));
     }
    return(conv_cases);
   }

@@ -1,99 +1,15 @@
-library(data.table)
-library(EpiNow2)
-
-# define required stan data
-stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
-                      population = 56286961,
-                      gt = list(
-                        mean = 3.64, mean_sd = 0.71, sd = 3.08,
-                        sd_sd = 0.77, max = 15
-                      ),
-                      gp_m = 0.3, gp_ls = c(14, 90)) {
-  # nolint start
-  # extract a single region for prevalence and build features
-  prev <- copy(prev)[geography %in% region]
-  prev <- prev[, .(
-    start_date = as.Date(start_date),
-    end_date = as.Date(end_date),
-    date = as.Date(date),
-    prev = middle,
-    sd = (upper - lower) / (2 * 1.96)
-  )]
-  prev[, `:=`(
-    time = as.integer(date - min(start_date)),
-    stime = as.integer(start_date - min(start_date)),
-    etime = as.integer(end_date - min(start_date))
-  )]
-
-  # boostrapped probability of detection
-  pb_samples <- copy(prob_detectable)
-  pb_samples <- split(pb_samples, by = "sample")
-  pb_samples <- map(pb_samples, ~ rev(unlist(.[, sample := NULL])))
-
-  # define common data
-  dat <- list(
-    ut = ut,
-    ot = max(prev$etime),
-    t = ut + max(prev$etime),
-    obs = length(prev$prev),
-    prev = prev$prev,
-    prev_sd2 = prev$sd^2,
-    prev_time = prev$time,
-    prev_stime = prev$stime,
-    prev_etime = prev$etime,
-    N = population
-  )
-
-  # gaussian process parameters
-  dat$M <- ceiling(dat$t * gp_m)
-  dat$L <- 2
-  if (is.na(gp_ls[2])) {
-    gp_ls[2] <- dat$t
-  }
-  gp_ls
-  lsp <- EpiNow2::tune_inv_gamma(gp_ls[1], gp_ls[2])
-  dat$lengthscale_alpha <- lsp$alpha
-  dat$lengthscale_beta <- lsp$beta
-
-  # define generation time
-  dat$gtm <- unlist(gt[c("mean", "mean_sd")])
-  dat$gtsd <- unlist(gt[c("sd", "sd_sd")])
-  dat$gtmax <- unlist(gt[c("max")])
-  # nolint end
-
-  dat_list <- map(seq_along(pb_samples), function(i) {
-    # define baseline incidence
-    baseline_inc <- prev$prev[1] * pb_samples[[i]][length(pb_samples[[i]]) - ut]
-
-    # build stan data
-    sample_dat <- list(
-      prob_detect = pb_samples[[i]],
-      pbt = length(pb_samples[[i]]),
-      inc_zero = log(baseline_inc / (baseline_inc + 1))
-    )
-
-    return(c(dat, sample_dat))
-  })
-
-  # nolint end
-  return(dat_list)
-}
-
 library(dplyr)
 library(ggplot2)
+library(data.table)
 
 # plot trend with date over time
-plot_trend <- function(fit, var, date_start) {
-  fit$summary(
-    variables = var,
-    ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
-  ) %>%
-    mutate(
-      time = 1:n(),
-      date = date_start + time - 1
-    ) %>%
-    ggplot() +
-    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+plot_trend <- function(fit, var, start_date) {
+  dt <- summary(fit, pars = var)$summary
+  dt <- data.table::setDT(dt)
+  dt <- dt[, time := 1:data.table::.N][date := start_date + time - 1]
+
+    ggplot(dt) +
+    aes(x = date, y = `50%`, ymin = `2.5%`, ymax = `97.5%`) +
     geom_line(col = "lightblue", size = 1.4) +
     geom_ribbon(
       fill = "lightblue", alpha = 0.4,
@@ -101,7 +17,7 @@ plot_trend <- function(fit, var, date_start) {
     ) +
     geom_ribbon(
       fill = "lightblue", alpha = 0.4,
-      col = NA, aes(ymin = `20%`, ymax = `80%`)
+      col = NA, aes(ymin = `25%`, ymax = `75%`)
     ) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
     theme_minimal()
@@ -109,7 +25,12 @@ plot_trend <- function(fit, var, date_start) {
 
 plot_trace <- function(fit, var, date_start, samples = 100, alpha = 0.05,
                        rev_time = FALSE) {
-  draws <- fit$draws(var) %>%
+
+  draws <- rstan::extract(fit)
+  draws <- setDT(
+    as.data.frame(draws[[var]])
+  )
+
     as_draws_df() %>%
     as_tibble() %>%
     mutate(sample = 1:n()) %>%
