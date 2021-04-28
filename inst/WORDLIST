@@ -5,6 +5,7 @@ aut
 bayesplot
 cdf
 cmdstanr
+Config
 conv
 convolve
 convolved
@@ -71,6 +72,7 @@ sR
 stan
 stime
 submodule
+testthat
 trunc
 truncnorm
 uk

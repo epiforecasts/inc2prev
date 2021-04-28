@@ -1,14 +1,24 @@
-library(dplyr)
-library(ggplot2)
-library(data.table)
-
 # plot trend with date over time
+
+#' FUNCTION_TITLE
+#'
+#' FUNCTION_DESCRIPTION
+#'
+#' @param fit DESCRIPTION.
+#' @param var DESCRIPTION.
+#' @param start_date DESCRIPTION.
+#' @import data.table
+#' @import ggplot2
+#' @import data.table
+#' @return RETURN_DESCRIPTION
+#' @examples
+#' # ADD_EXAMPLES_HERE
 plot_trend <- function(fit, var, start_date) {
   dt <- summary(fit, pars = var)$summary
   dt <- data.table::setDT(dt)
-  dt <- dt[, time := 1:data.table::.N][date := start_date + time - 1]
+  dt <- dt[, time := 1:.N][date := start_date + time - 1]
 
-    ggplot(dt) +
+  ggplot(dt) +
     aes(x = date, y = `50%`, ymin = `2.5%`, ymax = `97.5%`) +
     geom_line(col = "lightblue", size = 1.4) +
     geom_ribbon(
@@ -23,15 +33,14 @@ plot_trend <- function(fit, var, start_date) {
     theme_minimal()
 }
 
-plot_trace <- function(fit, var, date_start, samples = 100, alpha = 0.05,
+plot_trace <- function(fit, var, start_date, samples = 100, alpha = 0.05,
                        rev_time = FALSE) {
-
   draws <- rstan::extract(fit)
   draws <- setDT(
     as.data.frame(draws[[var]])
   )
 
-    as_draws_df() %>%
+  as_draws_df() %>%
     as_tibble() %>%
     mutate(sample = 1:n()) %>%
     select(-.chain, -.iteration, -.draw) %>%
