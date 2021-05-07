@@ -12,11 +12,9 @@ Description: Estimate incidence from prevalence estimates, currently
     prevalence estimates.
 License: BSD 3-Clause + file LICENSE
 Imports:
-    cmdstanr,
     rstan,
     EpiNow2, 
     data.table,
-    dplyr,
     ggplot2,
     bayesplot,
     posterior,
