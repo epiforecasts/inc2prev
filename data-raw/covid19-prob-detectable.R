@@ -24,10 +24,10 @@ prob_cont <- function(time_since_inf) {
 }
 
 # Can pass a vector of quantiles
-prob_detectable <- map_df(0:60, prob_cont)
-prob_detectable <- dcast(prob_detectable,
+covid19_prob_detectable <- map_df(0:60, prob_cont)
+covid19_prob_detectable <- dcast(covid19_prob_detectable,
   sample ~ time,
   value.var = "p"
 )
 
-usethis::use_data(prob_detectable, overwrite = TRUE)
+usethis::use_data(covid19_prob_detectable, overwrite = TRUE)

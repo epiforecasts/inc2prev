@@ -1,15 +1,19 @@
 library(data.table)
-library(EpiNow2)
 
 # define required stan data
-incidence_data <- function(prev, prob_detectable, ut = 14,
+incidence_data <- function(observations, prob_detectable, ut = 14,
                            population = 56286961,
                            gt = list(
                              mean = 3.64, mean_sd = 0.71, sd = 3.08,
                              sd_sd = 0.77, max = 15
-                           ), gp_m = 0.3, gp_l = 2, gp_ls = c(14, 90)) {
+                           ),
+                           gp_m = 0.3,
+                           gp_l = 2,
+                           gp_ls = c(14, 90),
+                           gp_ls_tuner) {
   # nolint start
   # extract a single region for prevalence and build features
+  prev <- copy(observations)
   prev <- prev[, .(
     start_date = as.Date(start_date),
     end_date = as.Date(end_date),
@@ -48,7 +52,11 @@ incidence_data <- function(prev, prob_detectable, ut = 14,
   if (is.na(gp_ls[2])) {
     gp_ls[2] <- dat$t
   }
-  lsp <- EpiNow2::tune_inv_gamma(gp_ls[1], gp_ls[2])
+
+  if (missing(gp_ls_tuner)) {
+    gp_ls_tuner <- load_model("tune_inv_gamma")
+  }
+  lsp <- tune_inv_gamma(gp_ls_tuner, gp_ls[1], gp_ls[2])
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
 
@@ -92,18 +100,24 @@ incidence_inits <- function(dat, n) {
   inits <- function() {
     list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
-      alpha = truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0),
-      sigma = truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0),
-      rho = truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)
+      alpha = rtruncnorm(1, mean = 0, sd = 0.1, a = 0),
+      sigma = rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0),
+      rho = rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)
     )
   }
   return(inits)
 }
 
+
+
 incidence <- function(dat, model,
                       inits_fn = incidence_inits,
                       fit_fn = rstan::sampling, p, ...) {
   inits <- inits_fn(dat)
+
+  if (missing(model)) {
+    model <- load_model("tune_inv_gamma")
+  }
 
   fit <- do.call(fit_fn, list(
     object = model,
@@ -118,7 +132,7 @@ incidence <- function(dat, model,
 }
 
 incidence_lapply <- function(dat_list, model, cores = 1, ...) {
-  p <- progressr::progressor(along = dat_list)
+  p <- progressor(along = dat_list)
   fits <- future_lapply(dat_list,
     incidence,
     model = model,
@@ -131,6 +145,6 @@ incidence_lapply <- function(dat_list, model, cores = 1, ...) {
 }
 
 combine_incidence_fits <- function(incidence_list) {
-  incidence <- rstan::sflist2stanfit(incidence_list)
+  incidence <- sflist2stanfit(incidence_list)
   return(incidence)
 }

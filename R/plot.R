@@ -1,10 +1,29 @@
-
-#' Plot summarised trend over time in posteriors
+#' Plot method for inc2prev
 #'
-#' @inheritparams extract_parameter
+#' @description Plot method for models fit using the `inc2prev` package.
+#' @param x A model fit using the `incidence()` method.
+#' @param type A character vector indicating the plot method to use. Supported
+#' options are "cri" (plot credible intervals), "trace" (plot posterior
+#' samples), and "obs" (plot observations against the posterior).
+#' @param ... Pass additional arguments to underlying plot functions
+#' @aliases plot
+#' @method plot inc2prev
 #' @return A `ggplot2` object
-plot_trend <- function(fit, var, start_date) {
-  dt <- summarise_dated_parameter(fit, var, start_date)
+#' @export
+plot.inc2prev <- function(type = "trace", ...) {
+  type <- match.arg(type, choices = c("cri", "trace", "obs"))
+
+  do.call(paste0("plot_", type), ...)
+}
+
+#' Plot posterior credible intervals over time
+#'
+#' @inheritParams summarise_dated_parameter
+#' @return A `ggplot2` object
+plot_cri <- function(fit, var, start_date) {
+  dt <- summarise_dated_parameter(
+    fit, var, start_date
+  )
 
   ggplot(dt) +
     aes(x = date, y = `50%`, ymin = `2.5%`, ymax = `97.5%`) +
@@ -28,9 +47,8 @@ plot_trend <- function(fit, var, start_date) {
 #' samples to extract.
 #' @param alpha Numeric, defaults to 0.05. The alpha value to use in
 #' the`ggplot2`  plot for the individual posterior traces.
-#' @inheritParams extracted_dated_parameter
+#' @inheritParams extract_dated_parameter
 #' @return A `ggplot2` object
-#' @importFrom rstan extract
 plot_trace <- function(fit, var, start_date, samples = 100, alpha = 0.05) {
   draws <- extract_dated_parameter(
     fit = fit,
@@ -50,36 +68,47 @@ plot_trace <- function(fit, var, start_date, samples = 100, alpha = 0.05) {
   return(plot)
 }
 
-
-plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05,
-                      data_source = "ONS Prevalence") {
+#' Plot observations against posterior samples over time
+#'
+#' @param data_source A character string indicating the label to use to
+#' identify the observations.
+#' @inheritParams incidence_data
+#' @inheritParams plot_trace
+#' @return A `ggplot2` object
+#' @importFrom scales percent
+plot_obs <- function(fit, observations, samples = 100, start_date,
+                     alpha = 0.05, data_source) {
   trace_plot <- plot_trace(
     fit,
     "pop_prev",
-    date_start = date_start,
+    start_date = start_date,
     samples = samples,
     alpha = alpha
   )
 
   summary_prev <- summarise_dated_parameter(
     var = "est_prev",
-    start_date = prev_date + 2
-  ) %>%
-    mutate(
+    start_date = start_date,
+
+  )
+
+  summary_prev <- summary_prev[
+    ,
+    `:=`(
       middle = `50%`,
       lower = `5%`,
       upper = `95%`,
-      date = prev$date + 2,
+      date = observations$date,
       type = "Modelled"
-    ) %>%
-    bind_rows(prev %>%
-      mutate(
-        type = "Estimate",
-        date = date - 2
-      ))
+    )
+  ]
+  summary_pre <- rbind(
+    summary_prev,
+    copy(observations)[, `:=`(type = "Estimate", date = prev$date)]
+  )
 
   trace_plot +
-    scale_y_continuous(labels = scales::percent) +
+    scale_y_continuous(labels = percent) +
     labs(y = "Prevalence", x = "Date") +
     geom_linerange(
       data = summary_prev,

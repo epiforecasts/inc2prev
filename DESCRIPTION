@@ -7,9 +7,7 @@ Authors@R:
              role = c("aut", "cre"),
              email = "sam.abbott@lshtm.ac.uk",
              comment = c(ORCID = "0000-0001-8057-8037")))
-Description: Estimate incidence from prevalence estimates, currently
-    demonstrated using the Office for National Statistics COVID-19
-    prevalence estimates.
+Description: Estimate incidence from prevalence estimates.
 License: BSD 3-Clause + file LICENSE
 Imports:
     rstan,

@@ -1,31 +1,3 @@
-#' Expose internal package stan functions in R
-#'
-#' @description This function exposes internal stan functions in R from a user
-#' supplied list of target files. Allows for testing of stan functions in R and
-#' potentially user use in R code.
-#' @source https://github.com/epiforecasts/EpiNow2/
-#' @param files A character vector indicating the target files
-#' @param target_dir A character string indicating the target directory for the
-#' file
-#' @param ... Additional arguments passed to `rstan::expose_stan_functions`.
-#' @return NULL
-#' @export
-#' @importFrom rstan expose_stan_functions stanc
-#' @importFrom purrr map_chr
-expose_stan_fns <- function(files, target_dir, ...) {
-  functions <- paste0(
-    "\n functions{ \n",
-    paste(purrr::map_chr(
-      files,
-      ~ paste(readLines(file.path(target_dir, .)), collapse = "\n")
-    ),
-    collapse = "\n"
-    ),
-    "\n }"
-  )
-  expose_stan_functions(stanc(model_code = functions), ...)
-  return(invisible(NULL))
-}
 
 #' Extract samples for a parameter with a date dimension from a Stan model
 #'
@@ -34,6 +6,7 @@ expose_stan_fns <- function(files, target_dir, ...) {
 #' @param fit An `rstanfit` object produced by `incidence()`
 #' @param var Character string, variable to plot.
 #' @param start_date A date, used to index the time plot.
+#' @export
 #' @return A data frame containing the parameter name, date, sample id and
 #' sample value
 extract_dated_parameter <- function(fit, var, start_date) {
@@ -64,6 +37,7 @@ extract_dated_parameter <- function(fit, var, start_date) {
 #' @description Extracts a single parameter with a date dimension from a list
 #' of `stan` output and returns it as a `data.table`.
 #' @inheritParams extract_dated_parameter
+#' @export
 #' @return A data frame containing the parameter name, date, and summary
 #' parameters
 summarise_dated_parameter <- function(fit, var, start_date) {
@@ -77,11 +51,13 @@ summarise_dated_parameter <- function(fit, var, start_date) {
 #' Extract samples from a parameter with a single dimension
 #'
 #' @inheritParams extract_dated_parameter
-#' @return A data frame containing the parameter name, sample id and sample value
+#' @export
+#' @return A data frame containing the parameter name, sample id and sample
+#' value.
 extract_static_parameter <- function(param, samples) {
   data.table(
     parameter = param,
-    sample = 1:length(samples[[param]]),
+    sample = seq_length(samples[[param]]),
     value = samples[[param]]
   )
 }
