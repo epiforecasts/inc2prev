@@ -89,7 +89,6 @@ plot_obs <- function(fit, observations, samples = 100, start_date,
   summary_prev <- summarise_dated_parameter(
     var = "est_prev",
     start_date = start_date,
-
   )
 
   summary_prev <- summary_prev[

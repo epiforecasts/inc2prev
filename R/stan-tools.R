@@ -23,12 +23,17 @@ expose_stan_fns <- function(files, target_dir, ...) {
     ),
     "\n }"
   )
-  expose_stan_functions(stanc(model_code = functions), ...)
+  expose_stan_functions(
+    stanc(
+      model_code = functions
+    ),
+    ...
+  )
   return(invisible(NULL))
 }
 
 load_model <- function(model = "inc2prev", ...) {
-  model <- match.arg(model, choics = c("inc2prev", "tune_inv_gamma"))
+  model <- match.arg(model, choices = c("inc2prev", "tune_inv_gamma"))
   stan_model(
     file = system.file(paste0("stan/", model, ".stan"), package = "inc2prev"),
     ...
@@ -54,7 +59,7 @@ load_model <- function(model = "inc2prev", ...) {
 #' tune_inv_gamma()
 tune_inv_gamma <- function(model, lower = 14, upper = 90) {
   if (missing(model)) {
-      model <- load_model("tune_inv_gamma")
+    model <- load_model("tune_inv_gamma")
   }
   # optimise for correct upper and lower probabilites
   fit <- sampling(model,
@@ -69,8 +74,12 @@ tune_inv_gamma <- function(model, lower = 14, upper = 90) {
     refresh = 0
   )
 
-  alpha <- extract(fit, "alpha")
-  beta <- extract(fit, "beta")
+  alpha <- extract(
+    fit, "alpha"
+  )
+  beta <- extract(
+    fit, "beta"
+  )
 
   out <- list(
     alpha = round(unlist(unname(alpha)), 1),
