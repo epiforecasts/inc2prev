@@ -33,10 +33,12 @@ gp
 gtm
 gtmax
 gtsd
+guassian
 Guassian
 Hellewell
 hilbert
 https
+includedata
 indepedent
 inv
 io
@@ -71,6 +73,7 @@ se
 spd
 SPD
 sR
+sta
 stan
 stime
 submodule
