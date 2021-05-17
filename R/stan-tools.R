@@ -57,10 +57,8 @@ load_model <- function(model = "inc2prev", ...) {
 #' @importFrom rstan extract sampling stan_model
 #' @examples
 #' tune_inv_gamma()
-tune_inv_gamma <- function(model, lower = 14, upper = 90) {
-  if (missing(model)) {
-    model <- load_model("tune_inv_gamma")
-  }
+tune_inv_gamma <- function(model= inc2prev::load_model("tune_inv_gamma"),
+                           lower = 14, upper = 90) {
   # optimise for correct upper and lower probabilites
   fit <- sampling(model,
     data = list(

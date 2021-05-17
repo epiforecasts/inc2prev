@@ -1,16 +1,44 @@
 library(data.table)
 
-# define required stan data
+gt_opts <- function(mean, mean_sd, sd, sd_sd, max = 15) {
+  dat <- list()
+  dat$gtm <- c(mean, mean_sd)
+  dat$gtsd <- c(sd, sd_sd)
+  dat$gtmax <- max
+  return(dat)
+}
+
+gp_opts <- function(m = 0.3, l = 2, ls_min = 9, ls_max = 90,
+                    ls_tuner = inc2prev::load_model("tune_inv_gamma")){
+
+
+}
+#' Transform data into the format required for incidence modelling
+#'
+#' @description Transform available data into the format required for
+#' `incidence()` and specify model options.
+#'
+#' @param observations
+#' @param prob_detectable
+#' @param ut Integer, defaults to 14 days. Initial unobserved period used to
+#' seed the model prior to the first observed data point.
+#' @param gt A list of options to specify the generation time. See `gt_opts()`
+#' for detail
+#' @param gp A list of options to specify the gaussian process. See `gp_opts()`
+#' for details.
+#' @param gp
+#'
+#' @return A function that generates a random sample of initial conditions
+#' @export
+#' @importFrom truncnorm rtruncnorm
+#' @family incidence
 incidence_data <- function(observations, prob_detectable, ut = 14,
                            population = 56286961,
-                           gt = list(
-                             mean = 3.64, mean_sd = 0.71, sd = 3.08,
-                             sd_sd = 0.77, max = 15
-                           ),
-                           gp_m = 0.3,
-                           gp_l = 2,
-                           gp_ls = c(14, 90),
-                           gp_ls_tuner) {
+                           observation_data = inc2prev::obs_data(),
+                           additional_data = list(
+                            gt = inc2prev::gt_opts(),
+                            gp = inc2prev::gp_opts()
+                          )) {
   # nolint start
   # extract a single region for prevalence and build features
   prev <- copy(observations)
@@ -46,17 +74,19 @@ incidence_data <- function(observations, prob_detectable, ut = 14,
     N = population
   )
 
+  # Combine additional options
+  dat <- c(dat, additional_data)
   # gaussian process parameters
-  dat$M <- ceiling(dat$t * gp_m)
-  dat$L <- gp_l
-  if (is.na(gp_ls[2])) {
-    gp_ls[2] <- dat$t
+  dat$M <- ceiling(dat$t * gp$m)
+  dat$L <- gp$l
+  if (is.na(gp$ls_max) {
+    gp$ls_max <- dat$t
   }
 
-  if (missing(gp_ls_tuner)) {
-    gp_ls_tuner <- load_model("tune_inv_gamma")
+  if (missing(gp$ls_tuner)) {
+    gp$ls_tuner <- load_model("tune_inv_gamma")
   }
-  lsp <- tune_inv_gamma(gp_ls_tuner, gp_ls[1], gp_ls[2])
+  lsp <- tune_inv_gamma(gp$ls_tuner, gp$ls_min, gp$ls_max)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
 
@@ -93,10 +123,26 @@ incidence_data <- function(observations, prob_detectable, ut = 14,
   # nolint end
 }
 
-library(truncnorm)
-library(purrr)
 
-incidence_inits <- function(dat, n) {
+#' Initial conditions for the incidence model
+#'
+#' @description Produces random initial conditions used by stan
+#' for the incidence estimation model.
+#'
+#' @param dat A list data as produced by `incidence_data()`. Must contain a
+#' integer entry called M used to define the accuracy of the gaussian process
+#' approximation.
+#'
+#' @return A function that generates a random sample of initial conditions
+#' @export
+#' @importFrom truncnorm rtruncnorm
+#' @family incidence
+#' @examples
+#' dat <- list(M = 14)
+#' inits <- incidence_inits(dat)
+#' inits
+#' inits()
+incidence_inits <- function(dat) {
   inits <- function() {
     list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
@@ -109,15 +155,28 @@ incidence_inits <- function(dat, n) {
 }
 
 
-
-incidence <- function(dat, model,
-                      inits_fn = incidence_inits,
+#' Incidence estimation model
+#'
+#' @description Fits an `inc2prev` model to recover incidence
+#' from prevalence data using a probility of detection curve.
+#' @param dat A list data as produced by `incidence_data()`.
+#' @param model A stan model object as produced by `load_model("inc2prev")`
+#' or a similar compiled stan model.
+#' @param inits_fn A function that returns a function which produces
+#' a set of initial conditions. Defaults to `incidence_inits()`.
+#' @param fit_fn A function used to fit the `model` object. Defaults
+#' to `rstan::sampling`.
+#' @param p A `progressr` function used when fitting multiple models
+#' to track progress
+#' @param ... Additional arguments passed to `fit_fn`.
+#' @return A fit stan model as produced by the option passed to
+#' `fit_fn`.
+#' @export
+#' @family incidence
+incidence <- function(dat, model = inc2prev::load_model("inc2prev"),
+                      inits_fn = inc2prev::incidence_inits,
                       fit_fn = rstan::sampling, p, ...) {
   inits <- inits_fn(dat)
-
-  if (missing(model)) {
-    model <- load_model("tune_inv_gamma")
-  }
 
   fit <- do.call(fit_fn, list(
     object = model,
@@ -131,6 +190,24 @@ incidence <- function(dat, model,
   return(fit)
 }
 
+#' Fit multiple incidence models efficiently
+#'
+#' @description Fits multiple `incidence()` models in an efficient,
+#' optionally in parallel, framework with user definable progression
+#' settings.
+#'
+#' @details Progression information is displayed using the
+#' `progressr` package. See the package documentation for options.
+#' @param dat_list A list of lists of data as produced by `incidence_data()`.
+#' @inheritParams incidence
+#' @param ... Additional arguments passed to `incidence()` and/or
+#' `future_lapply()`.
+#' @return A fit stan model as produced by the option passed to
+#' `fit_fn`.
+#' @export
+#' @importFrom future.apply future_lapply
+#' @importFrom progressr progressor
+#' @family incidence
 incidence_lapply <- function(dat_list, model, cores = 1, ...) {
   p <- progressor(along = dat_list)
   fits <- future_lapply(dat_list,
@@ -144,6 +221,20 @@ incidence_lapply <- function(dat_list, model, cores = 1, ...) {
   return(fits)
 }
 
+#' Combine the posteriors of multiple stan fit
+#'
+#' @description Combine the posteriors of multiple stan fits into
+#' a single `rstan` `stanfit` object. This is likely useful when using
+#' `incidence_lapply()` to fit models using multiple sampled probability
+#' of detection curves. A simple wrapper around `rstan::sflist2stanfit()`
+#' @details Progression information is displayed using the
+#' `progresr` package. See the package documentation for options.
+#' @param incidence_list A list of incidence model fits converted to be 
+#' `stanfit` objects from th `rstan` packag
+#' @return A `stanfit` model with combined posterior estimates
+#' @export
+#' @importFrom rstan sflist2stanfit
+#' @family incidence
 combine_incidence_fits <- function(incidence_list) {
   incidence <- sflist2stanfit(incidence_list)
   return(incidence)
