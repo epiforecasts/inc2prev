@@ -5,7 +5,8 @@ functions {
 }
 
 data {
-#include data/observations.sta
+#include data/observations.stan
+#include data/prev_obs_model.stan
 #include data/observation_generation.stan
 #include data/summary_measures.stan
 #include data/gaussian_process.stan
@@ -14,6 +15,7 @@ data {
   
 generated quantities {
 #include transformed-parameters/observation_generation.stan 
+#include transformed-parameters/prev_obs_model.stan 
 #include generated-quantities/summary_measures.stan
-#include generated-quantities/observation.stan
+#include generated-quantities/prev_obs_model.stan 
 }

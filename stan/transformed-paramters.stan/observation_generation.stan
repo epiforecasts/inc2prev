@@ -9,5 +9,3 @@
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
   odcases = odcases / N;
-  //combined standard error
-  combined_sigma = sqrt(square(sigma) + prev_sd2);

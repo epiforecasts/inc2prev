@@ -2,4 +2,3 @@
 figures/*
 !figures/readme
 *.pdf       
-stan/model

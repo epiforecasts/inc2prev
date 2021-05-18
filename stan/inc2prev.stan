@@ -25,11 +25,12 @@ parameters {
 transformed parameters {
 #include transformed-parameters/guassian_process.stan
 #include transformed-parameters/observation_generation.stan
+#include transformed-parameters/prev_obs_model.stan
 }
 
 model {
 #include model/gaussian_process.stan
-#include model/observation_model.stan
+#include model/prev_obs_model.stan
 }
 
 generated quantities {
