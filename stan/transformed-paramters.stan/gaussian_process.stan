@@ -1,3 +1,4 @@
-  vector[t] gp;
+  vector[t] covariates;
   // update gaussian process
-  gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  covariates = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  covariates = cumulative_sum(covariates);

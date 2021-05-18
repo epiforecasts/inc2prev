@@ -10,7 +10,7 @@ data {
 #include data/observation_generation.stan
 #include data/summary_measures.stan
 #include data/gaussian_process.stan
-  vector[t] gp;
+  vector[t] covariates;
 }
   
 generated quantities {
