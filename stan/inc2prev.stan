@@ -7,10 +7,10 @@ functions {
 
 data {
 #include data/observations.stan
-  vector[obs] prev;
+#include data/prev_obs_model.stan
 #include data/observation_generation.stan
 #include data/summary_measures.stan
-#includedata/gaussian_process.stan
+#include data/gaussian_process.stan
 }
   
 transformed data {
@@ -19,13 +19,16 @@ transformed data {
 
 parameters {
 #include parameters/gaussian_process.stan
-#include parameters/observation_model.stan
+#include parameters/prev_obs_model.stan
 }
 
 transformed parameters {
-#include transformed-parameters/guassian_process.stan
-#include transformed-parameters/observation_generation.stan
-#include transformed-parameters/prev_obs_model.stan
+#include tparameters-var-def/gaussian_process.stan
+#include tparameters-var-def/observation_generation.stan
+#include tparameters-var-def/prev_obs_model.stan
+#include tparameters/gaussian_process.stan
+#include tparameters/observation_generation.stan
+#include tparameters/prev_obs_model.stan
 }
 
 model {

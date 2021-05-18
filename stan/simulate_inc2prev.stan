@@ -10,12 +10,12 @@ data {
 #include data/observation_generation.stan
 #include data/summary_measures.stan
 #include data/gaussian_process.stan
-  vector[t] covariates;
+#include tparameters-var-def/gaussian_process.stan
 }
   
 generated quantities {
-#include transformed-parameters/observation_generation.stan 
-#include transformed-parameters/prev_obs_model.stan 
+#include tparameters-var-def/observation_generation.stan 
+#include tparameters/observation_generation.stan 
 #include generated-quantities/summary_measures.stan
 #include generated-quantities/prev_obs_model.stan 
 }

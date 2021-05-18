@@ -1,9 +1,5 @@
-  vector[t] infections;
-  vector[t] dcases;
-  vector[obs] odcases;
-  vector[obs] combined_sigma;
   // relative probability of infection
-  infections = N * inv_logit(inc_zero + covariates;
+  infections = N * inv_logit(inc_zero + covariates);
   // calculate detectable cases
   dcases = detectable_cases(infections, prob_detect, pbt, t);
   // calculate observed detectable cases
