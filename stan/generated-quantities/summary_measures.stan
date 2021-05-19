@@ -1,11 +1,6 @@
-  vector[t - 7] R;
-  vector[t - 1] r;
-  vector[obs] est_prev;
-  vector[ot] pop_prev;
-  vector[ot] pop_inc;
   // sample generation time
-  real gtm_sample = normal_rng(gtm[1], gtm[2]);
-  real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
+  gtm_sample = normal_rng(gtm[1], gtm[2]);
+  gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, 7, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth

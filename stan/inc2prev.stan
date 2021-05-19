@@ -37,5 +37,6 @@ model {
 }
 
 generated quantities {
+#include generated-quantities-var-def/summary_measures.stan
 #include generated-quantities/summary_measures.stan
 }

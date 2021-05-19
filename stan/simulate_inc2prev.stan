@@ -15,7 +15,10 @@ data {
   
 generated quantities {
 #include tparameters-var-def/observation_generation.stan 
-#include tparameters/observation_generation.stan 
-#include generated-quantities/summary_measures.stan
+#include generated-quantities-var-def/summary_measures.stan
+#include generated-quantities-var-def/prev_obs_model.stan
+#include parameters/prev_obs_model.stan
+#include tparameters/observation_generation.stan  
 #include generated-quantities/prev_obs_model.stan 
+#include generated-quantities/summary_measures.stan
 }
