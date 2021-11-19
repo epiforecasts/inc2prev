@@ -26,11 +26,13 @@ data {
   int gtmax; // maximum number of days to consider for the generation time
   int N;
   real inc_zero;
+  int init_cum_mean; // mean estimate of initial cumulative infections
+  int init_cum_sd;   // sd of estimate of initial cumulative infections
 }
-  
+
 transformed data {
   // set up approximate gaussian process
-  matrix[t, M] PHI = setup_gp(M, L, t); 
+  matrix[t, M] PHI = setup_gp(M, L, t);
 }
 
 parameters {
@@ -75,19 +77,32 @@ model {
 }
 
 generated quantities {
-  vector[t - 7] R;
+  vector[t - ut] R;
   vector[t - 1] r;
+  real <lower = 0> cumulative_infections[t + 1];
   real est_prev[obs];
-  vector[ot] pop_prev;
-  // population prevelence
-  pop_prev = dcases[(ut + 1):t] / N;
+  vector[t] pop_prev;
+  // cumulative incidence
+  if (init_cum_sd > 0) {
+    cumulative_infections[1] = normal_rng(init_cum_mean, init_cum_sd);
+  } else {
+    cumulative_infections[1] = 0;
+  }
+  for (i in 1:t) {
+    cumulative_infections[i + 1] = cumulative_infections[i] + infections[i];
+  }
+  for (i in 1:t) {
+    cumulative_infections[i] = cumulative_infections[i] / N;
+  }
+   // population prevelence
+  pop_prev = dcases / N;
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
-  R = calculate_Rt(infections, 7, gtm_sample, gtsd_sample, gtmax, 1);
+  R = calculate_Rt(infections, ut, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
   r = calculate_growth(infections, 1);
 }

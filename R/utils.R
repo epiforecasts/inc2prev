@@ -2,22 +2,21 @@ library(data.table)
 library(EpiNow2)
 
 # define required stan data
-stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
+stan_data <- function(prev, prob_detectable, ut = 14,
                       population = 56286961,
                       gt = list(
                         mean = 3.64, mean_sd = 0.71, sd = 3.08,
                         sd_sd = 0.77, max = 15
                       ),
                       gp_m = 0.3, gp_ls = c(14, 90)) {
-  # nolint start
-  # extract a single region for prevalence and build features
-  prev <- copy(prev)[geography %in% region]
-  prev <- prev[, .(
+  # extract a prevalence and build features
+  prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
     end_date = as.Date(end_date),
     date = as.Date(date),
     prev = middle,
-    sd = (upper - lower) / (2 * 1.96)
+    sd = (upper - lower) / (2 * 1.96),
+    population
   )]
   prev[, `:=`(
     time = as.integer(date - min(start_date)),
@@ -50,7 +49,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
   dat <- list(
     ut = ut,
     ot = max(prev$etime),
-    t = ut + max(prev$etime),
+    t = ut + length(prev$prev),
     obs = length(prev$prev),
     prev = prev$prev,
     prev_sd2 = prev$sd^2,
@@ -60,7 +59,7 @@ stan_data <- function(prev, prob_detectable, ut = 14, region = "England",
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
-    N = population,
+    N = unique(prev$population),
     inc_zero = log(baseline_inc / (baseline_inc + 1))
   )
 
@@ -130,42 +129,21 @@ plot_trend <- function(fit, var, date_start) {
     theme_minimal()
 }
 
-plot_trace <- function(fit, var, date_start, samples = 100, alpha = 0.05,
-                       rev_time = FALSE) {
-  draws <- fit$draws(var) %>%
-    as_draws_df() %>%
-    as_tibble() %>%
-    mutate(sample = 1:n()) %>%
-    select(-.chain, -.iteration, -.draw) %>%
-    pivot_longer(
-      cols = -sample,
-      names_to = "date",
-      values_to = "value"
-    ) %>%
-    filter(sample <= samples) %>%
-    group_by(sample) %>%
-    mutate(time = 1:n(), date = date_start + time - 1)
+plot_trace <- function(samples, var, alpha = 0.05) {
 
-  if (rev_time) {
-    draws <- draws %>%
-      mutate(date = rev(date))
-  }
-  draws <- draws %>%
-    ungroup()
+  long_samples <- samples %>%
+    filter(name == var) %>%
+    pivot_longer(matches("^[0-9]+$"), names_to = "sample")
 
-  plot <- draws %>%
+  plot <- long_samples %>%
     ggplot() +
     aes(x = date, y = value, group = sample) +
-    geom_line(
-      data = draws, alpha = alpha
-    ) +
+    geom_line(alpha = alpha) +
     theme_minimal() +
-    labs(x = "Date")
+    labs(x = "Date") +
+    scale_x_date(date_breaks = "2 months", date_labels = "%b %d") +
+    facet_wrap(~ variable)
 
-  if (!rev_time) {
-    plot <- plot +
-      scale_x_date(date_breaks = "1 month", date_labels = "%b %d")
-  }
   return(plot)
 }
 
@@ -175,31 +153,25 @@ library(ggplot2)
 library(tidyr)
 library(scales)
 
-plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05,
+plot_prev <- function(estimates, samples, data, alpha = 0.05,
                       data_source = "ONS Prevalence") {
   trace_plot <- plot_trace(
-    fit,
+    samples,
     "pop_prev",
-    date_start = date_start,
-    samples = samples,
     alpha = alpha
   )
 
-  summary_prev <- fit$summary(
-    variables = "est_prev",
-    ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))
-  ) %>%
+  summary_prev <- estimates %>%
+    filter(name == "est_prev") %>%
     mutate(
       middle = `50%`,
       lower = `5%`,
       upper = `95%`,
-      date = prev$date + 2,
       type = "Modelled"
     ) %>%
-    bind_rows(prev %>%
+    bind_rows(data %>%
       mutate(
-        type = "Estimate",
-        date = date - 2
+        type = "Estimate"
       ))
 
   trace_plot +
@@ -211,16 +183,53 @@ plot_prev <- function(fit, prev, samples = 100, date_start, alpha = 0.05,
         y = NULL, ymin = lower, ymax = upper, group = NULL,
         col = type
       ),
-      size = 1, alpha = 0.8
+      size = 1, alpha = 0.2
     ) +
     geom_point(
       data = summary_prev,
       aes(
         y = middle, ymin = NULL, ymax = NULL, group = NULL,
         col = type
-      ), size = 1.1
+      ), size = 1.1, alpha = 0.2
     ) +
     theme(legend.position = "bottom") +
     scale_color_brewer(palette = "Dark2") +
     guides(col = guide_legend(title = data_source))
 }
+
+read_cis <- function() {
+  prev_regional <- readRDS(here::here("data", "cis.rds")) %>%
+    filter(level != "local") %>%
+    select(level, start_date,
+           end_date,
+           middle = proportion_pos,
+           lower = proportion_pos_low_95,
+           upper = proportion_pos_high_95,
+           variable = geography,
+           population)
+  prev_local <- readRDS(here::here("data", "cis.rds")) %>%
+    filter(level == "local") %>%
+    select(level,
+           start_date,
+           end_date,
+           middle = proportion_pos,
+           lower = proportion_pos_low_95,
+           upper = proportion_pos_high_95,
+           variable = geography_code, region,
+           population)
+  prev_age <- readRDS(here::here("data", "cis_age.rds")) %>%
+    mutate(age_group = limits_to_agegroups(lower_age_limit)) %>%
+    select(level,
+           start_date,
+           end_date,
+           middle = proportion_pos,
+           lower = proportion_pos_low_95,
+           upper = proportion_pos_high_95,
+           variable = age_group,
+           population)
+  prev <- bind_rows(prev_regional, prev_local, prev_age) %>%
+    mutate(date = start_date + (end_date - start_date) / 2)
+
+  return(prev)
+}
+

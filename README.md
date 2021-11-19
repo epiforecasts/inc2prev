@@ -64,3 +64,7 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 ![](figures/readme/pairs.png)
 
 *Figure 5: Pairs plot of a sample of parameters posteriors*
+
+## License
+
+This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
