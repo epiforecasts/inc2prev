@@ -15,12 +15,8 @@ prev <- read_cis() %>%
 
 prob_detectable <- fread("data/prob_detectable.csv")
 
-early <- readRDS(here::here("data", "early.rds")) %>% ## early seroprevalence, not available at the local level
-  mutate(init_cum, mean = mean, init_cum_sd = (high - low) / 4) %>%
-  select(level, variable, mean, sd)
-
 ## Format data
-dat <- lapply(prev, stan_data, prob_detectable, early)
+dat <- lapply(prev, stan_data, prob_detectable)
 
 # Model prep
 mod <- cmdstan_model("stan/model.stan",
