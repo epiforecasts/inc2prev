@@ -17,7 +17,7 @@ samples <- readRDS(here::here("outputs", "samples.rds"))
 
 early <- readRDS(here::here("data", "early.rds"))
 
-for (level in "local") {
+for (level in levels) {
   ## 1) plot infections
   level_prev <- prev %>%
     filter(level == {{level}}) %>%
