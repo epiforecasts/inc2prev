@@ -2,6 +2,7 @@ library("ggplot2")
 library("here")
 library("dplyr")
 library("truncnorm")
+library("forcats")
 
 ## Get tools
 source("R/utils.R")
@@ -17,8 +18,7 @@ samples <- readRDS(here::here("outputs", "samples.rds"))
 
 early <- readRDS(here::here("data", "early.rds"))
 
-for (level in levels) {
-  ## 1) plot infections
+for (level in "local") {
   level_prev <- prev %>%
     filter(level == {{level}}) %>%
     mutate(variable = fct_inorder(variable))
@@ -43,39 +43,52 @@ for (level in levels) {
       mutate(variable = factor(variable, levels = levels(level_prev$variable)))
   }
   nvars <- n_distinct(level_prev$variable)
+
+  ## 1) plot prevalence
   p <- plot_prev(level_estimates, level_samples, level_prev)
   ggsave(here::here("figures", paste0("prev_", level, ".pdf")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 7 + 3 * floor(sqrt(nvars)))
+  ## 2) plot incidence
   p <- plot_trace(level_samples, "infections")
   ggsave(here::here("figures", paste0("inf_", level, ".pdf")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 7 + 3 * floor(sqrt(nvars)))
+  ## 3) plot cumulative incidence
   p <- plot_trace(level_samples, "cumulative_infections")
   ggsave(here::here("figures", paste0("cum_", level, ".pdf")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 7 + 3 * floor(sqrt(nvars)))
+  ## 4) plot R
   p <- plot_trace(level_samples, "R") +
     geom_hline(yintercept = 1, linetype = "dashed") +
     ylab("R")
   ggsave(here::here("figures", paste0("R_", level, ".pdf")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 7 + 3 * floor(sqrt(nvars)))
+  ## 5) plot growth
   p <- plot_trace(level_samples, "r")
   ggsave(here::here("figures", paste0("growth_", level, ".pdf")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 7 + 3 * floor(sqrt(nvars)))
+  ## 6) plot final attack rate
+  ## sample from late April seroprevalence
   early_samples <- level_early %>%
     group_by(variable) %>%
-    summarise(rand = list(tibble(sample = 1:100,
-                                 initial = rtruncnorm(n = 100, a = 0, mean = mean, sd = (high - low) / 4))),
-              .groups = "drop") %>%
+    summarise (
+      rand = list(tibble(
+        sample = 1:100,
+        initial = rtruncnorm(n = 100, a = 0, mean = mean, sd = (high - low) / 4)
+      )),
+      .groups = "drop") %>%
     unnest(rand)
+  ## get samples of estimated final cumulative incidence
   late_samples <- level_samples %>%
     filter(name == "cumulative_infections") %>%
     filter(date == max(date)) %>%
     pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
     mutate(sample = as.integer(sample))
+  ## combine early seroprevalence with estimates of attack rates since start of CIS
   combined <- late_samples %>%
     inner_join(early_samples, by = c("variable", "sample")) %>%
     mutate(value =  value + initial) %>%
@@ -84,6 +97,7 @@ for (level in levels) {
               low = quantile(value, 0.025),
               high = quantile(value, 0.975),
               .groups = "drop")
+  ## plot
   p <- ggplot(combined,
               aes(x = variable, y = mean, ymin = low, ymax = high)) +
     geom_point() +
