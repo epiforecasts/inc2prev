@@ -6,7 +6,12 @@ Authors@R:
              family = "Abbott",
              role = c("aut", "cre"),
              email = "sam.abbott@lshtm.ac.uk",
-             comment = c(ORCID = "0000-0001-8057-8037")))
+             comment = c(ORCID = "0000-0001-8057-8037")),
+      person(given = "Sebastian",
+             family = "Funk",
+             role = c("aut"),
+             email = "sebastian.funk@lshtm.ac.uk",
+             comment = c(ORCID = "0000-0002-2842-3406")))
 Description: Estimate incidence from prevalence estimates, currently
     demonstrated using the Office for National Statistics COVID-19
     prevalence estimates.
@@ -22,7 +27,9 @@ Imports:
     posterior,
     truncnorm,
     purrr,
-    scales
+    scales,
+    here,
+    socialmixr
 Additional_repositories: 
     https://mc-stan.org/r-packages/,
     https://epiforecasts.io/drat/

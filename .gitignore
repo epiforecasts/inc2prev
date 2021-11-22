@@ -4,3 +4,5 @@ stan/model_threads
 figures/*
 !figures/readme
 *.pdf       
+data/cis
+outputs/

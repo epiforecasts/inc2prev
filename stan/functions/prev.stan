@@ -18,7 +18,7 @@ vector observed_cases(vector dcases, int[] prev_stime,
         for (j in prev_stime[i]:prev_etime[i]) {
             odcases[i] += dcases[ut + j];
         }
-        odcases[i] = odcases[i] / (prev_etime[i] - prev_stime[i]);
+        odcases[i] = odcases[i] / (prev_etime[i] - prev_stime[i] + 1);
     }
     return(odcases);
 }
