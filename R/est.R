@@ -63,7 +63,7 @@ estimates <- bind_rows(estimates) %>%
   mutate(time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
 	       name = sub("\\[.*$", "", name))
 
-Samples <- bind_rows(samples) %>%
+samples <- bind_rows(samples) %>%
 	select(-.chain, -.iteration, -.draw) %>%
         pivot_longer(matches("[0-9]")) %>%
 	mutate(time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
