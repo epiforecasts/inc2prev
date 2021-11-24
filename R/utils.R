@@ -233,3 +233,46 @@ read_cis <- function() {
   return(prev)
 }
 
+plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev", days = 60, var_name = "Prevalence") {
+  estimates <- estimates %>%
+    filter(name == {{var}}) %>%
+    filter(date > max(date) - {{days}})
+  if (length(names) > 0) {
+    search_str <- paste0("(",
+                         paste(names, collapse = "|"),
+                         ")")
+    areas <- areas %>%
+      mutate(highlighted = grepl(search_str, ltla_name)) %>%
+      group_by(geography_code) %>%
+      summarise(highlighted = any(highlighted), .groups = "drop") %>%
+      mutate(highlighted = if_else(highlighted, "yes", "no"),
+             highlighted = factor(highlighted, levels = c("yes", "no")))
+  }
+  estimates <- estimates %>%
+    inner_join(areas %>% rename(variable = geography_code), by = "variable")
+  aesthetics <- list(x = "date",
+                     y = "`50%`",
+                     group = "variable")
+  if (length(names) > 0) {
+    aesthetics[["colour"]] <- "highlighted"
+    aesthetics[["alpha"]] <- "highlighted"
+  } else {
+    aesthetics[["colour"]] <- "region"
+  }
+  p <- ggplot(estimates, mapping = do.call(aes_string, aesthetics)) +
+    geom_line()
+  if (length(names) > 0) {
+    p <- p +
+      scale_colour_manual("", values = c("red", "black")) +
+      scale_alpha_manual("", values = c(1, 0.25)) +
+      theme(legend.position = "none")
+  } else {
+    p <- p +
+      scale_colour_brewer("Region", palette = "Paired")
+  }
+  p <- p +
+    theme_minimal() +
+    xlab("") +
+    ylab(var_name)
+  return(p)
+}
