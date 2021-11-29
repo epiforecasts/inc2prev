@@ -1,7 +1,7 @@
 
 # Estimate incidence from prevalence estimates
 
-This repository contains a deconvolution method (`stan/model.stan`) for estimating infections from Office for National Statistics (ONS) prevalence estimates. It shares code with an under development Rt estimation tool (`ctdist`) that uses Ct values (a reimplementation of the Hay et al method) and itself was based on the work done in `EpiNow2`.
+This repository contains a deconvolution method (`stan/model.stan`) for estimating infections from Office for National Statistics (ONS) prevalence estimates.
 
 ## An overview of the approach
 
@@ -11,15 +11,15 @@ This repository contains a deconvolution method (`stan/model.stan`) for estimati
 
 3. The probability of detection is convolved to estimated infections to get the number of cases detectable at any individual time point.
 
-4. In order to be comparable with ONS data detectable cases are averaged in the time window to which each ONS estimate applies (two weeks currently) and then divided by the population to give a prevalence estimate in that window. 
+4. In order to be comparable with ONS data detectable cases are averaged in the time window to which each ONS estimate applies (two weeks currently) and then divided by the population to give a prevalence estimate in that window.
 
-5. The observation model for each estimate is assumed to be normally distributed with the standard error made up of the ONS estimated standard error and a shared standard error term estimated in the model. 
+5. The observation model for each estimate is assumed to be normally distributed with the standard error made up of the ONS estimated standard error and a shared standard error term estimated in the model.
 
 ## Limitations
 
 1. Assumes that the probability of detection follows the Hellewell et al estimates and that testing of survey participants is happening each day, which is unlikely, but for which there is little public information.
 
-2. Assumes that uncertainty in the Hellewell et al estimates in independent normal which is known not to be the case. This limitation is imposed by not implementing the parameteric Hellewell et al model though this could in principle be done. However, this would again assume some level of independence in parameters and so still not return the posterior distribution found by Hellewell at al. 
+2. Assumes that uncertainty in the Hellewell et al estimates in independent normal which is known not to be the case. This limitation is imposed by not implementing the parameteric Hellewell et al model though this could in principle be done. However, this would again assume some level of independence in parameters and so still not return the posterior distribution found by Hellewell at al.
 
 3. Assumes that infections can be well modelled by a Gaussian process with a Matern 3/2 kernal. This may not be the case for a range of reasons such as variation over time is non-stationary, and variation is piecewise constant.
 
@@ -52,7 +52,6 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 ![](figures/readme/Rt.png)
 
 *Figure 4: Model effective reproduction rate rate estimates*
-
 
 ## Fit diagnostics
 
