@@ -2,11 +2,11 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.205.2/containers/r
 {
 	"name": "R (Community)",
-	"image": "",
+	"image": "ghcr.io/epiforecasts/inc2prev:master",
 	"workspaceFolder": "/workspace",
-	// may need to create this volume use the following command:
+	// create this volume and then mount
 	// docker volume create inc2prev
-  "workspaceMount": "source=inc2prev,target=/workspace,type=volume",
+  //"workspaceMount": "source=inc2prev,target=/workspace,type=volume",
 	"shutdownAction": "none",
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
