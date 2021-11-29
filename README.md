@@ -66,6 +66,7 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 # File structure
 
 Folder | Purpose
+---|---
 [`data-raw`](data-raw/) | Raw data and scripts to generate processed data.
 [`data`](data/) | Data processed ready for use in downstream analyses.
 [`R`](R/) | R functions for preprocessing data, model fitting, and model postprocessing.
