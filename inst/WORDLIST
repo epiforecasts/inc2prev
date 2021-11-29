@@ -4,6 +4,9 @@ ARG
 aut
 autoremove
 bayesplot
+betanalpha
+callr
+cdf
 chmod
 citeproc
 cmdstan
@@ -11,6 +14,7 @@ cmdstanr
 conv
 convolve
 convolved
+Cori
 COVID
 cre
 ctdist
@@ -23,6 +27,7 @@ dev
 devcontainer
 devtools
 dir
+discretised
 docthis
 dplyr
 epiforecasts
@@ -43,6 +48,7 @@ Hellewell
 httpgd
 https
 indepedent
+init
 inv
 io
 kernal
@@ -71,6 +77,7 @@ modelled
 ncpus
 nolint
 noninteractive
+num
 odcases
 ONS
 openssl
@@ -84,6 +91,7 @@ pre
 precommit
 prev
 prevelence
+progressr
 purrr
 readr
 readxl
@@ -102,6 +110,7 @@ sd
 sebastian
 skipinstalled
 socialmixr
+sR
 stan
 stime
 submodule
@@ -109,6 +118,7 @@ tidyr
 tinytex
 tmp
 tmux
+trunc
 truncnorm
 ugo
 UID

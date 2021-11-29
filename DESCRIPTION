@@ -33,7 +33,10 @@ Imports:
     rvest, 
     janitor,
     tidyr,
-    socialmixr
+    socialmixr,
+    future.apply,
+    future.callr,
+    progressr
 Additional_repositories: 
     https://mc-stan.org/r-packages/
 Encoding: UTF-8

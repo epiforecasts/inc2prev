@@ -1,5 +1,5 @@
 read_cis <- function() {
-  prev_regional <- readr::read_csv(here::here("data", "cis.rds")) %>%
+  prev_regional <- readr::read_csv(here::here("data", "cis.csv")) %>%
     dplyr::filter(level != "local") %>%
     dplyr::select(level, start_date,
       end_date,
@@ -9,7 +9,7 @@ read_cis <- function() {
       variable = geography,
       population
     )
-  prev_local <- readr::read_csv(here::here("data", "cis.rds")) %>%
+  prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
     dplyr::filter(level == "local") %>%
     dplyr::select(level,
       start_date,
@@ -20,7 +20,7 @@ read_cis <- function() {
       variable = geography_code, region,
       population
     )
-  prev_age <- readr::read_csv(here::here("data", "cis_age.rds")) %>%
+  prev_age <- readr::read_csv(here::here("data", "cis_age.csv")) %>%
     dplyr::mutate(
       age_group = socialmixr::limits_to_agegroups(lower_age_limit)
     ) %>%

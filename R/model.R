@@ -1,12 +1,13 @@
 library(data.table)
 # define required stan data
 i2p_data <- function(prev, prob_detectable, ut = 14,
-                      population = 56286961,
-                      gt = list(
-                        mean = 3.64, mean_sd = 0.71, sd = 3.08,
-                        sd_sd = 0.77, max = 15
-                      ),
-                      gp_m = 0.3, gp_ls = c(14, 90)) {
+                     population = 56286961,
+                     init_cum_infections = c(0, 0),
+                     gt = list(
+                       mean = 3.64, mean_sd = 0.71, sd = 3.08,
+                       sd_sd = 0.77, max = 15
+                     ),
+                     gp_m = 0.3, gp_ls = c(14, 90)) {
   # extract a prevalence and build features
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
@@ -58,7 +59,9 @@ i2p_data <- function(prev, prob_detectable, ut = 14,
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
     N = unique(prev$population),
-    inc_zero = log(baseline_inc / (baseline_inc + 1))
+    inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    init_cum_mean = init_cum_infections[1],
+    init_cum_sd = init_cum_infections[2]
   )
 
   # gaussian process parameters

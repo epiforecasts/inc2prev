@@ -6,67 +6,61 @@ library(purrr)
 library(ggplot2)
 library(here)
 library(socialmixr)
+library(future.apply)
+library(future.callr)
+library(future)
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
-prev <- read_cis() %>%
+# Load prevalence data and split by location
+prev_list <- read_cis() %>%
   group_split(variable)
+prev_list <- prev_list[1:8]
 
-prob_detectable <- fread("data/prob_detectable.csv")
+# Location probability of detection posterior
+prob_detect <- fread("data/prob_detectable.csv")
 
-## Format data
-dat <- lapply(prev, i2p_data, prob_detectable)
-
-# Model prep
+# Compile incidence -> Prevalence model
 mod <- i2p_model()
-
-inits <- lapply(dat, i2p_inits)
+# Compile tune inverse gamma model
+tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
 
 ## Fit model
-if (!dir.exists(here::here("outputs"))) dir.create(here::here("outputs"))
-variables <- c(
-	"pop_prev", "est_prev", "infections", "cumulative_infections", "r", "R"
-)
-quantiles <- seq(0.05, 0.95, by = 0.05)
-nb_samples <- 100
+dir.create(here::here("outputs"), showWarnings = FALSE)
 
-estimates <- list()
-samples <- list()
-for (i in seq_along(prev)) {
-  fit <-
-    mod$sample(
-          data = dat[[i]],
-          init = inits[[i]],
-          parallel_chains = 4,
-          threads_per_chain = 1
-        )
-  estimates[[i]] <- fit$summary(
-		variables = variables, ~ quantile(.x, probs = quantiles)
-	) %>%
-	  rename(name = variable) %>%
-	  mutate(level = unique(prev[[i]]$level),
-		 variable = unique(prev[[i]]$variable))
-  samples[[i]] <- fit$draws(variables) %>%
-	  as_draws_df() %>%
-	  as_tibble() %>%
-	  mutate(level = unique(prev[[i]]$level),
-		 variable = unique(prev[[i]]$variable)) %>%
-	  mutate(sample = 1:n()) %>%
-	  filter(sample <= nb_samples)
+# create a helper function to estimate the model and apply some
+# summary statistics
+incidence_with_var <- function(prev) {
+  message("Fitting model for: ", unique(prev$variable))
+
+  fit <- incidence(
+    prev,
+    prob_detect = prob_detect, parallel_chains = 2,
+    chains = 2, model = mod, adapt_delta = 0.95, max_treedepth = 15
+  )
+  fit[, level := unique(prev$level)]
+  fit[, variable := unique(prev$variable)]
+  return(fit)
 }
 
-estimates <- bind_rows(estimates) %>%
-  mutate(time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
-	       name = sub("\\[.*$", "", name))
+# Run model fits in parallel (with 2 cores per worker)
+plan(callr, workers = future::availableWorkers() / 2)
+est <- future_lapply(prev_list, incidence_with_var)
 
-samples <- bind_rows(samples) %>%
-	select(-.chain, -.iteration, -.draw) %>%
-        pivot_longer(matches("[0-9]")) %>%
-	mutate(time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
-	       name = sub("\\[.*$", "", name)) %>%
-	pivot_wider()
+# Add summary information to posterior summary and samples
+est[, summary := map2(summary, variable, ~ .x[, variable := .y])]
+est[, summary := map2(summary, level, ~ .x[, level := .y])]
+est[, samples := map2(samples, variable, ~ .x[, variable := .y])]
+est[, samples := map2(samples, level, ~ .x[, level := .y])]
 
+# Bind posterior samples/summary together
+estimates <- bind_rows(est$summary)
+samples <- bind_rows(est$samples)
+diagnostics <- select(est, -samples, -summary)
+
+# Save output
 saveRDS(samples, "outputs/samples.rds")
 saveRDS(estimates, "outputs/estimates.rds")
+saveRDS(diagnostics, "outputs/diagnostics.rds")

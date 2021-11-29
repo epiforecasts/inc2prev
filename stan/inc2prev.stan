@@ -79,21 +79,18 @@ model {
 generated quantities {
   vector[t - ut] R;
   vector[t - 1] r;
-  real <lower = 0> cumulative_infections[t + 1];
+  vector<lower = 0>[t + 1]  cumulative_infections;
   real est_prev[obs];
   vector[t] pop_prev;
   // cumulative incidence
+  cumulative_infections[1] = init_cum_mean;
   if (init_cum_sd > 0) {
-    cumulative_infections[1] = normal_rng(init_cum_mean, init_cum_sd);
-  } else {
-    cumulative_infections[1] = 0;
+    cumulative_infections[1] = normal_rng(0, init_cum_sd);
   }
-  for (i in 1:t) {
-    cumulative_infections[i + 1] = cumulative_infections[i] + infections[i];
-  }
-  for (i in 1:t) {
-    cumulative_infections[i] = cumulative_infections[i] / N;
-  }
+  cumulative_infections[2:(t+1)] = infections;
+  cumulative_infections = cumulative_sum(cumulative_infections);
+  cumulative_infections = cumulative_infections / N;
+
    // population prevelence
   pop_prev = dcases / N;
   // sample estimated prevalence
