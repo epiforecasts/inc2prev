@@ -20,7 +20,7 @@ dat <- lapply(prev, stan_data, prob_detectable)
 
 # Model prep
 mod <- cmdstan_model("stan/model.stan",
-  include_paths = c("stan/functions", "ctdist/stan/functions"),
+  include_paths = c("stan/functions"),
   cpp_options = list(stan_threads = FALSE)
 )
 
