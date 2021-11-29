@@ -1,14 +1,15 @@
 ## Packages
 library(cmdstanr)
 library(data.table)
-library(EpiNow2)
 library(dplyr)
+library(purrr)
 library(ggplot2)
 library(here)
 library(socialmixr)
 
 ## Get tools
-source("R/utils.R")
+functions <- list.files(here("R"), full.names = TRUE)
+walk(functions, source)
 
 prev <- read_cis() %>%
   group_split(variable)
@@ -16,25 +17,24 @@ prev <- read_cis() %>%
 prob_detectable <- fread("data/prob_detectable.csv")
 
 ## Format data
-dat <- lapply(prev, stan_data, prob_detectable)
+dat <- lapply(prev, i2p_data, prob_detectable)
 
 # Model prep
-mod <- cmdstan_model("stan/model.stan",
-  include_paths = c("stan/functions"),
-  cpp_options = list(stan_threads = FALSE)
-)
+mod <- i2p_model()
 
-inits <- lapply(dat, stan_inits)
+inits <- lapply(dat, i2p_inits)
 
 ## Fit model
 if (!dir.exists(here::here("outputs"))) dir.create(here::here("outputs"))
-variables <- c("pop_prev", "est_prev", "infections", "cumulative_infections", "r", "R")
+variables <- c(
+	"pop_prev", "est_prev", "infections", "cumulative_infections", "r", "R"
+)
 quantiles <- seq(0.05, 0.95, by = 0.05)
 nb_samples <- 100
 
 estimates <- list()
 samples <- list()
-for (i in 1:length(prev)) {
+for (i in seq_along(prev)) {
   fit <-
     mod$sample(
           data = dat[[i]],
@@ -42,7 +42,9 @@ for (i in 1:length(prev)) {
           parallel_chains = 4,
           threads_per_chain = 1
         )
-  estimates[[i]] <- fit$summary(variables = variables, ~ quantile(.x, probs = quantiles)) %>%
+  estimates[[i]] <- fit$summary(
+		variables = variables, ~ quantile(.x, probs = quantiles)
+	) %>%
 	  rename(name = variable) %>%
 	  mutate(level = unique(prev[[i]]$level),
 		 variable = unique(prev[[i]]$variable))

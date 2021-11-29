@@ -1,12 +1,14 @@
-library("ggplot2")
-library("here")
-library("dplyr")
-library("truncnorm")
-library("forcats")
-library("socialmixr")
+library(gplot2)
+library(here)
+library(dplyr)
+library(truncnorm)
+library(forcats)
+library(socialmixr)
 
 ## Get tools
-source("R/utils.R")
+functions <- list.files(here("R"), full.names = TRUE)
+walk(functions, source)
+
 
 geo_levels <- c("national", "regional", "local")
 other_levels <- c("age_school")
@@ -95,7 +97,7 @@ for (level in levels) {
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 2 + 3 * floor(sqrt(nvars)))
   ## 6) plot final attack rate
-  ## combine early seroprevalence with estimates of attack rates since start of CIS
+  ## combine early seroprevalence with estimates of attack rates since start of CIS # nolint
   combined_aggregate <- combined_samples %>%
     filter(date == max(date)) %>%
     pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
@@ -108,7 +110,9 @@ for (level in levels) {
               aes(x = variable, y = mean, ymin = low, ymax = high)) +
     geom_point() +
     geom_linerange() +
-    scale_y_continuous("Cumulative attack rate", labels = scales::percent_format(accuracy = 1L)) +
+    scale_y_continuous(
+      "Cumulative attack rate", labels = scales::percent_format(accuracy = 1L)
+    ) +
     theme_minimal() +
     expand_limits(y = 0) +
     xlab("") +

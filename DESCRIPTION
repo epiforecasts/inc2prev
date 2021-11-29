@@ -19,7 +19,6 @@ License: BSD 3-Clause + file LICENSE
 Imports:
     cmdstanr,
     rstan,
-    EpiNow2, 
     data.table,
     dplyr,
     ggplot2,
@@ -31,8 +30,7 @@ Imports:
     here,
     socialmixr
 Additional_repositories: 
-    https://mc-stan.org/r-packages/,
-    https://epiforecasts.io/drat/
+    https://mc-stan.org/r-packages/
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

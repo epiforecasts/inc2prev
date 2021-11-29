@@ -59,11 +59,20 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 
 *Figure 4: Model estimates of the probability of detection overlaid with estimates from Hellewell et al.*
 
-
 ![](figures/readme/pairs.png)
 
 *Figure 5: Pairs plot of a sample of parameters posteriors*
 
-## License
+# File structure
+
+Folder | Purpose
+[`data-raw`](data-raw/) | Raw data and scripts to generate processed data.
+[`data`](data/) | Data processed ready for use in downstream analyses.
+[`R`](R/) | R functions.
+[`scripts`](scripts/) | Scripts used to estimate models and analyse result.
+[`stan`](stan/) | The backend stan model code and support functions.
+[`.devcontainer`](.devcontainer/) | Contains the projects `Dockerfile` and setup instructions for using the code with `vscode`.
+
+# License
 
 This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
