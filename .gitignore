@@ -5,3 +5,4 @@ figures/*
 *.pdf       
 data/cis
 outputs/
+*.rds

@@ -19,6 +19,8 @@ License: BSD 3-Clause + file LICENSE
 Imports:
     cmdstanr,
     rstan,
+    readxl,
+    readr,
     data.table,
     dplyr,
     ggplot2,
@@ -28,6 +30,9 @@ Imports:
     purrr,
     scales,
     here,
+    rvest, 
+    janitor,
+    tidyr,
     socialmixr
 Additional_repositories: 
     https://mc-stan.org/r-packages/

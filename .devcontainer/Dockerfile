@@ -32,7 +32,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         languageserver \
         httpgd \
         git2r \
-        precommit \
         tinytex \
     && rm -rf /tmp/downloaded_packages
 
@@ -48,6 +47,9 @@ RUN apt-get update \
 
 # install and enable git lfs
 RUN apt-get -y install git-lfs && git-lfs install
+
+# install precommit
+RUN pip install pre-commit
 
 # add docthis
 RUN Rscript -e 'devtools::install_github("mdlincoln/docthis")'
