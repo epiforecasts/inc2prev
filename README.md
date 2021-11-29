@@ -68,7 +68,7 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 Folder | Purpose
 [`data-raw`](data-raw/) | Raw data and scripts to generate processed data.
 [`data`](data/) | Data processed ready for use in downstream analyses.
-[`R`](R/) | R functions.
+[`R`](R/) | R functions for preprocessing data, model fitting, and model postprocessing.
 [`scripts`](scripts/) | Scripts used to estimate models and analyse result.
 [`stan`](stan/) | The backend stan model code and support functions.
 [`.devcontainer`](.devcontainer/) | Contains the projects `Dockerfile` and setup instructions for using the code with `vscode`.

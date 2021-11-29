@@ -17,7 +17,6 @@ walk(functions, source)
 # Load prevalence data and split by location
 prev_list <- read_cis() %>%
   group_split(variable)
-prev_list <- prev_list[1:8]
 
 # Location probability of detection posterior
 prob_detect <- fread("data/prob_detectable.csv")
@@ -37,23 +36,24 @@ incidence_with_var <- function(prev) {
 
   fit <- incidence(
     prev,
-    prob_detect = prob_detect, parallel_chains = 2,
-    chains = 2, model = mod, adapt_delta = 0.95, max_treedepth = 15
+    prob_detect = prob_detect, parallel_chains = 1,
+    chains = 2, model = mod, adapt_delta = 0.95, max_treedepth = 15,
+    refresh = 0
   )
   fit[, level := unique(prev$level)]
   fit[, variable := unique(prev$variable)]
   return(fit)
 }
 
-# Run model fits in parallel (with 2 cores per worker)
-plan(callr, workers = future::availableWorkers() / 2)
-est <- future_lapply(prev_list, incidence_with_var)
-
+# Run model fits in parallel
+plan(callr, workers = future::availableCores())
+est <- future_lapply(prev_list, incidence_with_var, future.seed = TRUE)
+est <- rbindlist(est)
 # Add summary information to posterior summary and samples
-est[, summary := map2(summary, variable, ~ .x[, variable := .y])]
-est[, summary := map2(summary, level, ~ .x[, level := .y])]
-est[, samples := map2(samples, variable, ~ .x[, variable := .y])]
-est[, samples := map2(samples, level, ~ .x[, level := .y])]
+est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
+est[, summary := map2(summary, level, ~ as.data.table(.x)[, level := .y])]
+est[, samples := map2(samples, variable, ~ as.data.table(.x)[, variable := .y])]
+est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
 
 # Bind posterior samples/summary together
 estimates <- bind_rows(est$summary)

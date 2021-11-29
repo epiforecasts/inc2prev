@@ -1,5 +1,6 @@
 abbott
 al
+analyse
 ARG
 aut
 autoremove
@@ -32,10 +33,13 @@ docthis
 dplyr
 epiforecasts
 EpiNow
+estimte
 et
 etime
 fns
+forcats
 FRONTEND
+fs
 ggplot
 GID
 github
@@ -87,6 +91,7 @@ pandoc
 parameteric
 pbt
 pmf
+postprocessing
 pre
 precommit
 prev

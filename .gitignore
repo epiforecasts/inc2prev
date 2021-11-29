@@ -7,3 +7,4 @@ data/cis
 outputs/
 *.rds
 stan/inc2prev
+nohup.out

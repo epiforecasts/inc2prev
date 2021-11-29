@@ -1,10 +1,11 @@
-library(gplot2)
+library(ggplot2)
 library(here)
 library(data.table)
 library(dplyr)
 library(truncnorm)
 library(forcats)
 library(socialmixr)
+library(readr)
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)

@@ -27,7 +27,6 @@ plot_trend <- function(fit, var, date_start) {
 }
 
 plot_trace <- function(samples, var, alpha = 0.05) {
-
   long_samples <- samples %>%
     filter(name == var) %>%
     pivot_longer(matches("^[0-9]+$"), names_to = "sample")
@@ -39,7 +38,7 @@ plot_trace <- function(samples, var, alpha = 0.05) {
     theme_minimal() +
     labs(x = "Date") +
     scale_x_date(date_breaks = "2 months", date_labels = "%b %d") +
-    facet_wrap(~ variable)
+    facet_wrap(~variable)
 
   return(plot)
 }
@@ -94,26 +93,33 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
     guides(col = guide_legend(title = data_source))
 }
 
-plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev", days = 60, var_name = "Prevalence") {
+plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev",
+                      days = 60, var_name = "Prevalence") {
   estimates <- estimates %>%
-    filter(name == {{var}}) %>%
-    filter(date > max(date) - {{days}})
+    filter(name == {{ var }}) %>%
+    filter(date > max(date) - {{ days }})
   if (length(names) > 0) {
-    search_str <- paste0("(",
-                         paste(names, collapse = "|"),
-                         ")")
+    search_str <- paste0(
+      "(",
+      paste(names, collapse = "|"),
+      ")"
+    )
     areas <- areas %>%
       mutate(highlighted = grepl(search_str, ltla_name)) %>%
       group_by(geography_code) %>%
       summarise(highlighted = any(highlighted), .groups = "drop") %>%
-      mutate(highlighted = if_else(highlighted, "yes", "no"),
-             highlighted = factor(highlighted, levels = c("yes", "no")))
+      mutate(
+        highlighted = if_else(highlighted, "yes", "no"),
+        highlighted = factor(highlighted, levels = c("yes", "no"))
+      )
   }
   estimates <- estimates %>%
     inner_join(areas %>% rename(variable = geography_code), by = "variable")
-  aesthetics <- list(x = "date",
-                     y = "`50%`",
-                     group = "variable")
+  aesthetics <- list(
+    x = "date",
+    y = "`50%`",
+    group = "variable"
+  )
   if (length(names) > 0) {
     aesthetics[["colour"]] <- "highlighted"
     aesthetics[["alpha"]] <- "highlighted"

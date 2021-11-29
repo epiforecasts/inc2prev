@@ -36,7 +36,10 @@ Imports:
     socialmixr,
     future.apply,
     future.callr,
-    progressr
+    progressr,
+    piggyback,
+    fs,
+    forcats
 Additional_repositories: 
     https://mc-stan.org/r-packages/
 Encoding: UTF-8
