@@ -7,7 +7,8 @@ i2p_data <- function(prev, prob_detectable, ut = 14,
                        mean = 3.64, mean_sd = 0.71, sd = 3.08,
                        sd_sd = 0.77, max = 15
                      ),
-                     gp_m = 0.3, gp_ls = c(14, 90)) {
+                     gp_m = 0.3, gp_ls = c(14, 90),
+                     gp_tune_model = NULL) {
   # extract a prevalence and build features
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
@@ -71,7 +72,7 @@ i2p_data <- function(prev, prob_detectable, ut = 14,
     gp_ls[2] <- dat$t
   }
   gp_ls
-  lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2])
+  lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2], gp_tune_model)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
 

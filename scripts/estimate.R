@@ -23,6 +23,7 @@ prob_detect <- fread("data/prob_detectable.csv")
 
 # Compile incidence -> Prevalence model
 mod <- i2p_model()
+
 # Compile tune inverse gamma model
 tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
 
@@ -31,13 +32,19 @@ dir.create(here::here("outputs"), showWarnings = FALSE)
 
 # create a helper function to estimate the model and apply some
 # summary statistics
-incidence_with_var <- function(prev) {
+incidence_with_var <- function(prev, pb, model, gp_model) {
   message("Fitting model for: ", unique(prev$variable))
+
+  mod <- cmdstanr::cmdstan_model(
+    model$stan_file(),
+    include_paths = here::here("stan", "functions")
+  )
 
   fit <- incidence(
     prev,
-    prob_detect = prob_detect, parallel_chains = 1,
-    chains = 2, model = mod, adapt_delta = 0.95, max_treedepth = 15,
+    prob_detect = pb, parallel_chains = 2,
+    chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
+    data_args = list(gp_tune_model = gp_model),
     refresh = 0
   )
   fit[, level := unique(prev$level)]
@@ -47,7 +54,11 @@ incidence_with_var <- function(prev) {
 
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
-est <- future_lapply(prev_list, incidence_with_var, future.seed = TRUE)
+est <- future_lapply(
+  prev_list, incidence_with_var,
+  pb = prob_detect,
+  model = mod, gp_model = tune, future.seed = TRUE
+)
 est <- rbindlist(est)
 # Add summary information to posterior summary and samples
 est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
