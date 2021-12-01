@@ -39,14 +39,24 @@ incidence_with_var <- function(prev, pb, model, gp_model) {
     model$stan_file(),
     include_paths = here::here("stan", "functions")
   )
+  safe_incidence <- purrr::safely(incidence)
 
-  fit <- incidence(
+  fit <- safe_incidence(
     prev,
     prob_detect = pb, parallel_chains = 2,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model),
     refresh = 0
   )
+
+  if (is.null(fit$result)) {
+    fit <- data.table::data.table(
+      error = list(fit$error)
+    )
+  } else {
+    fit <- fit$result
+  }
+
   fit[, level := unique(prev$level)]
   fit[, variable := unique(prev$variable)]
   return(fit)
