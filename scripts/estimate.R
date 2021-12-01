@@ -69,7 +69,7 @@ est <- future_lapply(
   pb = prob_detect,
   model = mod, gp_model = tune, future.seed = TRUE
 )
-est <- rbindlist(est)
+est <- rbindlist(est, use.names = TRUE, fill = TRUE)
 # Add summary information to posterior summary and samples
 est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, summary := map2(summary, level, ~ as.data.table(.x)[, level := .y])]
