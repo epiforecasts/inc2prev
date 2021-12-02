@@ -1,15 +1,17 @@
-plot_wrapper <- function(level, prev, samples, estimates, early) {
+plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont_seroconvert = 0) {
   level_prev <- prev %>%
     filter(level == {{ level }}) %>%
     mutate(variable = fct_inorder(variable))
+  if (!is.null(ab)) {
+    level_ab <- ab %>%
+      filter(level == {{ level }}) %>%
+      mutate(variable = fct_inorder(variable))
+  }
   level_samples <- samples %>%
     filter(level == {{ level }}) %>%
     mutate(variable = factor(variable, levels = levels(level_prev$variable)))
   level_estimates <- estimates %>%
     filter(level == {{ level }}) %>%
-    mutate(variable = factor(variable, levels = levels(level_prev$variable)))
-  level_modelled_prev <- level_samples %>%
-    filter(name == "pop_prev") %>%
     mutate(variable = factor(variable, levels = levels(level_prev$variable)))
   if (level == "local") {
     level_early <- early %>%
@@ -29,9 +31,15 @@ plot_wrapper <- function(level, prev, samples, estimates, early) {
   ## 1) plot prevalence
   p <- plot_prev(level_estimates, level_samples, level_prev)
   ggsave(here::here("figures", paste0("prev_", level, ".png")), p,
-    width = 7 + 3 * floor(sqrt(nvars)),
-    height = 2 + 3 * floor(sqrt(nvars))
-  )
+         width = 7 + 3 * floor(sqrt(nvars)),
+         height = 2 + 3 * floor(sqrt(nvars)))
+  if (!is.null(ab)) {
+    p <- plot_prev(level_estimates, level_samples, level_ab,
+                   modelled = "dab", observed = "est_ab")
+    ggsave(here::here("figures", paste0("ab_", level, ".png")), p,
+           width = 7 + 3 * floor(sqrt(nvars)),
+           height = 2 + 3 * floor(sqrt(nvars)))
+  }
   ## 2) plot incidence
   p <- plot_trace(level_samples, "infections")
   ggsave(here::here("figures", paste0("inf_", level, ".png")), p,
@@ -54,27 +62,7 @@ plot_wrapper <- function(level, prev, samples, estimates, early) {
   )
   ## 5) plot cumulative incidence
   ## sample from late April seroprevalence
-  early_samples <- level_early %>%
-    group_by(variable) %>%
-    summarise(
-      rand = list(tibble(
-        sample = 1:100,
-        initial = rtruncnorm(n = 100, a = 0, mean = mean, sd = (high - low) / 4)
-      )),
-      .groups = "drop"
-    ) %>%
-    unnest(rand)
-  ## get samples of estimated final cumulative incidence
-  cumulative_infection_samples <- level_samples %>%
-    filter(name == "cumulative_infections") %>%
-    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
-    mutate(sample = as.integer(sample))
-  combined_samples <- cumulative_infection_samples %>%
-    inner_join(early_samples, by = c("variable", "sample")) %>%
-    mutate(value = value + initial) %>%
-    select(-initial) %>%
-    pivot_wider(names_from = "sample")
-  p <- plot_trace(combined_samples, "cumulative_infections") +
+  p <- plot_trace(level_samples, "cumulative_infections") +
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
@@ -83,9 +71,45 @@ plot_wrapper <- function(level, prev, samples, estimates, early) {
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
-  ## 6) plot final attack rate
+  ## 6) cumulative infections
+  ## get samples of estimated final cumulative incidence
+  cumulative_infection_samples <- level_samples %>%
+    filter(name == "cumulative_infections") %>%
+    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
+    mutate(sample = as.integer(sample))
   ## combine early seroprevalence with estimates of attack rates since start of CIS # nolint
-  combined_aggregate <- combined_samples %>%
+  n_samples <- max(cumulative_infection_samples)
+  early_samples <- level_early %>%
+    group_by(variable) %>%
+    summarise(
+      rand = list(tibble(
+        sample = seq_len(n_samples)
+        initial = rtruncnorm(n = n_samples, a = 0, mean = mean,
+                             sd = (high - low) / 4)
+      )),
+      .groups = "drop"
+    ) %>%
+    unnest(rand) %>%
+    mutate(initial = initial / (1 - dont_seroconvert))
+  combined_samples <- cumulative_infection_samples %>%
+    inner_join(early_samples, by = c("variable", "sample")) %>%
+    mutate(value = value + initial) %>%
+    select(-initial) %>%
+    pivot_wider(names_from = "sample")
+  combined_sero <- combined_samples %>%
+    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
+    mutate(value = value * (1 - dont_seroconvert)) %>%
+    pivot_wider(names_from = "sample")
+  p <- plot_trace(combined_sero, "cumulative_infections") +
+    scale_y_continuous("Estimated N-seroprevalence",
+                       labels = scales::percent_format(1L)) +
+    xlab("")
+  ggsave(here::here("figures", paste0("sero_", level, ".png")), p,
+         width = 7 + 3 * floor(sqrt(nvars)),
+         height = 2 + 3 * floor(sqrt(nvars)))
+  ## 7) final attack rates
+  ## combine early seroprevalence with estimates of attack rates since start of CIS
+  combined_aggregate <- combined_sero %>%
     filter(date == max(date)) %>%
     pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
     group_by(variable) %>%
@@ -102,7 +126,7 @@ plot_wrapper <- function(level, prev, samples, estimates, early) {
     geom_point() +
     geom_linerange() +
     scale_y_continuous(
-      "Cumulative attack rate",
+      "Estimated N-seroprevalence",
       labels = scales::percent_format(accuracy = 1L)
     ) +
     theme_minimal() +
@@ -111,41 +135,6 @@ plot_wrapper <- function(level, prev, samples, estimates, early) {
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
   ggsave(here::here("figures", paste0("attack_rate_", level, ".png")),
     width = 7, height = 4
-  )
-  ## scatter attack rate against current incidence
-  p <- level_estimates %>%
-    filter(name == "infections") %>%
-    filter(date == max(date) - 7) %>%
-    select(variable, median_inc = `50%`) %>%
-    left_join(combined_aggregate %>%
-      select(variable, mean_car = mean), by = "variable") %>%
-    left_join(level_prev %>%
-      select(variable, population) %>%
-      distinct(), by = "variable") %>%
-    mutate(median_inc = median_inc / population) %>%
-    ggplot(aes(x = mean_car, median_inc)) +
-    geom_jitter() +
-    ylab("Latest incidence") +
-    xlab("Cumulative attack rate") +
-    theme_minimal()
-  ggsave(here::here("figures", paste0("car_vs_incidence", level, ".png")), p,
-    width = 7 + 3 * floor(sqrt(nvars)),
-    height = 7 + 3 * floor(sqrt(nvars))
-  )
-  p <- level_estimates %>%
-    filter(name == "R") %>%
-    filter(date == max(date) - 7) %>%
-    select(variable, median_R = `50%`) %>%
-    left_join(combined_aggregate %>%
-      select(variable, mean_car = mean), by = "variable") %>%
-    ggplot(aes(x = mean_car, median_R)) +
-    geom_jitter() +
-    ylab("Latest reproduction number") +
-    xlab("Cumulative attack rate") +
-    theme_minimal()
-  ggsave(here::here("figures", paste0("car_vs_R", level, ".png")), p,
-    width = 7 + 3 * floor(sqrt(nvars)),
-    height = 7 + 3 * floor(sqrt(nvars))
   )
   return(invisible(NULL))
 }

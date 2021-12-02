@@ -420,8 +420,7 @@ pop_local <- areas %>%
   left_join(pop_geo, by = "all_caps_geography") %>%
   group_by(geography_code) %>%
   summarise(local_population = sum(population), .groups = "drop")
-
-aggregated <- aggregated %>%
+populations <- aggregated %>%
   mutate(all_caps_geography = toupper(geography)) %>%
   left_join(pop_geo, by = "all_caps_geography") %>%
   left_join(pop_age, by = "lower_age_limit") %>%
@@ -434,7 +433,8 @@ aggregated <- aggregated %>%
       local_population, population
     )
   ) %>%
-  select(-all_caps_geography, -age_population, -local_population)
+  select(level, lower_age_limit, geography, geography_code, population) %>%
+  distinct()
 
 ## save
 write_csv(
@@ -450,4 +450,5 @@ write_csv(
   here::here("data", "cis_age.csv")
 )
 write_csv(areas, here::here("data", "cis_areas.csv"))
+write_csv(populations, here::here("data", "populations.csv"))
 saveRDS(files, list_file)

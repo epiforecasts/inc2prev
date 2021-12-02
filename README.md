@@ -1,7 +1,6 @@
+# Estimating epidemiological quantities from prevalence estimates in the ONS Community Infection Survey
 
-# Estimate incidence from prevalence estimates
-
-This repository contains a deconvolution method (`stan/model.stan`) for estimating infections from Office for National Statistics (ONS) prevalence estimates.
+We use a deconvolution method for estimating incidence from Office for National Statistics (ONS) prevalence estimates, based on the PCR detection curves by Hellewell _et al._, _BMC Medicine_, 2021 and the Gaussian process based method for estimating infection curves implemented in `EpiNow2`.
 
 ## An overview of the approach
 
@@ -25,7 +24,7 @@ This repository contains a deconvolution method (`stan/model.stan`) for estimati
 
 4. Real-time estimates may be unreliable as a zero mean Guassian process has been used. Alternative approaches exist to account for this but each of these imposes a parameteric assumption. Further work is needed on this area.
 
-## Future work
+## Possible future work
 
 1. Mitigate some or all of the limitations described above.
 
@@ -77,3 +76,5 @@ Folder | Purpose
 # License
 
 This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
+=======
+>>>>>>> 2aaacca (initial pass at modelling antibodies)
