@@ -7,30 +7,55 @@ library("lubridate")
 library("ggplot2")
 library("purrr")
 library("janitor")
-library("lubridate")
 library("socialmixr")
+library("readr")
 
-## create directory for vaccination data if it doesn't exist
-vacc_dir <- here::here("data", "vacc")
+## create directory for antibody data if it doesn't exist
+ab_dir <- here::here("data", "ab")
 dir.create(ab_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
-url <- paste0("https://www.england.nhs.uk/statistics/",
-              "statistical-work-areas/covid-19-vaccinations/")
+years <- c(2021)
+urls <- paste0("https://www.ons.gov.uk/peoplepopulationandcommunity/",
+               "healthandsocialcare/conditionsanddiseases/datasets/",
+               "/coronaviruscovid19antibodydatafortheuk/", years)
 
-## get URL of the latest spreadsheet, scraped from the web pages
-session <- session(url)
-file_url <- session %>%
-  html_nodes("a") %>%
-  html_attr("href") %>%
-  grep("weekly.*xlsx?$", ., value = TRUE) %>%
-  head(n = 1)
+## get URLs of the spreadsheets, scraped from the web pages
+file_urls <- lapply(urls, function(url) {
+  session <- session(url)
+  file_url <- session %>%
+    html_nodes(xpath = paste0(
+                 "//a[contains(concat(' ', ",
+                 "normalize-space(@class),' '),' btn--primary ')]"
+               )) %>%
+    html_attr("href")
+  return(file_url)
+}) %>%
+  unlist() %>%
+  grep("\\.xlsx?$", value = TRUE, .)
 
 ## construct tibble with files to download
-file_name <- sub("^.*/([^/]+)$", "\\1", file_url)
-file_path <- file.path(vacc_dir, file_name)
+df_dl <- tibble(file_url = file_urls) %>%
+  mutate(file_name = sub("^.*/([^/]+)$", "\\1", file_url),
+         file_path = file.path(ab_dir, file_name),
+         full_url = paste0("https://www.ons.gov.uk", file_url)) %>%
+  filter(!file.exists(file_path))
 
-if (!file.exists(file_path)) download.file(file_url, file_path)
+## define levels to extract and table structure
+columns <- c(national = 5, regional = 6, age_school = 6)
+super_headers <- c(regional = "region", age_school = "lower_age_limit")
+
+## list all files
+files <- list.files(here::here("data", "ab"), full.names = TRUE)
+list_file <- here::here("data", "ab_files.rds")
+
+## if no new URLs there is nothing to do
+if (nrow(df_dl) > 0) {
+  df_dl %>%
+    rowwise() %>%
+    mutate(ret = download.file(full_url, file_path))
+  if (any(df_dl$ret != 0)) warning("Some downloads failed")
+}
 
 ## define geography codes not in data
 geography_codes <- c(England = "E92000001",
@@ -44,16 +69,8 @@ geography_codes <- c(England = "E92000001",
                      `South East` = "E12000008",
                      `South West` = "E12000009")
 
-## define levels to extract and table structure
-columns <- c(national = 5, regional = 6, age_group = 6)
-super_headers <- c(regional = "region", age_group = "lower_age_limit")
-
-## list all files
-files <- list.files(here::here("data", "ab"), full.names = TRUE)
-list_file <- here::here("data", "ab_files.rds")
-
 if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
-  stop("Nothing new to extract")
+##  stop("Nothing new to extract")
 }
 
 ## construct list of data frames with positivity
@@ -71,7 +88,7 @@ for (level in names(columns)) {
       contents_sheet <- contents_sheet %>%
         filter(grepl("by region", contents)) %>%
         head(n = 1)
-    } else if (level == "age_group") {
+    } else if (level == "age_school") {
       contents_sheet <- contents_sheet %>%
         filter(grepl("by age group$", contents)) %>%
         head(n = 1)
@@ -88,7 +105,7 @@ for (level in names(columns)) {
         clean_names()
       ## get row that contains the headers
       headers_row <- min(which(!is.na(preview$x2)))
-      skip <- headers_row + if_else(level %in% c("regional", "age_group"), 1, 0)
+      skip <- headers_row + if_else(level %in% c("regional", "age_school"), 1, 0)
       if (level %in% c("regional", "age_school")) {
         headers <- preview[headers_row, 2:ncol(preview)] %>%
           t() %>%
@@ -113,7 +130,7 @@ for (level in names(columns)) {
       if (level == c("regional")) {
         colnames(data)[2:ncol(data)] <-
           paste(colnames(data)[2:ncol(data)], headers$header, sep = "|")
-      } else if (level == "age_group") {
+      } else if (level == "age_school") {
         colnames(data)[2:ncol(data)] <-
           paste(colnames(data)[2:ncol(data)], headers$from, sep = "|")
       }
@@ -137,9 +154,10 @@ for (level in names(columns)) {
         mutate_at(vars(starts_with("proportion")), as.numeric) %>%
         pivot_longer(starts_with("proportion")) %>%
         replace_na(list(value = 0)) %>%
+        mutate(value = value / 100) %>%
         pivot_wider()
-      if (level %in% c("national", "regional", "age_group")) {
-        if (level %in% c("national", "age_group")) {
+      if (level %in% c("national", "regional", "age_school")) {
+        if (level %in% c("national", "age_school")) {
           data <- data %>%
             mutate(region = NA_character_,
                    geography = "England")
@@ -151,7 +169,7 @@ for (level in names(columns)) {
         data <- data %>%
           mutate(geography_code = geography_codes[geography])
       }
-      if (level == "age_group") {
+      if (level == "age_school") {
         data <- data %>%
           mutate(lower_age_limit = as.integer(lower_age_limit)) %>%
           select(start_date, end_date, geography, geography_code,
@@ -183,13 +201,13 @@ combined <- ab %>%
   arrange(level, geography, start_date)
 
 ## save
-saveRDS(combined %>%
-        filter(level %in% c("national", "regional")) %>%
-        remove_empty(which = "cols"),
-        here::here("data", "ab.rds"))
-saveRDS(combined %>%
-        filter(level %in% c("age_group")) %>%
-        remove_empty(which = "cols"),
-        here::here("data", "ab_age.rds"))
+write_csv(combined %>%
+          filter(level %in% c("national", "regional")) %>%
+          remove_empty(which = "cols"),
+          here::here("data", "ab.csv"))
+write_csv(combined %>%
+          filter(level %in% c("age_school")) %>%
+          remove_empty(which = "cols"),
+          here::here("data", "ab_age.csv"))
 saveRDS(files, list_file)
 

@@ -20,21 +20,41 @@ walk(functions, source)
 # Load prevalence data and split by location
 prev <- read_cis() %>%
   nest(prevalence = c(-variable))
+ab <- read_ab() %>%
+  nest(antibodies = c(-variable))
+vacc <- read_vacc() %>%
+  nest(vaccination = c(-variable))
+early <- read_early() %>%
+  nest(initial_antibodies = c(-variable))
 
 joint_data <- prev %>%
+  inner_join(ab, by = "variable") %>%
+  inner_join(vacc, by = "variable") %>%
+  inner_join(early, by = "variable") %>%
   group_split(variable)
 
 # Location probability of detection posterior
 prob_detect <- fread("data/prob_detectable.csv")
 
 # Compile incidence -> Prevalence model
-mod <- i2p_model()
+mod <- i2p_model("stan/inc2prev_antibodies.stan")
 
 # Compile tune inverse gamma model
 tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
 
 ## Fit model
 dir.create(here::here("outputs"), showWarnings = FALSE)
+
+## translate index into date
+index2date <- function(name, index, start_date, dates, ut) {
+  fcase(
+    name %in% c("infections", "dcases", "dab"),
+    index - 1 + start_date - ut,
+    name == "est_prev", dates[index],
+    name == "r", index + start_date - ut,
+    name == "R", index- 1 + start_date
+  )
+}
 
 # create a helper function to estimate the model and apply some
 # summary statistics
@@ -49,6 +69,13 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 
   fit <- safe_incidence(
     data$prevalence[[1]],
+    data$antibodies[[1]],
+    data$vaccination[[1]],
+    data$initial_antibodies[[1]],
+    variables = c(
+      "est_prev", "est_ab", "infections", "dcases",
+      "dab", "r", "R", "beta", "gamma", "delta"
+    ),
     prob_detect = pb, parallel_chains = 2,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model),
@@ -92,6 +119,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 }
 
 # Run model fits in parallel
+plan(callr, workers = future::availableCores())
 est <- future_lapply(
   joint_data, incidence_with_var,
   pb = prob_detect,
@@ -106,11 +134,11 @@ est[, samples := map2(samples, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
 
 # Bind posterior samples/summary together
-estimates <- bind_rows(est$summary)
-samples <- bind_rows(est$samples)
-diagnostics <- select(est, -samples, -summary)
+estimates <- rbindlist(est$summary)
+samples <- rbindlist(est$samples)
+diagnostics <- est[, -c("samples", "summary"), with = FALSE]
 
 # Save output
-saveRDS(samples, "outputs/samples.rds")
-saveRDS(estimates, "outputs/estimates.rds")
-saveRDS(diagnostics, "outputs/diagnostics.rds")
+saveRDS(samples, "outputs/samples_ab.rds")
+saveRDS(estimates, "outputs/estimates_ab.rds")
+saveRDS(diagnostics, "outputs/diagnostics_ab.rds")

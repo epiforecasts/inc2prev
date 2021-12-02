@@ -387,7 +387,7 @@ areas <- combined %>%
   rename(ltla_name = lad)
 
 ## get population estimates
-pop_file <- here::here("data", "uk_pop.xls")
+pop_file <- here::here("data-raw", "uk_pop.xls")
 if (!file.exists(pop_file)) {
   download.file("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2020/ukpopestimatesmid2020on2021geography.xls", destfile = pop_file) # nolint
 }
@@ -449,6 +449,7 @@ write_csv(
     remove_empty(which = "cols"),
   here::here("data", "cis_age.csv")
 )
+write_csv(populations, here::here("data", "populations.csv"))
 write_csv(areas, here::here("data", "cis_areas.csv"))
 write_csv(populations, here::here("data", "populations.csv"))
 saveRDS(files, list_file)

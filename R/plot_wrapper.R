@@ -83,7 +83,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     group_by(variable) %>%
     summarise(
       rand = list(tibble(
-        sample = seq_len(n_samples)
+        sample = seq_len(n_samples),
         initial = rtruncnorm(n = n_samples, a = 0, mean = mean,
                              sd = (high - low) / 4)
       )),
@@ -96,20 +96,16 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     mutate(value = value + initial) %>%
     select(-initial) %>%
     pivot_wider(names_from = "sample")
-  combined_sero <- combined_samples %>%
-    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
-    mutate(value = value * (1 - dont_seroconvert)) %>%
-    pivot_wider(names_from = "sample")
-  p <- plot_trace(combined_sero, "cumulative_infections") +
-    scale_y_continuous("Estimated N-seroprevalence",
+  p <- plot_trace(combined_samples, "cumulative_infections") +
+    scale_y_continuous("Cumulative incidence",
                        labels = scales::percent_format(1L)) +
     xlab("")
-  ggsave(here::here("figures", paste0("sero_", level, ".png")), p,
+  ggsave(here::here("figures", paste0("cum_inc_", level, ".png")), p,
          width = 7 + 3 * floor(sqrt(nvars)),
          height = 2 + 3 * floor(sqrt(nvars)))
   ## 7) final attack rates
   ## combine early seroprevalence with estimates of attack rates since start of CIS
-  combined_aggregate <- combined_sero %>%
+  combined_aggregate <- combined_samples %>%
     filter(date == max(date)) %>%
     pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
     group_by(variable) %>%
@@ -126,15 +122,44 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     geom_point() +
     geom_linerange() +
     scale_y_continuous(
-      "Estimated N-seroprevalence",
+      "Cumulative attack rate",
       labels = scales::percent_format(accuracy = 1L)
     ) +
     theme_minimal() +
     expand_limits(y = 0) +
     xlab("") +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-  ggsave(here::here("figures", paste0("attack_rate_", level, ".png")),
-    width = 7, height = 4
-  )
-  return(invisible(NULL))
+  ggsave(here::here("figures", paste0("car_", level, ".png")),
+         width = 7, height = 4)
+  ## 8) final antibodies
+  if (!is.null(ab)) {
+    antibodies <- level_samples %>%
+      filter(date == max(date),
+             name == "dab") %>%
+      pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
+      group_by(variable) %>%
+      summarise(
+        mean = mean(value),
+        low = quantile(value, 0.025),
+        high = quantile(value, 0.975),
+        .groups = "drop"
+      )
+    p <- ggplot(
+      antibodies,
+      aes(x = variable, y = mean, ymin = low, ymax = high)
+    ) +
+      geom_point() +
+      geom_linerange() +
+      scale_y_continuous(
+        "Seroprevalence",
+        labels = scales::percent_format(accuracy = 1L)
+      ) +
+      theme_minimal() +
+      expand_limits(y = 0) +
+      xlab("") +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+    ggsave(here::here("figures", paste0("seroprevalence_", level, ".png")),
+           width = 7, height = 4  )
+  }
+ return(invisible(NULL))
 }
