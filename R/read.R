@@ -4,7 +4,7 @@ ons_to_nhse_region <- function(x) {
   recode(
     x,
     `North East` = "North East and Yorkshire",
-    `Yorkshire and the Humber` = "North East and Yorkshire",
+    `Yorkshire and The Humber` = "North East and Yorkshire",
     `East Midlands` = "Midlands",
     `West Midlands` = "Midlands",
     )
