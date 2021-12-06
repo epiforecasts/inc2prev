@@ -108,7 +108,7 @@ generated quantities {
   vector[t - 1] r;
   real est_prev[obs];
   real est_ab[obs];
- // sample estimated prevalence
+  // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   est_ab = normal_rng(odab, combined_ab_sigma);
   // sample generation time

@@ -56,12 +56,13 @@ fit <- incidence(
   joint_data$initial_antibodies[[1]],
   variables = c(
     "est_prev", "est_ab", "infections", "dcases",
-    "dab", "r", "R", "beta", "gamma", "delta"
+    "dab", "r", "R", "beta", "gamma", "delta", "pop_prev"
   ),
-  prob_detect = prob_detect, parallel_chains = 2,
+  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 500,
   chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
   data_args = list(gp_tune_model = tune), keep_fit = TRUE
 )
+fit
 
 # plot modelled and observed (but also modelled) prevalence
-plot_prev(fit$estimates[[1]], fit$samples[[1]], joint_data$prevalence[[1]])
+plot_prev(fit$summary[[1]], fit$samples[[1]], joint_data$prevalence[[1]])
