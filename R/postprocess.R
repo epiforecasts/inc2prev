@@ -26,7 +26,7 @@ i2p_summarise <- function(fit, variables = NULL,
 }
 
 ## translate index into date
-i2p_add_dates <- function(dt, prev, data) {
+i2p_add_date <- function(dt, prev, data) {
   start_date <- min(prev$start_date, na.rm = TRUE)
   dates <- prev$date
   ut <- data$ut
