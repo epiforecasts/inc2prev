@@ -25,11 +25,11 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   if (!is.null(ab)) {
     ## extract antibody prevalence and build features
     ab <- data.table(ab)[, .(
-                      start_date = as.Date(start_date),
-                      end_date = as.Date(end_date),
-                      prev = middle,
-                      sd = (upper - lower) / (2 * 1.96)
-                    )]
+      start_date = as.Date(start_date),
+      end_date = as.Date(end_date),
+      prev = middle,
+      sd = (upper - lower) / (2 * 1.96)
+    )]
     model_start_date <- min(prev$start_date, ab$start_date)
     model_end_date <- max(prev$end_date, ab$end_date)
     ab[, `:=`(
@@ -48,18 +48,18 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   ## extract vaccination prevalence and fill missing dates with zeroes
   if (!is.null(vacc)) {
     vacc <- data.table(vacc)[, .(
-                        date = as.Date(date),
-                        vaccinated = vaccinated
-                      )]
+      date = as.Date(date),
+      vaccinated = vaccinated
+    )]
     setkey(vacc, date)
     vacc <- vacc[J(all_dates), roll = 0]
     vacc <- vacc[is.na(vaccinated), vaccinated := 0]
   }
   if (!is.null(init_ab)) {
     init_ab <- data.table(init_ab)[, .(
-                           prev = mean,
-                           sd = (upper - lower) / (2 * 1.96)
-                         )]
+      prev = mean,
+      sd = (upper - lower) / (2 * 1.96)
+    )]
   }
 
   ## summarise prob_detectable for simplicity
@@ -106,7 +106,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
       ab_sd2 = ab$sd^2,
       ab_stime = ab$stime,
       ab_etime = ab$etime
-     ))
+    ))
   }
   if (!is.null(vacc)) {
     dat <- c(dat, list(
@@ -152,14 +152,19 @@ i2p_inits <- function(dat) {
       beta = array(runif(1)),
       gamma = array(runif(1)),
       delta = array(runif(1)),
-       prob_detect = purrr::map2_dbl(
+      prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
     if (!is.null(dat$ab)) {
-      init_list[["ab_sigma"]] =
+      init_list[["ab_sigma"]] <-
         array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
+      init_list[["init_dab"]] <-
+        array(truncnorm::rtruncnorm(
+          1,
+          mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
+        ))
     }
     return(init_list)
   }
