@@ -45,17 +45,6 @@ tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
 ## Fit model
 dir.create(here::here("outputs"), showWarnings = FALSE)
 
-## translate index into date
-index2date <- function(name, index, start_date, dates, ut) {
-  fcase(
-    name %in% c("infections", "dcases", "dab"),
-    index - 1 + start_date - ut,
-    name == "est_prev", dates[index],
-    name == "r", index + start_date - ut,
-    name == "R", index- 1 + start_date
-  )
-}
-
 # create a helper function to estimate the model and apply some
 # summary statistics
 incidence_with_var <- function(data, pb, model, gp_model) {
