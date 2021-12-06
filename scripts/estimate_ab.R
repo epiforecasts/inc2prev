@@ -33,6 +33,7 @@ joint_data <- prev %>%
   inner_join(early, by = "variable") %>%
   group_split(variable)
 
+
 # Location probability of detection posterior
 prob_detect <- fread("data/prob_detectable.csv")
 
@@ -89,20 +90,24 @@ incidence_with_var <- function(data, pb, model, gp_model) {
   dates <- data$prevalence[[1]]$date
   fit <-
     fit[, summary := map(
-            summary, ~ as.data.table(.x)[
-                    , date :=
-                        index2date(name, index, start_date,
-                                   dates, data[[1]]$ut)
-                    ])
-        ]
+      summary, ~ as.data.table(.x)[
+        , date :=
+          index2date(
+            name, index, start_date,
+            dates, data[[1]]$ut
+          )
+      ]
+    )]
   fit <-
     fit[, samples := map(
-            samples, ~ as.data.table(.x)[
-                    , date :=
-                        index2date(name, index, start_date,
-                                   dates, data[[1]]$ut)
-                    ])
-        ]
+      samples, ~ as.data.table(.x)[
+        , date :=
+          index2date(
+            name, index, start_date,
+            dates, data[[1]]$ut
+          )
+      ]
+    )]
 
   return(fit)
 }

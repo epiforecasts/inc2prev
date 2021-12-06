@@ -5,8 +5,6 @@ index2date <- function(name, index, start_date, dates, ut) {
     index - 1 + start_date - ut,
     name == "est_prev", dates[index],
     name == "r", index + start_date - ut,
-    name == "R", index- 1 + start_date
+    name == "R", index - 1 + start_date
   )
 }
-
-
