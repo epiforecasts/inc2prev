@@ -55,11 +55,13 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
   ))
 
   fit[, summary := list(
-    i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles)
+    i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles) |>
+      i2p_add_date(prev = prev, data = data)
   )]
 
   fit[, samples := list(
-    i2p_draws(fit[[1]], variables = variables, samples = samples)
+    i2p_draws(fit[[1]], variables = variables, samples = samples) |>
+      i2p_add_date(prev = prev, data = data)
   )]
   if (!keep_fit) {
     fit[, fit := NULL]

@@ -84,29 +84,6 @@ incidence_with_var <- function(data, pb, model, gp_model) {
   fit <- fit[, level := level]
   fit <- fit[, variable := variable]
 
-  start_date <- min(data$prevalence[[1]]$start_date)
-  dates <- data$prevalence[[1]]$date
-  fit <-
-    fit[, summary := map(
-      summary, ~ as.data.table(.x)[
-        , date :=
-          index2date(
-            name, index, start_date,
-            dates, data[[1]]$ut
-          )
-      ]
-    )]
-  fit <-
-    fit[, samples := map(
-      samples, ~ as.data.table(.x)[
-        , date :=
-          index2date(
-            name, index, start_date,
-            dates, data[[1]]$ut
-          )
-      ]
-    )]
-
   return(fit)
 }
 
