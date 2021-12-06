@@ -33,7 +33,6 @@ joint_data <- prev %>%
   inner_join(early, by = "variable") %>%
   group_split(variable)
 
-
 # Location probability of detection posterior
 prob_detect <- fread("data/prob_detectable.csv")
 
@@ -68,8 +67,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     ),
     prob_detect = pb, parallel_chains = 2,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model),
-    refresh = 0
+    data_args = list(gp_tune_model = gp_model)
   )
 
   if (is.null(fit$result)) {

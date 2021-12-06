@@ -83,7 +83,7 @@ generated quantities {
   cumulative_infections = cumulative_sum(infections);
   cumulative_infections = cumulative_infections / N;
 
-   // population prevelence
+   // population prevalence
   pop_prev = dcases / N;
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
