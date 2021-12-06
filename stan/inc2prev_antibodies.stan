@@ -71,13 +71,13 @@ transformed parameters {
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
   // calculate detectable antibodies
-  dab = detectable_antibodies(infections, vacc, beta, gamma, delta, init_dab, t);
+  dab = detectable_antibodies(infections, vacc, beta, gamma, delta,
+                              init_dab, t);
   // calculate observed detectable antibodies
   odab = observed_cases(dab, ab_stime, ab_etime, ut, ab_obs);
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
   combined_ab_sigma = sqrt(square(ab_sigma) + ab_sd2);
-
 }
 
 model {
@@ -90,11 +90,17 @@ model {
   for (i in 1:pbt) {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
   }
+
+  // Priors for antibody model
+  init_dab ~ normal(init_ab_mean, init_ab_sd);
+  logit(beta) ~ normal(-2, 1); // 10%
+  logit(gamma) ~ normal(-4, 1); // 1%
+  logit(delta) ~ normal(1.5, 1); // ~ 82%
+
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];
   prev ~ normal(odcases, combined_sigma);
   ab ~ normal(odab, combined_ab_sigma);
-  init_dab ~ normal(init_ab_mean, init_ab_sd);
 }
 
 generated quantities {
