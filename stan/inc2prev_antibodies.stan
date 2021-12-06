@@ -90,7 +90,7 @@ model {
   for (i in 1:pbt) {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
   }
-  sigma ~ normal(0.025, 0.025) T[0,];
+  sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];
   prev ~ normal(odcases, combined_sigma);
   ab ~ normal(odab, combined_ab_sigma);
