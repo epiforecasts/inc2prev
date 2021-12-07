@@ -1,13 +1,16 @@
 ## Packages
+library(bayesplot)
 library(cmdstanr)
 library(data.table)
 library(dplyr)
 library(purrr)
+library(posterior)
 library(ggplot2)
 library(here)
 library(socialmixr)
 library(lubridate)
 library(readr)
+library(rstan)
 library(tidyr)
 library(future.apply)
 library(future.callr)
@@ -65,13 +68,51 @@ fit <- incidence(
 fit
 
 # plot modelled and observed (but also modelled) prevalence
-plot_prev(
+prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$prevalence[[1]]
 )
 
+ggsave("figures/example-prev.png", prev_plot, width = 9, height = 6)
+
 # plot modelled and observed (but also modelled) antibodies
-plot_ab(
+ab_plot <- plot_ab(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$antibodies[[1]]
 )
+
+ggsave("figures/example-ab.png", ab_plot, width = 9, height = 6)
+
+
+# pairs plot
+stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
+np <- nuts_params(stanfit)
+pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
+  np = np,
+  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
+)
+ggsave("figures/pairs.png", pairs, width = 16, height = 16)
+
+# plot infections
+plot_trace(
+  fit$samples[[1]][sample <= 100], "infections"
+) +
+  labs(y = "Infections", x = "Date") +
+  scale_y_continuous(labels = scales::comma)
+ggsave("figures/infections.png", width = 9, height = 6)
+
+# plot growth
+plot_trace(
+  fit$samples[[1]][sample <= 100], "r"
+) +
+  labs(y = "Daily growth rate", x = "Date") +
+  geom_hline(yintercept = 0, linetype = 2)
+ggsave("figures/growth.png", width = 9, height = 6)
+
+# plot Rt
+plot_trace(
+  fit$samples[[1]][sample <= 100], "R"
+) +
+  labs(y = "Effective reproduction number", x = "Date") +
+  geom_hline(yintercept = 1, linetype = 2)
+ggsave("figures/Rt.png", width = 9, height = 6)

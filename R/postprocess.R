@@ -26,9 +26,8 @@ i2p_summarise <- function(fit, variables = NULL,
 }
 
 ## translate index into date
-i2p_add_date <- function(dt, prev, data) {
+i2p_add_date <- function(dt, prev, ab, data) {
   start_date <- min(prev$start_date, na.rm = TRUE)
-  dates <- prev$date
   ut <- data$ut
 
   dt <- suppressWarnings(
@@ -37,7 +36,8 @@ i2p_add_date <- function(dt, prev, data) {
       date := fcase(
         name %in% c("infections", "dcases", "dab"),
         index - 1 + start_date - ut,
-        name == "est_prev", dates[index],
+        name == "est_prev", prev$date[index],
+        name == "est_ab", ab$date[index],
         name == "r", index + start_date - ut,
         name == "R", index - 1 + start_date
       )
