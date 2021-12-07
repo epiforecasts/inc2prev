@@ -106,7 +106,7 @@ model {
   }
   if (ab_likelihood) {
     ab ~ normal(odab, combined_ab_sigma);
-  
+  }
 }
 
 generated quantities {
