@@ -95,4 +95,5 @@ diagnostics <- select(est, -samples, -summary)
 # Save output
 saveRDS(samples, "outputs/samples.rds")
 saveRDS(estimates, "outputs/estimates.rds")
+fwrite(estimates, "outputs/estimates.csv")
 saveRDS(diagnostics, "outputs/diagnostics.rds")

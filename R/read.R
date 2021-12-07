@@ -4,29 +4,50 @@ ons_to_nhse_region <- function(x) {
   recode(
     x,
     `North East` = "North East and Yorkshire",
-    `Yorkshire and the Humber` = "North East and Yorkshire",
+    `Yorkshire and The Humber` = "North East and Yorkshire",
     `East Midlands` = "Midlands",
     `West Midlands` = "Midlands",
   )
 }
 
-read_cis <- function() {
+read_cis <- function(fill_missing = TRUE) {
   pops <- read_pop()
+  ## get prevalence by ONS region
   prev_regional <- readr::read_csv(here::here("data", "cis.csv")) %>%
     filter(level != "local") %>%
     left_join(pops %>%
-      filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
-    ) %>%
-    select(level, start_date,
-      end_date,
-      middle = proportion_pos,
-      lower = proportion_pos_low_95,
-      upper = proportion_pos_high_95,
-      variable = geography,
-      population
-    ) %>%
+              filter(level != "age_school") %>%
+              select(geography_code, population),
+              by = "geography_code")
+  ## get local prevalence, filling with ONS region estimates where missing
+  prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
+    filter(level == "local")
+  if (fill_missing) {
+    missing_dates_local <- seq(as.Date("2021-03-21"), as.Date("2021-06-27"), by = 7)
+    additional_dates <-
+      expand_grid(geography_code = unique(prev_local$geography_code),
+                  start_date = missing_dates_local) %>%
+      mutate(end_date = start_date + 6) %>%
+      inner_join(prev_local %>%
+                 select(level, geography, geography_code, region) %>%
+                 distinct(),
+                 by = "geography_code") %>%
+      inner_join(prev_regional %>%
+                 select(start_date, region = geography,
+                        starts_with("proportion")))
+    prev_local <- prev_local %>%
+      bind_rows(additional_dates) %>%
+      arrange(geography_code, start_date)
+  }
+  ## convert retional prevalence to NHSE regional prevalence
+  prev_regional <- prev_regional %>%
+  select(level, start_date,
+         end_date,
+         middle = proportion_pos,
+         lower = proportion_pos_low_95,
+         upper = proportion_pos_high_95,
+         variable = geography,
+         population) %>%
     mutate(variable = ons_to_nhse_region(variable)) %>%
     pivot_longer(c(middle, lower, upper)) %>%
     group_by(level, start_date, end_date, variable, name) %>%
@@ -36,22 +57,20 @@ read_cis <- function() {
       .groups = "drop"
     ) %>%
     pivot_wider()
-  prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
-    filter(level == "local") %>%
+  ## finalise local prevalence
+  prev_local <- prev_local %>%
     left_join(pops %>%
-      filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
-    ) %>%
+              filter(level != "age_school") %>%
+              select(geography_code, population),
+              by = "geography_code") %>%
     select(level,
-      start_date,
-      end_date,
-      middle = proportion_pos,
-      lower = proportion_pos_low_95,
-      upper = proportion_pos_high_95,
-      variable = geography_code, region,
-      population
-    )
+           start_date,
+           end_date,
+           middle = proportion_pos,
+           lower = proportion_pos_low_95,
+           upper = proportion_pos_high_95,
+           variable = geography_code, region,
+           population)
   prev_age <- readr::read_csv(here::here("data", "cis_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
