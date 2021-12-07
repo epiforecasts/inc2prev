@@ -2,7 +2,10 @@
 #'
 #' @description Fits an `inc2prev` model to recover incidence
 #' from prevalence data using a probility of detection curve.
-#' @param prev Observed prevalence data
+#' @param prev Observed positiviy prevalence data
+#' @param ab Observed antibody prevalence data
+#' @param vacc Observed vaccination data
+#' @param init_ab Observed initial antibody data
 #' @param prob_detection A dataframe of posterior samples for the probability
 #' of detection
 #' @param data_args A list of arguments to pass to `i2p_data()`
@@ -19,12 +22,12 @@
 #' `fit_fn`.
 #' @export
 #' @family incidence
-incidence <- function(prev, prob_detect,
+incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
                       data_args = list(),
                       model = i2p_model(),
                       variables = c(
-                        "pop_prev", "est_prev", "infections",
-                        "cumulative_infections", "r", "R"
+                        "est_prev", "infections",
+                        "dcases", "r", "R"
                       ),
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
@@ -34,6 +37,9 @@ incidence <- function(prev, prob_detect,
     i2p_data, c(
       list(
         prev = prev,
+        ab = ab,
+        vacc = vacc,
+        init_ab = init_ab,
         prob_detectable = prob_detect
       ),
       data_args
@@ -49,7 +55,7 @@ incidence <- function(prev, prob_detect,
   ))
 
   fit[, summary := list(
-    i2p_summarise(fit[[1]], variables = variables)
+    i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles)
   )]
 
   fit[, samples := list(

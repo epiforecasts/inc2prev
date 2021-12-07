@@ -6,6 +6,9 @@ library(purrr)
 library(ggplot2)
 library(here)
 library(socialmixr)
+library(lubridate)
+library(readr)
+library(tidyr)
 library(future.apply)
 library(future.callr)
 library(future)
@@ -15,7 +18,10 @@ functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
 # Load prevalence data and split by location
-prev_list <- read_cis() %>%
+prev <- read_cis() %>%
+  nest(prevalence = c(-variable))
+
+joint_data <- prev %>%
   group_split(variable)
 
 # Location probability of detection posterior
@@ -32,8 +38,8 @@ dir.create(here::here("outputs"), showWarnings = FALSE)
 
 # create a helper function to estimate the model and apply some
 # summary statistics
-incidence_with_var <- function(prev, pb, model, gp_model) {
-  message("Fitting model for: ", unique(prev$variable))
+incidence_with_var <- function(data, pb, model, gp_model) {
+  message("Fitting model")
 
   mod <- cmdstanr::cmdstan_model(
     model$stan_file(),
@@ -42,7 +48,7 @@ incidence_with_var <- function(prev, pb, model, gp_model) {
   safe_incidence <- purrr::safely(incidence)
 
   fit <- safe_incidence(
-    prev,
+    data$prevalence[[1]],
     prob_detect = pb, parallel_chains = 2,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model),
@@ -57,18 +63,45 @@ incidence_with_var <- function(prev, pb, model, gp_model) {
     fit <- fit$result
   }
 
-  fit[, level := unique(prev$level)]
-  fit[, variable := unique(prev$variable)]
+  if (is.null(fit$error)) {
+
+    level <- unique(data$prevalence[[1]]$level)
+    variable <- data$variable
+
+    fit <- fit[, level := level]
+    fit <- fit[, variable := variable]
+
+    start_date <- min(data$prevalence[[1]]$start_date)
+    dates <- data$prevalence[[1]]$date
+    fit <-
+      fit[, summary := map(
+              summary, ~ as.data.table(.x)[
+                      , date :=
+                          index2date(name, index, start_date,
+                                     dates, data[[1]]$ut)
+                      ])
+          ]
+    fit <-
+      fit[, samples := map(
+              samples, ~ as.data.table(.x)[
+                      , date :=
+                          index2date(name, index, start_date,
+                                     dates, data[[1]]$ut)
+                      ])
+          ]
+  }
+
   return(fit)
 }
 
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
 est <- future_lapply(
-  prev_list, incidence_with_var,
+  joint_data, incidence_with_var,
   pb = prob_detect,
   model = mod, gp_model = tune, future.seed = TRUE
 )
+
 est <- rbindlist(est, use.names = TRUE, fill = TRUE)
 # Add summary information to posterior summary and samples
 est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
@@ -84,4 +117,5 @@ diagnostics <- select(est, -samples, -summary)
 # Save output
 saveRDS(samples, "outputs/samples.rds")
 saveRDS(estimates, "outputs/estimates.rds")
+fwrite(estimates, "outputs/estimates.csv")
 saveRDS(diagnostics, "outputs/diagnostics.rds")

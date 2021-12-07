@@ -7,7 +7,7 @@ i2p_draws <- function(fit, variables = NULL, samples = 100) {
     dplyr::select(-.chain, -.iteration, -.draw) %>%
     tidyr::pivot_longer(matches("[0-9]")) %>%
     dplyr::mutate(
-      time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
+      index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
       name = sub("\\[.*$", "", name)
     )
 }
@@ -20,7 +20,7 @@ i2p_summarise <- function(fit, variables = NULL,
     dplyr::as_tibble() %>%
     dplyr::rename(name = variable) %>%
     dplyr::mutate(
-      time = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
+      index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
       name = sub("\\[.*$", "", name)
     )
 }

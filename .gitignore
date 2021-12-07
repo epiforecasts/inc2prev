@@ -5,6 +5,7 @@ figures/*
 *.pdf       
 data/cis
 outputs/
+!outputs/estimates.csv
 *.rds
 stan/inc2prev
 nohup.out

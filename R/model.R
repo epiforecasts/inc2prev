@@ -1,6 +1,7 @@
 library(data.table)
 # define required stan data
-i2p_data <- function(prev, prob_detectable, ut = 14,
+i2p_data <- function(prev, ab, vacc, init_ab,
+                     prob_detectable, ut = 14,
                      population = 56286961,
                      init_cum_infections = c(0, 0),
                      gt = list(
@@ -13,18 +14,55 @@ i2p_data <- function(prev, prob_detectable, ut = 14,
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
     end_date = as.Date(end_date),
-    date = as.Date(date),
     prev = middle,
     sd = (upper - lower) / (2 * 1.96),
     population
   )]
   prev[, `:=`(
-    time = as.integer(date - min(start_date)),
     stime = as.integer(start_date - min(start_date)),
     etime = as.integer(end_date - min(start_date))
   )]
+  if (!is.null(ab)) {
+    ## extract antibody prevalence and build features
+    ab <- data.table(ab)[, .(
+                      start_date = as.Date(start_date),
+                      end_date = as.Date(end_date),
+                      prev = middle,
+                      sd = (upper - lower) / (2 * 1.96)
+                    )]
+    model_start_date <- min(prev$start_date, ab$start_date)
+    model_end_date <- max(prev$end_date, ab$end_date)
+    ab[, `:=`(
+      stime = as.integer(start_date - model_start_date),
+      etime = as.integer(end_date - model_start_date)
+    )]
+  } else {
+    model_start_date <- min(prev$start_date)
+    model_end_date <- max(prev$end_date)
+  }
+  all_dates <- seq(model_start_date - days(ut), model_end_date, by = "days")
+  prev[, `:=`(
+    stime = as.integer(start_date - model_start_date),
+    etime = as.integer(end_date - model_start_date)
+  )]
+  ## extract vaccination prevalence and fill missing dates with zeroes
+  if (!is.null(vacc)) {
+    vacc <- data.table(vacc)[, .(
+                        date = as.Date(date),
+                        vaccinated = vaccinated
+                      )]
+    setkey(vacc, date)
+    vacc <- vacc[J(all_dates), roll = 0]
+    vacc <- vacc[is.na(vaccinated), vaccinated := 0]
+  }
+  if (!is.null(init_ab)) {
+    init_ab <- data.table(init_ab)[, .(
+                           prev = mean,
+                           sd = (upper - lower) / (2 * 1.96)
+                         )]
+  }
 
-  # summarise prob_detectable for simplicity
+  ## summarise prob_detectable for simplicity
   prob_detectable <- melt(
     copy(prob_detectable),
     value.name = "p", id.vars = "sample"
@@ -48,22 +86,39 @@ i2p_data <- function(prev, prob_detectable, ut = 14,
   # build stan data
   dat <- list(
     ut = ut,
-    ot = max(prev$etime),
-    t = ut + length(prev$prev),
+    t = length(all_dates),
     obs = length(prev$prev),
     prev = prev$prev,
     prev_sd2 = prev$sd^2,
-    prev_time = prev$time,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
     N = unique(prev$population),
-    inc_zero = log(baseline_inc / (baseline_inc + 1)),
-    init_cum_mean = init_cum_infections[1],
-    init_cum_sd = init_cum_infections[2]
+    inc_zero = log(baseline_inc / (baseline_inc + 1))
   )
+
+  if (!is.null(ab)) {
+    dat <- c(dat, list(
+      ab_obs = length(ab$prev),
+      ab = ab$prev,
+      ab_sd2 = ab$sd^2,
+      ab_stime = ab$stime,
+      ab_etime = ab$etime
+     ))
+  }
+  if (!is.null(vacc)) {
+    dat <- c(dat, list(
+      vacc = vacc$vaccinated
+    ))
+  }
+  if (!is.null(init_ab)) {
+    dat <- c(dat, list(
+      init_ab_mean = init_ab$prev,
+      init_ab_sd = init_ab$sd
+    ))
+  }
 
   # gaussian process parameters
   dat$M <- ceiling(dat$t * gp_m)
@@ -89,16 +144,24 @@ library(purrr)
 
 i2p_inits <- function(dat) {
   inits <- function() {
-    list(
+    init_list <- list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      prob_detect = purrr::map2_dbl(
+      beta = array(runif(1)),
+      gamma = array(runif(1)),
+      delta = array(runif(1)),
+       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
+    if (!is.null(dat$ab)) {
+      init_list[["ab_sigma"]] =
+        array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
+    }
+    return(init_list)
   }
   return(inits)
 }

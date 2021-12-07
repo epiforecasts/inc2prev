@@ -12,7 +12,6 @@ library(purrr)
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
-
 geo_levels <- c("national", "regional", "local")
 other_levels <- c("age_school")
 
@@ -22,12 +21,9 @@ prev <- read_cis()
 estimates <- readRDS(here::here("outputs", "estimates.rds"))
 samples <- readRDS(here::here("outputs", "samples.rds"))
 
-early <- read_csv(here::here("data", "early-ons-estimates.csv"))
-
-
 safe_plot_wrapper <- purrr::safely(plot_wrapper)
 map(
   levels, safe_plot_wrapper,
   prev = prev, estimates = estimates,
-  samples = samples, early = early
+  samples = samples
 )

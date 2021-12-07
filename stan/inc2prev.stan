@@ -7,7 +7,6 @@ functions {
 
 data {
   int ut;
-  int ot;
   int t;
   int obs;
   vector[obs] prev;
@@ -26,8 +25,6 @@ data {
   int gtmax; // maximum number of days to consider for the generation time
   int N;
   real inc_zero;
-  int init_cum_mean; // mean estimate of initial cumulative infections
-  int init_cum_sd;   // sd of estimate of initial cumulative infections
 }
 
 transformed data {
@@ -79,16 +76,11 @@ model {
 generated quantities {
   vector[t - ut] R;
   vector[t - 1] r;
-  vector<lower = 0>[t + 1]  cumulative_infections;
+  vector<lower = 0>[t]  cumulative_infections;
   real est_prev[obs];
   vector[t] pop_prev;
   // cumulative incidence
-  cumulative_infections[1] = init_cum_mean;
-  if (init_cum_sd > 0) {
-    cumulative_infections[1] = normal_rng(0, init_cum_sd);
-  }
-  cumulative_infections[2:(t+1)] = infections;
-  cumulative_infections = cumulative_sum(cumulative_infections);
+  cumulative_infections = cumulative_sum(infections);
   cumulative_infections = cumulative_infections / N;
 
    // population prevelence
