@@ -25,13 +25,13 @@ joint_data <- prev %>%
   group_split(variable)
 
 # Location probability of detection posterior
-prob_detect <- fread("data/prob_detectable.csv")
+prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
 mod <- i2p_model()
 
 # Compile tune inverse gamma model
-tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
+tune <- i2p_gp_tune_model()
 
 ## Fit model
 dir.create(here::here("outputs"), showWarnings = FALSE)

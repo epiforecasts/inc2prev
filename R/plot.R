@@ -53,7 +53,7 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
                       data_source = "ONS Prevalence") {
   trace_plot <- plot_trace(
     samples,
-    "pop_prev",
+    "dcases",
     alpha = alpha
   )
 

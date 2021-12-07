@@ -1,4 +1,12 @@
 library(data.table)
+
+i2p_gp_tune_model <- function(path) {
+  if (missing(path)) {
+    path <- "stan/tune_inv_gamma.stan"
+  }
+  rstan::stan_model(path)
+}
+
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, ut = 14,

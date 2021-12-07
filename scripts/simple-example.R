@@ -40,13 +40,13 @@ joint_data <- prev %>%
   filter(variable == example_var)
 
 # Location probability of detection posterior
-prob_detect <- fread("data/prob_detectable.csv")
+prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
 mod <- i2p_model("stan/inc2prev_antibodies.stan")
 
 # Compile tune inverse gamma model
-tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
+tune <- i2p_gp_tune_model()
 
 # Fit the infection to prevalence model
 fit <- incidence(
@@ -56,9 +56,9 @@ fit <- incidence(
   joint_data$initial_antibodies[[1]],
   variables = c(
     "est_prev", "est_ab", "infections", "dcases",
-    "dab", "r", "R", "beta", "gamma", "delta", "pop_prev"
+    "dab", "r", "R", "beta", "gamma", "delta",
   ),
-  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 500,
+  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 100, iter_sampling = 100,
   chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
   data_args = list(gp_tune_model = tune), keep_fit = TRUE
 )

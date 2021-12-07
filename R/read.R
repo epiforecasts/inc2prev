@@ -180,3 +180,7 @@ read_early <- function() {
   early <- readr::read_csv(here::here("data", "early-seroprevalence.csv"))
   return(early)
 }
+
+read_prob_detectable <- function() {
+  data.table::fread("data/prob_detectable.csv")
+}

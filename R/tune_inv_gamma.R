@@ -18,7 +18,7 @@
 #' tune_inv_gamma(lower = 2, upper = 21)
 tune_inv_gamma <- function(lower = 2, upper = 21, model = NULL) {
   if (!is.null(model)) {
-    model <- rstan::stan_model("stan/tune_inv_gamma.stan")
+    model <- i2p_gp_tune_model()
   }
   # optimise for correct upper and lower probabilites
   fit <- rstan::sampling(model,
