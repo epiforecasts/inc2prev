@@ -61,9 +61,10 @@ fit <- incidence(
     "est_prev", "est_ab", "infections", "dcases",
     "dab", "r", "R", "beta", "gamma", "delta"
   ),
-  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 500,
-  chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune), keep_fit = TRUE
+  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
+  chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 15,
+  data_args = list(gp_tune_model = tune, ab_likelihood = FALSE),
+  keep_fit = TRUE
 )
 fit
 
@@ -72,16 +73,14 @@ prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$prevalence[[1]]
 )
-
-ggsave("figures/example-prev.png", prev_plot, width = 9, height = 6)
+ggsave("figures/prev.png", prev_plot, width = 9, height = 6)
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_ab(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$antibodies[[1]]
 )
-
-ggsave("figures/example-ab.png", ab_plot, width = 9, height = 6)
+ggsave("figures/ab.png", ab_plot, width = 9, height = 6)
 
 
 # pairs plot

@@ -33,6 +33,8 @@ data {
   real inc_zero; // number of infections at time zero
   real init_ab_mean; // mean estimate of initial antibody prevalence
   real init_ab_sd;   // sd of estimate of initial antibody prevalence
+  int prev_likelihood; // Should the likelihood for prevalence data be included
+  int ab_likelihood; // Should the likelihood for antibody data be included
 }
 
 transformed data {
@@ -48,7 +50,7 @@ parameters {
   real<lower = 0> ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
   real<lower = 0, upper = 1> beta; // proportion that don't seroconvert
-  real<lower = 0, upper = 1> gamma; // daily rate of antibody waning
+  vector<lower = 0, upper = 1>[2] gamma; // antibody waning (inf & vac)
   real<lower = 0, upper = 1> delta; // vaccine efficacy
   real<lower = 0, upper = 1> init_dab; // initial proportion with antibodies
 }
@@ -94,13 +96,17 @@ model {
   // Priors for antibody model
   init_dab ~ normal(init_ab_mean, init_ab_sd);
   logit(beta) ~ normal(-2, 1); // 10%
-  logit(gamma) ~ normal(-4, 1); // 1%
+  logit(gamma) ~ normal(-9, 2); // 0.1%
   logit(delta) ~ normal(1.5, 1); // ~ 82%
 
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];
-  prev ~ normal(odcases, combined_sigma);
-  ab ~ normal(odab, combined_ab_sigma);
+  if (prev_likelihood) {
+    prev ~ normal(odcases, combined_sigma);
+  }
+  if (ab_likelihood) {
+    ab ~ normal(odab, combined_ab_sigma);
+  
 }
 
 generated quantities {

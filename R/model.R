@@ -17,7 +17,9 @@ i2p_data <- function(prev, ab, vacc, init_ab,
                        sd_sd = 0.77, max = 15
                      ),
                      gp_m = 0.3, gp_ls = c(14, 90),
-                     gp_tune_model = NULL) {
+                     gp_tune_model = NULL,
+                     prev_likelihood = TRUE,
+                     ab_likelihood = TRUE) {
   # extract a prevalence and build features
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
@@ -104,7 +106,9 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
     N = unique(prev$population),
-    inc_zero = log(baseline_inc / (baseline_inc + 1))
+    inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    prev_likelihood = as.numeric(prev_likelihood),
+    ab_likelihood = as.numeric(ab_likelihood)
   )
 
   if (!is.null(ab)) {
@@ -157,9 +161,9 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      beta = array(runif(1)),
-      gamma = array(runif(1)),
-      delta = array(runif(1)),
+      beta = array(inv_logit(rnorm(1, -2, 0.1))),
+      gamma = array(inv_logit(rnorm(2, -4, 0.1))),
+      delta = array(inv_logit(rnorm(1, 1.5, 0.1))),
       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
