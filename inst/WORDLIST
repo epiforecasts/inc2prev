@@ -53,6 +53,7 @@ bayesplot
 betanalpha
 BG
 bj
+BMC
 BN
 BNS
 BNuD
@@ -71,7 +72,10 @@ chmod
 ci
 citeproc
 cmdstan
+CmdStan
 cmdstanr
+CmdStanR
+CmdStanR’s
 cN
 conv
 convolve
@@ -287,6 +291,8 @@ PN
 pO
 positivity
 posivitiy
+postitivity
+postive
 postprocessing
 pP
 PPPPPPP
@@ -359,6 +365,7 @@ stan
 stime
 su
 submodule
+subnational
 sz
 SZ
 t'L
@@ -380,9 +387,11 @@ tM
 tMH
 tmp
 tmux
+toolchain
 tp
 tq
 tR
+treedepth
 trunc
 truncnorm
 tS
@@ -409,6 +418,7 @@ uPt
 Uq
 usermod
 USH
+usin
 ut
 Uv
 UX
