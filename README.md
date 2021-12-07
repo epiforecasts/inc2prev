@@ -95,5 +95,5 @@ cmdstanr::install_cmdstan()
 # License
 
 This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
-=======
+
 
