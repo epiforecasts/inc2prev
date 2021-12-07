@@ -18,7 +18,7 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2022-01-01"
+end_date <- "2021-08-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -62,8 +62,8 @@ fit <- incidence(
     "dab", "r", "R", "beta", "gamma", "delta"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
-  chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 15,
-  data_args = list(gp_tune_model = tune, prev_likelihood = TRUE),
+  chains = 2, model = mod, adapt_delta = 0.6, max_treedepth = 12,
+  data_args = list(gp_tune_model = tune, ab_likelihood = FALSE),
   keep_fit = TRUE
 )
 fit

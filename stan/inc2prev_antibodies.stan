@@ -95,9 +95,9 @@ model {
 
   // Priors for antibody model
   init_dab ~ normal(init_ab_mean, init_ab_sd);
-  logit(beta) ~ normal(-2, 1); // 10%
-  logit(gamma) ~ normal(-9, 2); // 0.1%
-  logit(delta) ~ normal(1.5, 1); // ~ 82%
+  logit(beta) ~ normal(-2, 4); // 10%
+  logit(gamma) ~ normal(-9, 4); // 0.1%
+  logit(delta) ~ normal(3, 1); // ~ 95%
 
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];

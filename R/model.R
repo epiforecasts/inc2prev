@@ -161,9 +161,9 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      beta = array(inv_logit(rnorm(1, -2, 0.1))),
-      gamma = array(inv_logit(rnorm(2, -4, 0.1))),
-      delta = array(inv_logit(rnorm(1, 1.5, 0.1))),
+      beta = array(inv_logit(rnorm(1, -2, 0.4))),
+      gamma = array(inv_logit(rnorm(2, -9, 0.4))),
+      delta = array(inv_logit(rnorm(1, 3, 0.4))),
       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)

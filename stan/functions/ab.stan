@@ -36,7 +36,7 @@ vector detectable_antibodies(vector infections, real[] vacc,
 
   // Infection antibodies (assumes all previous from infection)
   inf_ab[1] = init_pop_ab // initial antibodies
-    + (1 - beta) * infections[1] / (1 - init_pop_ab) // new seroconversion
+    + (1 - beta) * infections[1] * (1 - init_pop_ab) // new seroconversion
     - init_pop_ab * gamma[1];
   // Vaccination antibodies
   vac_ab[1] = delta * vacc[1]; // vaccination
@@ -45,7 +45,7 @@ vector detectable_antibodies(vector infections, real[] vacc,
   for (i in 2:t) {
     // Infection antibodies
     inf_ab[i] = inf_ab[i - 1] 
-      + (1 - beta) * infections[i] / (1 - pop_ab[i - 1]) // new seroconversion
+      + (1 - beta) * infections[i] * (1 - pop_ab[i - 1]) // new seroconversion
       - inf_ab[i - 1] * gamma[1]; // waning
     // Vaccination antibodies
     vac_ab[i] = vac_ab[i - 1] 
