@@ -42,7 +42,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   }
   nvars <- n_distinct(level_prev$variable)
   ## 1) plot prevalence
-  p <- plot_prev(level_estimates, level_samples, level_prev)
+  p <- plot_prev(level_estimates, level_samples, level_prev) +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("prev_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -50,14 +51,16 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   if (!is.null(ab)) {
     p <- plot_prev(level_estimates, level_samples, level_ab,
       modelled = "dab", observed = "est_ab"
-    )
+    ) +
+      facet_wrap(~variable)
     ggsave(here::here("figures", paste0("ab_", level, ".png")), p,
       width = 7 + 3 * floor(sqrt(nvars)),
       height = 2 + 3 * floor(sqrt(nvars))
     )
   }
   ## 2) plot incidence
-  p <- plot_trace(level_samples, "infections")
+  p <- plot_trace(level_samples, "infections") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("inf_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -65,13 +68,15 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   ## 3) plot R
   p <- plot_trace(level_samples, "R") +
     geom_hline(yintercept = 1, linetype = "dashed") +
-    ylab("R")
+    ylab("R") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("R_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 4) plot growth
-  p <- plot_trace(level_samples, "r")
+  p <- plot_trace(level_samples, "r") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("growth_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -82,7 +87,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
-    xlab("")
+    xlab("") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("car_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -118,7 +124,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
-    xlab("")
+    xlab("") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("cum_inc_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))

@@ -65,7 +65,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
       "est_prev", "est_ab", "infections", "dcases",
       "dab", "r", "R", "beta", "gamma", "delta",
     ),
-    prob_detect = pb, parallel_chains = 2,
+    prob_detect = pb, parallel_chains = 2, iter_warmup = 500,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model)
   )

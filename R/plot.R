@@ -28,8 +28,7 @@ plot_trend <- function(fit, var, date_start) {
 
 plot_trace <- function(samples, var, alpha = 0.05) {
   long_samples <- samples %>%
-    filter(name == var) %>%
-    pivot_longer(matches("^[0-9]+$"), names_to = "sample")
+    filter(name == var)
 
   plot <- long_samples %>%
     ggplot() +
@@ -37,9 +36,7 @@ plot_trace <- function(samples, var, alpha = 0.05) {
     geom_line(alpha = alpha) +
     theme_minimal() +
     labs(x = "Date") +
-    scale_x_date(date_breaks = "2 months", date_labels = "%b %d") +
-    facet_wrap(~variable)
-
+    scale_x_date(date_breaks = "2 months", date_labels = "%b %d")
   return(plot)
 }
 
