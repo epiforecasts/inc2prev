@@ -1,44 +1,47 @@
-# Estimating epidemiological quantities from prevalence estimates in the ONS Community Infection Survey
+# Estimating epidemiological quantities from prevalence and antibody estimates in the ONS Community Infection Survey
 
-We use a deconvolution method for estimating incidence from Office for National Statistics (ONS) prevalence estimates, based on the PCR detection curves by Hellewell _et al._, _BMC Medicine_, 2021 and the Gaussian process based method for estimating infection curves implemented in `EpiNow2`.
+We use a semi-mechanistic method to estimating incidence from Office for National Statistics (ONS) prevalence and antibody positivity estimates at the national, and subnational levels, as well as across age groups.
 
-## An overview of the approach
+# Citation
 
-1. Infections are simulated by scaling the background population by an initial incidence rate and a gaussian process scaled using an inverse logit transformation.
+# Summary
 
-2. The probability of detecting infections is assumed to follow the distribution estimated by Hellewell et al. with uncertainty assumed to be indepedent in time and normally distributed.
+## Method
 
-3. The probability of detection is convolved to estimated infections to get the number of cases detectable at any individual time point.
+Our approach assumes that unobserved infections can be represented using an initial intercept and a Gaussian process with a logit link function. We use a Matern 3/2 kernal and an approximate Hilbert space Gaussian process formulation to reduce the computational cost. To estimate population prevalence we convolve the PCR detection curve estimated in Hellewell _et al._, _BMC Medicine_, 2021, with uncertainty assumed to be normal and independent for each day since infection, with our estimated infection curve. To map this to estimated prevalence from the ONS we assume a normal observation model with the standard error made up of the ONS estimated standard error and a shared standard error term estimated in the model. 
 
-4. In order to be comparable with ONS data detectable cases are averaged in the time window to which each ONS estimate applies (two weeks currently) and then divided by the population to give a prevalence estimate in that window.
+We model antibody postitivity by fitting an initial proportion of the population that have infection derived antibodies. We then fit a daily model that assumes that some fraction of new infections that are not already antibody postive (here we assume equivalent infection risk for individuals who are antibody positive and negative) become so and that a proportion of those current antibody postive become antibody negative. We include vaccination similarly and assume that some fraction of those vaccination become antibody positive and that this positivity wanes with a daily rate (independent from the waning rate of those antibody positive from infection). This estimate of population level antibody positivity is then averaged across the time windows of the available antibody positivity estimates with again a normal observation model being assumed with the standard error made up of the ONS estimated standard error and a shared standard error term estimated in the model. 
 
-5. The observation model for each estimate is assumed to be normally distributed with the standard error made up of the ONS estimated standard error and a shared standard error term estimated in the model.
+This model can be described mathematically as follows:
+
+
+## Implementation
+
+The model is implemented in `stan` using `cmdstanr` with the maximum treedepth increased to 12 from the default of 10. 
 
 ## Limitations
 
-1. Assumes that the probability of detection follows the Hellewell et al estimates and that testing of survey participants is happening each day, which is unlikely, but for which there is little public information.
+ - Assumes that the probability of detection follows the Hellewell et al estimates and that testing of survey participants is happening each day, which is unlikely, but for which there is little public information.
 
-2. Assumes that uncertainty in the Hellewell et al estimates in independent normal which is known not to be the case. This limitation is imposed by not implementing the parameteric Hellewell et al model though this could in principle be done. However, this would again assume some level of independence in parameters and so still not return the posterior distribution found by Hellewell at al.
+ - Assumes that uncertainty in the Hellewell et al estimates is independent normal which is known not to be the case. This limitation is imposed by not implementing the parameteric Hellewell et al model though this could in principle be done. However, this would again assume some level of independence in parameters and so still not return the posterior distribution found by Hellewell at al.
 
-3. Assumes that infections can be well modelled by a Gaussian process with a Matern 3/2 kernal. This may not be the case for a range of reasons such as variation over time is non-stationary, and variation is piecewise constant.
+- Assumes that infections can be well modelled by a Gaussian process with a Matern 3/2 kernal. This may not be the case for a range of reasons such as variation over time is non-stationary, and variation is piecewise constant.
 
-4. Real-time estimates may be unreliable as a zero mean Guassian process has been used. Alternative approaches exist to account for this but each of these imposes a parameteric assumption. Further work is needed on this area.
+- Real-time estimates may be unreliable as a zero mean Guassian process has been used. Alternative approaches exist to account for this but each of these imposes a parameteric assumption. Further work is needed on this area.
 
-## Possible future work
+- Assumes that antibody waning, from both infection and vaccination, wanes with an exponential rate. 
 
-1. Mitigate some or all of the limitations described above.
+# Estimates from England
 
-2. Use confidential data from ONS or other sources that contains more information on the sampling process and hence helps mitigate bias and reduce uncertainty.
+We ONS estimates for prevalence and antibody positivity in England to estimate infections and transmission parameters. The code to reproduce these results can be found [here](https://github.com/epiforecasts/inc2prev/blob/master/scripts/simple-example.R)
 
-3. Introduce fitting to count data with a flexible scale parameter (i.e the ascertainment rate for cases).
-
-## Preliminary results
-
-Preliminary results use ONS estimates for prevalence in England to estimte infections and transmission parameters.
-
-![](figures/readme/prevalence.png)
+![](figures/readme/prev.png)
 
 *Figure 1: ONS prevalence estimates compared to model estimates of ONS prevalence combined with model estimates of population prevalence.*
+
+![](figures/readme/ab.png)
+
+*Figure 1: ONS antibody positivity estimates compared to model estimates of ONS antibody positivity combined with model estimates of population antibody positivity.*
 
 ![](figures/readme/infections.png)
 
@@ -54,15 +57,13 @@ Preliminary results use ONS estimates for prevalence in England to estimte infec
 
 ## Fit diagnostics
 
-![](figures/readme/probability-detection.png)
-
-*Figure 4: Model estimates of the probability of detection overlaid with estimates from Hellewell et al.*
-
 ![](figures/readme/pairs.png)
 
-*Figure 5: Pairs plot of a sample of parameters posteriors*
+*Figure 5: Pairs plot of a sample of parameter posteriors*
 
-# File structure
+# Documentation
+
+## File structure
 
 Folder | Purpose
 ---|---
@@ -73,8 +74,26 @@ Folder | Purpose
 [`stan`](stan/) | The backend stan model code and support functions.
 [`.devcontainer`](.devcontainer/) | Contains the projects `Dockerfile` and setup instructions for using the code with `vscode`.
 
+## Dependencies
+
+All dependencies can be installed using the following, 
+
+```{r}
+remotes::install_dev_deps()
+```
+
+Alternatively a docker [container](https://github.com/epiforecasts/inc2prev/blob/main/.devcontainer/Dockerfile) and [image](https://github.com/epiforecasts/inc2prev/pkgs/container/eval-germany-sp-nowcasting) is provided. An easy way to make use of this is using the Remote development extension of `vscode`.
+
+## Installing CmdStan
+
+If you don’t already have CmdStan installed then it is also necessary to install CmdStan usin CmdStanR’s `install_cmdstan()` function to enable model fitting. A suitable C++ toolchain is also required. Instructions are provided in the [*Getting started with CmdStanR*](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) vignette. See the [CmdStanR documentation](https://mc-stan.org/cmdstanr/) for further details and support.
+
+``` r
+cmdstanr::install_cmdstan()
+```
+
 # License
 
 This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
 =======
->>>>>>> 2aaacca (initial pass at modelling antibodies)
+

@@ -58,7 +58,7 @@ parameters {
 transformed parameters {
   vector[t] gp; // value of gp at time t
   vector[t] infections; // incident infections at time t
-  vector[t] dcases; // detectable cases at time t
+  vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[t] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
   vector[ab_obs] odab;

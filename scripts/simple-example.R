@@ -18,7 +18,7 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2021-08-01"
+end_date <- "2022-01-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -62,8 +62,8 @@ fit <- incidence(
     "dab", "r", "R", "beta", "gamma", "delta"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
-  chains = 2, model = mod, adapt_delta = 0.6, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune, ab_likelihood = FALSE),
+  chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
+  data_args = list(gp_tune_model = tune),
   keep_fit = TRUE
 )
 fit
@@ -88,7 +88,7 @@ stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
 np <- nuts_params(stanfit)
 pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
-  pars = c("alpha", "rho", "eta[1]", "prob_detect[58]", "sigma")
+  pars = c("alpha", "rho", "beta", "gamma[1]", "gamma[2]", "delta")
 )
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
