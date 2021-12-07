@@ -15,7 +15,7 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2021-04-01"
+end_date <- "2022-01-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -65,4 +65,13 @@ fit <- incidence(
 fit
 
 # plot modelled and observed (but also modelled) prevalence
-plot_prev(fit$summary[[1]], fit$samples[[1]], joint_data$prevalence[[1]])
+plot_prev(
+  fit$summary[[1]], fit$samples[[1]][sample <= 100],
+  joint_data$prevalence[[1]]
+)
+
+# plot modelled and observed (but also modelled) antibodies
+plot_ab(
+  fit$summary[[1]], fit$samples[[1]][sample <= 100],
+  joint_data$antibodies[[1]]
+)
