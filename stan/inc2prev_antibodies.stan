@@ -33,6 +33,10 @@ data {
   real inc_zero; // number of infections at time zero
   real init_ab_mean; // mean estimate of initial antibody prevalence
   real init_ab_sd;   // sd of estimate of initial antibody prevalence
+  real pbeta[2]; // Mean and sd for prior proportion that don't seroconvert
+  real pgamma_mean[2]; // Means for prior infection and vaccine waning
+  real pgamma_sd[2]; // Sds for prior infection and vaccine waning
+  real pdelta[2]; // Mean and sd for prior vaccine efficacy
   int prev_likelihood; // Should the likelihood for prevalence data be included
   int ab_likelihood; // Should the likelihood for antibody data be included
 }
@@ -95,9 +99,9 @@ model {
 
   // Priors for antibody model
   init_dab ~ normal(init_ab_mean, init_ab_sd);
-  logit(beta) ~ normal(-2, 4); // 10%
-  logit(gamma) ~ normal(-9, 4); // 0.1%
-  logit(delta) ~ normal(3, 1); // ~ 95%
+  logit(beta) ~ normal(pbeta[1], pbeta[2]);
+  logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
+  logit(delta) ~ normal(pdelta, pdelta); 
 
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];

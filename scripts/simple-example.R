@@ -97,7 +97,7 @@ plot_trace(
   fit$samples[[1]][sample <= 100], "infections"
 ) +
   labs(y = "Infections", x = "Date") +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::percent)
 ggsave("figures/infections.png", width = 9, height = 6)
 
 # plot growth

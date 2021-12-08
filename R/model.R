@@ -10,12 +10,15 @@ i2p_gp_tune_model <- function(path) {
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, ut = 14,
-                     population = 56286961,
                      init_cum_infections = c(0, 0),
                      gt = list(
                        mean = 3.64, mean_sd = 0.71, sd = 3.08,
                        sd_sd = 0.77, max = 15
                      ),
+                     prop_dont_seroconvert = c(-2, 1), # 10%
+                     inf_waning_rate = c(-9, 4),
+                     vac_waning_rate = c(-9, 4), # 0.1%
+                     vaccine_efficacy = c(3, 1), # 95%
                      gp_m = 0.3, gp_ls = c(14, 90),
                      gp_tune_model = NULL,
                      prev_likelihood = TRUE,
@@ -105,8 +108,11 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
-    N = unique(prev$population),
     inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    pbeta = prop_dont_seroconvert,
+    pgamma_mean = c(waning_rate_inf[1], waning_rate_vac[1]),
+    pgamma_sd = c(waning_rate_inf[2], waning_rate_vac[2]),
+    pdelta = vaccine_efficacy,
     prev_likelihood = as.numeric(prev_likelihood),
     ab_likelihood = as.numeric(ab_likelihood)
   )
