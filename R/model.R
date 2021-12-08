@@ -11,18 +11,29 @@ i2p_gp_tune_model <- function(path) {
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, ut = 14,
                      init_cum_infections = c(0, 0),
-                     gt = list(
-                       mean = 3.64, mean_sd = 0.71, sd = 3.08,
-                       sd_sd = 0.77, max = 15
-                     ),
+                     inf_ab_delay = c(rep(0, 7 * 3), rep(1 / 7, 7)),
+                     vacc_ab_delay = c(rep(0, 7 * 3), rep(1 / 7, 7)),
                      prop_dont_seroconvert = c(-2, 1), # 10%
                      inf_waning_rate = c(-9, 4),
                      vac_waning_rate = c(-9, 4), # 0.1%
                      vaccine_efficacy = c(3, 1), # 95%
+                     gt = list(
+                       mean = 3.64, mean_sd = 0.71, sd = 3.08,
+                       sd_sd = 0.77, max = 15
+                     ),
                      gp_m = 0.3, gp_ls = c(14, 90),
                      gp_tune_model = NULL,
                      prev_likelihood = TRUE,
                      ab_likelihood = TRUE) {
+
+  # check PMFS
+  if (sum(inf_ab_delay) - 1 >= 1e-4) {
+    stop("inf_ab_delay must sum to 1 rather than ", sum(inf_ab_delay))
+  }
+
+  if (sum(vacc_ab_delay) - 1 >= 1e-4) {
+    stop("inf_ab_delay must sum to 1 rather than ", sum(vacc_ab_delay))
+  }
   # extract a prevalence and build features
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
@@ -110,9 +121,13 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     pbt = max(prob_detectable$time) + 1,
     inc_zero = log(baseline_inc / (baseline_inc + 1)),
     pbeta = prop_dont_seroconvert,
-    pgamma_mean = c(waning_rate_inf[1], waning_rate_vac[1]),
-    pgamma_sd = c(waning_rate_inf[2], waning_rate_vac[2]),
+    pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
+    pgamma_sd = c(inf_waning_rate[2], vac_waning_rate[2]),
     pdelta = vaccine_efficacy,
+    linf_ab_delay = length(inf_ab_delay),
+    inf_ab_delay = rev(inf_ab_delay),
+    lvacc_ab_delay = length(vacc_ab_delay),
+    vacc_ab_delay = rev(vacc_ab_delay),
     prev_likelihood = as.numeric(prev_likelihood),
     ab_likelihood = as.numeric(ab_likelihood)
   )

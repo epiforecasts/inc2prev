@@ -1,7 +1,8 @@
 functions {
 #include gaussian_process.stan
 #include rt.stan
-#include prev.stan
+#include convolve.stan
+#include observed_in_window.stan
 #include ab.stan
 #include generated_quantities.stan
 }
@@ -19,7 +20,7 @@ data {
   int prev_etime[obs]; // end times of positivity prevalence observations
   int ab_stime[ab_obs]; // starting times of antibody prevalence observations
   int ab_etime[ab_obs]; // end times of antibody prevalence observations
-  real vacc[t]; // vaccinations
+  vector[t] vacc; // vaccinations
   int pbt; // maximum detection time
   vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
@@ -37,13 +38,22 @@ data {
   real pgamma_mean[2]; // Means for prior infection and vaccine waning
   real pgamma_sd[2]; // Sds for prior infection and vaccine waning
   real pdelta[2]; // Mean and sd for prior vaccine efficacy
+  int linf_ab_delay; // Length of the delay between infection and ab
+  // PMF of the delay between infection and ab
+  vector[linf_ab_delay] inf_ab_delay; 
+  int lvacc_ab_delay; // Length of the delay between vaccination and ab
+  // PMF of the  delay between vaccination and ab
+  vector[lvacc_ab_delay] vacc_ab_delay; 
   int prev_likelihood; // Should the likelihood for prevalence data be included
   int ab_likelihood; // Should the likelihood for antibody data be included
 }
 
 transformed data {
+  vector[t] vacc_with_ab;
   // set up approximate gaussian process
   matrix[t, M] PHI = setup_gp(M, L, t);
+  // Calculate vaccinations with the potential to have antibodies
+  vacc_with_ab = convolve(vacc, vacc_ab_delay);
 }
 
 parameters {
@@ -62,6 +72,7 @@ parameters {
 transformed parameters {
   vector[t] gp; // value of gp at time t
   vector[t] infections; // incident infections at time t
+  vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[t] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
@@ -73,14 +84,16 @@ transformed parameters {
   // relative probability of infection
   infections = inv_logit(inc_zero + gp);
   // calculate detectable cases
-  dcases = detectable_cases(infections, prob_detect, pbt, t);
+  dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
-  odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
+  odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
+  // caclulate infections with potential to have antibodies
+  infs_with_potential_abs = convolve(infections, inf_ab_delay);
   // calculate detectable antibodies
-  dab = detectable_antibodies(infections, vacc, beta, gamma, delta,
-                              init_dab, t);
+  dab = detectable_antibodies(infs_with_potential_abs, vacc_with_ab, beta,
+                              gamma, delta, init_dab, t);
   // calculate observed detectable antibodies
-  odab = observed_cases(dab, ab_stime, ab_etime, ut, ab_obs);
+  odab = observed_in_window(dab, ab_stime, ab_etime, ut, ab_obs);
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
   combined_ab_sigma = sqrt(square(ab_sigma) + ab_sd2);
