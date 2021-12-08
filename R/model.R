@@ -11,8 +11,8 @@ i2p_gp_tune_model <- function(path) {
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, ut = 14,
                      init_cum_infections = c(0, 0),
-                     inf_ab_delay = c(rep(0, 7 * 3), rep(1 / 7, 7)),
-                     vacc_ab_delay = c(rep(0, 7 * 3), rep(1 / 7, 7)),
+                     inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
+                     vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      prop_dont_seroconvert = c(-2, 1), # 10%
                      inf_waning_rate = c(-9, 4),
                      vac_waning_rate = c(-9, 4), # 0.1%
