@@ -59,7 +59,7 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
   )]
 
   fit[, samples := list(
-    i2p_draws(fit[[1]], variables = variables, samples = samples)
+    i2p_draws(fit[[1]], variables = variables, samples = ..samples)
   )]
   if (!keep_fit) {
     fit[, fit := NULL]
