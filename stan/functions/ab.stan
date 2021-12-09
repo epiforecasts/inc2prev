@@ -19,8 +19,8 @@
 // source(here::here("R", "utils.R"))
 // expose_stan_fns("ab.stan", "stan/functions")
 //
-// infections <- rep(10, 100)
-// vacc <-  rep(1, 100)
+// infections <- rep(0.01, 100)
+// vacc <-  rep(0.001, 100)
 // beta <- 0.05
 // gamma <- c(0.01, 0.001)
 // delta <- 0.9
@@ -28,7 +28,7 @@
 // t <- 100
 //
 // detectable_antibodies(infections, vacc, beta, gamma, delta, init_pop_ab, t)
-vector detectable_antibodies(vector infections, real[] vacc,
+vector detectable_antibodies(vector infections, vector vacc,
                              real beta, vector gamma, real delta, real init_pop_ab, int t) {
   vector[t] pop_ab;
   vector[t] inf_ab;
