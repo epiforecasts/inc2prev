@@ -1,11 +1,8 @@
 level,lower_age_limit,geography,geography_code,population
-age_school,2,England,E92000001,6254603
-age_school,11,England,E92000001,3370248
-age_school,16,England,E92000001,5950637
-age_school,25,England,E92000001,7596145
-age_school,35,England,E92000001,10853151
-age_school,50,England,E92000001,13618246
-age_school,70,England,E92000001,7679719
+age_school,NA,England,E92000001,56550138
+age_school,NA,Northern Ireland,N92000002,1895510
+age_school,NA,Wales,W92000004,3169586
+age_school,NA,Scotland,S92000003,5466000
 local,NA,Adur; Arun; Chichester; Crawley; Horsham; Mid Sussex; Worthing,J06000202,867635
 local,NA,Amber Valley; Bolsover; Chesterfield; Derbyshire Dales; Erewash; High Peak; North East Derbyshire; South Derbyshire,J06000137,807183
 local,NA,Ashfield; Bassetlaw; Broxtowe; Gedling; Mansfield; Newark and Sherwood; Rushcliffe,J06000135,833377
@@ -122,7 +119,27 @@ local,NA,Southwark,J06000182,320017
 local,NA,Sutton,J06000189,207707
 local,NA,Swindon,J06000207,222881
 local,NA,Wiltshire,J06000210,504070
+local,NA,Belfast Health and Social Care Trust,J06000231,NA
+local,NA,Bridgend; Rhondda Cynon Taf; Merthyr Tydfil,J06000221,449836
+local,NA,Caerphilly; Blaenau Gwent; Torfaen; Monmouthshire; Newport,J06000219,598194
+local,NA,Ceredigion; Pembrokeshire; Carmarthenshire; Powys,J06000218,522749
+local,NA,Clackmannanshire; Falkirk; Stirling; Angus; Dundee City; Fife; Perth and Kinross,J06000224,1096610
+local,NA,Dumfries and Galloway; East Ayrshire; North Ayrshire; Scottish Borders; South Ayrshire,J06000228,631520
+local,NA,East Lothian; Midlothian; City of Edinburgh; West Lothian,J06000226,912490
+local,NA,East Renfrewshire; Inverclyde; Renfrewshire; West Dunbartonshire; East Dunbartonshire; Glasgow City,J06000225,1185240
+local,NA,Isle of Anglesey; Gwynedd; Conwy; Denbighshire; Flintshire; Wrexham,J06000217,703361
+local,NA,Na h-Eileanan Siar; Highland; Moray; Orkney Islands; Shetland Islands; Aberdeen City; Aberdeenshire; Argyll and Bute,J06000223,978180
+local,NA,Northern Health and Social Care Trust,J06000229,NA
+local,NA,South Eastern Health and Social Care Trust,J06000232,NA
+local,NA,South Lanarkshire; North Lanarkshire,J06000227,661960
+local,NA,Southern Health and Social Care Trust,J06000233,NA
+local,NA,Swansea; Neath Port Talbot,J06000220,390949
+local,NA,Vale of Glamorgan; Cardiff,J06000222,504497
+local,NA,Western Health and Social Care Trust,J06000230,NA
 national,NA,England,E92000001,56550138
+national,NA,Northern Ireland,N92000002,1895510
+national,NA,Wales,W92000004,3169586
+national,NA,Scotland,S92000003,5466000
 regional,NA,East Midlands,E12000004,4865583
 regional,NA,East of England,E12000006,6269161
 regional,NA,London,E12000007,9002488

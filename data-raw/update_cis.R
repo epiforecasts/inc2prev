@@ -16,12 +16,23 @@ cis_dir <- here::here("data", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
-years <- c(2020 + seq(0, 1))
-urls <- paste0(
+england_years <- c(2020 + seq(0, 1))
+england_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
-  "coronaviruscovid19infectionsurveydata/", years
+  "coronaviruscovid19infectionsurveydata/", england_years
 ) # nolint
+
+other_years <- 2021
+other_base_urls <- paste0(
+  "https://www.ons.gov.uk/peoplepopulationandcommunity/",
+  "healthandsocialcare/conditionsanddiseases/datasets/",
+  "covid19infectionsurvey",
+  c("northernireland", "scotland", "wales")
+) # nolint
+other_urls <- paste(other_base_urls, other_years, sep = "/")
+
+urls <- c(england_urls, other_urls)
 
 ## get URLs of the spreadsheets, scraped from the web pages
 file_urls <- lapply(urls, function(url) {
@@ -57,13 +68,16 @@ if (nrow(df_dl) > 0) {
 ## define geography codes not in data
 geography_codes <- c(
   England = "E92000001",
+  `Northern Ireland` = "N92000002",
+  Scotland = "S92000003",
+  Wales = "W92000004",
   `North East` = "E12000001",
   `North West` = "E12000002",
   `Yorkshire and The Humber` = "E12000003",
   `East Midlands` = "E12000004",
   `West Midlands` = "E12000005",
   `East of England` = "E12000006",
-  `London` = "E12000007",
+  London = "E12000007",
   `South East` = "E12000008",
   `South West` = "E12000009"
 )
@@ -97,7 +111,16 @@ for (level in names(columns)) {
     ## first,  get table of contents sheet to work out which sheet we want
     contents_sheet <- read_excel(x, sheet = "Contents") %>%
       clean_names()
-    if (level == "national") {
+    if (level %in% c("national", "age_school")) {
+      nation <- case_when(
+        grepl("covid19infectionsurveydatasets[0-9]+ni[^/]*.xlsx?", x) ~
+          "Northern Ireland",
+        grepl("covid19infectionsurveydatasets[0-9]+scotland[^/]*.xlsx?", x) ~
+          "Scotland",
+        grepl("covid19infectionsurveydatasets[0-9]+wales[^/]*.xlsx?", x) ~
+          "Wales",
+        TRUE ~ "England"
+      )
       contents_sheet <- contents_sheet %>%
         filter(grepl("daily", contents)) %>%
         head(n = 1)
@@ -217,6 +240,11 @@ for (level in names(columns)) {
             mutate(lower_age_limit = as.integer(lower_age_limit))
         }
       } else if (level == "local") {
+        if (!("region" %in% colnames(data)) &&
+            ("country" %in% colnames(data))) {
+          data <- data %>%
+            rename(region = country)
+        }
         data <- data %>%
           filter(
             !is.na(geography_code),
@@ -240,7 +268,7 @@ for (level in names(columns)) {
           data <- data %>%
             mutate(
               region = NA_character_,
-              geography = "England"
+              geography = nation
             )
         } else if (level == "regional") {
           data <- data %>%
@@ -250,8 +278,16 @@ for (level in names(columns)) {
         data <- data %>%
           mutate(geography_code = geography_codes[geography])
       } else if (level == "local") {
+        if ("local_authority_areas" %in% colnames(data)) {
+          data <- data %>%
+            rename(geography = local_authority_areas)
+        } else if ("health_and_social_care_trusts" %in% colnames(data)) {
+          data <- data %>%
+            rename(geography = health_and_social_care_trusts)
+        } else {
+          warning("Could not find local column, ", colnames(data))
+        }
         data <- data %>%
-          rename(geography = local_authority_areas) %>%
           mutate(
             start_date = date_start,
             end_date = date_end
@@ -451,5 +487,4 @@ write_csv(
 )
 write_csv(populations, here::here("data", "populations.csv"))
 write_csv(areas, here::here("data", "cis_areas.csv"))
-write_csv(populations, here::here("data", "populations.csv"))
 saveRDS(files, list_file)
