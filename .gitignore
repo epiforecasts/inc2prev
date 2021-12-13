@@ -8,4 +8,5 @@ outputs/
 !outputs/estimates.csv
 *.rds
 stan/inc2prev
+stan/inc2prev_antibodies
 nohup.out

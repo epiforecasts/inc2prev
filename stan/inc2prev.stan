@@ -49,12 +49,11 @@ transformed parameters {
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
-  infections = N * inv_logit(inc_zero + gp);
+  infections = inv_logit(inc_zero + gp);
   // calculate detectable cases
   dcases = detectable_cases(infections, prob_detect, pbt, t);
   // calculate observed detectable cases
   odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
-  odcases = odcases / N;
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
 }
@@ -78,13 +77,10 @@ generated quantities {
   vector[t - 1] r;
   vector<lower = 0>[t]  cumulative_infections;
   real est_prev[obs];
-  vector[t] pop_prev;
   // cumulative incidence
   cumulative_infections = cumulative_sum(infections);
   cumulative_infections = cumulative_infections / N;
 
-   // population prevelence
-  pop_prev = dcases / N;
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   // sample generation time

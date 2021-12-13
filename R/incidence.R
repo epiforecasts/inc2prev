@@ -26,8 +26,7 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
                       data_args = list(),
                       model = i2p_model(),
                       variables = c(
-                        "est_prev", "infections",
-                        "dcases", "r", "R"
+                        "est_prev", "infections", "dcases", "r", "R"
                       ),
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
@@ -55,11 +54,13 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
   ))
 
   fit[, summary := list(
-    i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles)
+    i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles) |>
+      i2p_add_date(prev = prev, ab = ab, data = dat)
   )]
 
   fit[, samples := list(
-    i2p_draws(fit[[1]], variables = variables, samples = ..samples)
+    i2p_draws(fit[[1]], variables = variables, samples = samples) |>
+      i2p_add_date(prev = prev, ab = ab, data = dat)
   )]
   if (!keep_fit) {
     fit[, fit := NULL]
@@ -68,7 +69,7 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
   if (!missing(p)) {
     p()
   }
-  return(fit)
+  return(fit[])
 }
 
 #' Fit multiple incidence models efficiently

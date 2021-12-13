@@ -1,18 +1,31 @@
-plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont_seroconvert = 0) {
+plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
+                         dont_seroconvert = 0) {
   level_prev <- prev %>%
     filter(level == {{ level }}) %>%
     mutate(variable = fct_inorder(variable))
+  if (nrow(level_prev) == 0) {
+    stop("No data available with these filter settings")
+  }
   if (!is.null(ab)) {
     level_ab <- ab %>%
       filter(level == {{ level }}) %>%
       mutate(variable = fct_inorder(variable))
+    if (nrow(level_ab) == 0) {
+      stop("No antibody data available with these filter settings")
+    }
   }
   level_samples <- samples %>%
     filter(level == {{ level }}) %>%
     mutate(variable = factor(variable, levels = levels(level_prev$variable)))
+  if (nrow(level_samples) == 0) {
+    stop("No samples available with these filter settings")
+  }
   level_estimates <- estimates %>%
     filter(level == {{ level }}) %>%
     mutate(variable = factor(variable, levels = levels(level_prev$variable)))
+  if (nrow(level_estimates) == 0) {
+    stop("No estimates available with these filter settings")
+  }
   if (level == "local") {
     level_early <- early %>%
       filter(level == "regional") %>%
@@ -29,19 +42,25 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
   }
   nvars <- n_distinct(level_prev$variable)
   ## 1) plot prevalence
-  p <- plot_prev(level_estimates, level_samples, level_prev)
+  p <- plot_prev(level_estimates, level_samples, level_prev) +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("prev_", level, ".png")), p,
-         width = 7 + 3 * floor(sqrt(nvars)),
-         height = 2 + 3 * floor(sqrt(nvars)))
+    width = 7 + 3 * floor(sqrt(nvars)),
+    height = 2 + 3 * floor(sqrt(nvars))
+  )
   if (!is.null(ab)) {
     p <- plot_prev(level_estimates, level_samples, level_ab,
-                   modelled = "dab", observed = "est_ab")
+      modelled = "dab", observed = "est_ab"
+    ) +
+      facet_wrap(~variable)
     ggsave(here::here("figures", paste0("ab_", level, ".png")), p,
-           width = 7 + 3 * floor(sqrt(nvars)),
-           height = 2 + 3 * floor(sqrt(nvars)))
+      width = 7 + 3 * floor(sqrt(nvars)),
+      height = 2 + 3 * floor(sqrt(nvars))
+    )
   }
   ## 2) plot incidence
-  p <- plot_trace(level_samples, "infections")
+  p <- plot_trace(level_samples, "infections") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("inf_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -49,13 +68,15 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
   ## 3) plot R
   p <- plot_trace(level_samples, "R") +
     geom_hline(yintercept = 1, linetype = "dashed") +
-    ylab("R")
+    ylab("R") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("R_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 4) plot growth
-  p <- plot_trace(level_samples, "r")
+  p <- plot_trace(level_samples, "r") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("growth_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -66,7 +87,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
-    xlab("")
+    xlab("") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("car_", level, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
@@ -84,8 +106,10 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     summarise(
       rand = list(tibble(
         sample = seq_len(n_samples),
-        initial = rtruncnorm(n = n_samples, a = 0, mean = mean,
-                             sd = (high - low) / 4)
+        initial = rtruncnorm(
+          n = n_samples, a = 0, mean = mean,
+          sd = (high - low) / 4
+        )
       )),
       .groups = "drop"
     ) %>%
@@ -98,13 +122,17 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     pivot_wider(names_from = "sample")
   p <- plot_trace(combined_samples, "cumulative_infections") +
     scale_y_continuous("Cumulative incidence",
-                       labels = scales::percent_format(1L)) +
-    xlab("")
+      labels = scales::percent_format(1L)
+    ) +
+    xlab("") +
+    facet_wrap(~variable)
   ggsave(here::here("figures", paste0("cum_inc_", level, ".png")), p,
-         width = 7 + 3 * floor(sqrt(nvars)),
-         height = 2 + 3 * floor(sqrt(nvars)))
+    width = 7 + 3 * floor(sqrt(nvars)),
+    height = 2 + 3 * floor(sqrt(nvars))
+  )
   ## 7) final attack rates
-  ## combine early seroprevalence with estimates of attack rates since start of CIS
+  ## combine early seroprevalence with estimates of attack rates
+  ## since start of CIS
   combined_aggregate <- combined_samples %>%
     filter(date == max(date)) %>%
     pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
@@ -130,12 +158,15 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
     xlab("") +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
   ggsave(here::here("figures", paste0("car_", level, ".png")),
-         width = 7, height = 4)
+    width = 7, height = 4
+  )
   ## 8) final antibodies
   if (!is.null(ab)) {
     antibodies <- level_samples %>%
-      filter(date == max(date),
-             name == "dab") %>%
+      filter(
+        date == max(date),
+        name == "dab"
+      ) %>%
       pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
       group_by(variable) %>%
       summarise(
@@ -159,7 +190,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early, dont
       xlab("") +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
     ggsave(here::here("figures", paste0("seroprevalence_", level, ".png")),
-           width = 7, height = 4  )
+      width = 7, height = 4
+    )
   }
- return(invisible(NULL))
+  return(invisible(NULL))
 }

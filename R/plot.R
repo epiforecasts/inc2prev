@@ -26,20 +26,17 @@ plot_trend <- function(fit, var, date_start) {
     theme_minimal()
 }
 
-plot_trace <- function(samples, var, alpha = 0.05) {
+plot_trace <- function(samples, var, alpha = 0.025) {
   long_samples <- samples %>%
-    filter(name == var) %>%
-    pivot_longer(matches("^[0-9]+$"), names_to = "sample")
+    filter(name == var)
 
   plot <- long_samples %>%
     ggplot() +
     aes(x = date, y = value, group = sample) +
     geom_line(alpha = alpha) +
-    theme_minimal() +
+    theme_bw() +
     labs(x = "Date") +
-    scale_x_date(date_breaks = "2 months", date_labels = "%b %d") +
-    facet_wrap(~variable)
-
+    scale_x_date(date_breaks = "2 months", date_labels = "%b %d")
   return(plot)
 }
 
@@ -53,7 +50,7 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
                       data_source = "ONS Prevalence") {
   trace_plot <- plot_trace(
     samples,
-    "pop_prev",
+    "dcases",
     alpha = alpha
   )
 
@@ -73,6 +70,50 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
   trace_plot +
     scale_y_continuous(labels = scales::percent) +
     labs(y = "Prevalence", x = "Date") +
+    geom_linerange(
+      data = summary_prev,
+      aes(
+        y = NULL, ymin = lower, ymax = upper, group = NULL,
+        col = type
+      ),
+      size = 1, alpha = 0.2
+    ) +
+    geom_point(
+      data = summary_prev,
+      aes(
+        y = middle, ymin = NULL, ymax = NULL, group = NULL,
+        col = type
+      ), size = 1.1, alpha = 0.2
+    ) +
+    theme(legend.position = "bottom") +
+    scale_color_brewer(palette = "Dark2") +
+    guides(col = guide_legend(title = data_source))
+}
+
+plot_ab <- function(estimates, samples, data, alpha = 0.05,
+                    data_source = "ONS Antibodies") {
+  trace_plot <- plot_trace(
+    samples,
+    "dab",
+    alpha = alpha
+  )
+
+  summary_prev <- estimates %>%
+    filter(name == "est_ab") %>%
+    mutate(
+      middle = `50%`,
+      lower = `5%`,
+      upper = `95%`,
+      type = "Modelled"
+    ) %>%
+    bind_rows(data %>%
+      mutate(
+        type = "Estimate"
+      ))
+
+  trace_plot +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(y = "Antibodies", x = "Date") +
     geom_linerange(
       data = summary_prev,
       aes(

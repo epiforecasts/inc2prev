@@ -24,3 +24,24 @@ i2p_summarise <- function(fit, variables = NULL,
       name = sub("\\[.*$", "", name)
     )
 }
+
+## translate index into date
+i2p_add_date <- function(dt, prev, ab, data) {
+  start_date <- min(prev$start_date, na.rm = TRUE)
+  ut <- data$ut
+
+  dt <- suppressWarnings(
+    data.table::as.data.table(dt)[
+      ,
+      date := fcase(
+        name %in% c("infections", "dcases", "dab"),
+        index - 1 + start_date - ut,
+        name == "est_prev", prev$date[index],
+        name == "est_ab", ab$date[index],
+        name == "r", index + start_date - ut,
+        name == "R", index - 1 + start_date
+      )
+    ]
+  )
+  return(dt[])
+}

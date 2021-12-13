@@ -1,15 +1,39 @@
 library(data.table)
+
+i2p_gp_tune_model <- function(path) {
+  if (missing(path)) {
+    path <- "stan/tune_inv_gamma.stan"
+  }
+  rstan::stan_model(path)
+}
+
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, ut = 14,
-                     population = 56286961,
                      init_cum_infections = c(0, 0),
+                     inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
+                     vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
+                     prop_dont_seroconvert = c(-2, 1), # 10%
+                     inf_waning_rate = c(-9, 4),
+                     vac_waning_rate = c(-9, 4), # 0.1%
+                     vaccine_efficacy = c(3, 1), # 95%
                      gt = list(
                        mean = 3.64, mean_sd = 0.71, sd = 3.08,
                        sd_sd = 0.77, max = 15
                      ),
                      gp_m = 0.3, gp_ls = c(14, 90),
-                     gp_tune_model = NULL) {
+                     gp_tune_model = NULL,
+                     prev_likelihood = TRUE,
+                     ab_likelihood = TRUE) {
+
+  # check PMFS
+  if (sum(inf_ab_delay) - 1 >= 1e-4) {
+    stop("inf_ab_delay must sum to 1 rather than ", sum(inf_ab_delay))
+  }
+
+  if (sum(vacc_ab_delay) - 1 >= 1e-4) {
+    stop("inf_ab_delay must sum to 1 rather than ", sum(vacc_ab_delay))
+  }
   # extract a prevalence and build features
   prev <- data.table(prev)[, .(
     start_date = as.Date(start_date),
@@ -25,11 +49,11 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   if (!is.null(ab)) {
     ## extract antibody prevalence and build features
     ab <- data.table(ab)[, .(
-                      start_date = as.Date(start_date),
-                      end_date = as.Date(end_date),
-                      prev = middle,
-                      sd = (upper - lower) / (2 * 1.96)
-                    )]
+      start_date = as.Date(start_date),
+      end_date = as.Date(end_date),
+      prev = middle,
+      sd = (upper - lower) / (2 * 1.96)
+    )]
     model_start_date <- min(prev$start_date, ab$start_date)
     model_end_date <- max(prev$end_date, ab$end_date)
     ab[, `:=`(
@@ -48,18 +72,18 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   ## extract vaccination prevalence and fill missing dates with zeroes
   if (!is.null(vacc)) {
     vacc <- data.table(vacc)[, .(
-                        date = as.Date(date),
-                        vaccinated = vaccinated
-                      )]
+      date = as.Date(date),
+      vaccinated = vaccinated
+    )]
     setkey(vacc, date)
     vacc <- vacc[J(all_dates), roll = 0]
     vacc <- vacc[is.na(vaccinated), vaccinated := 0]
   }
   if (!is.null(init_ab)) {
     init_ab <- data.table(init_ab)[, .(
-                           prev = mean,
-                           sd = (upper - lower) / (2 * 1.96)
-                         )]
+      prev = mean,
+      sd = (upper - lower) / (2 * 1.96)
+    )]
   }
 
   ## summarise prob_detectable for simplicity
@@ -95,8 +119,17 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
-    N = unique(prev$population),
-    inc_zero = log(baseline_inc / (baseline_inc + 1))
+    inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    pbeta = prop_dont_seroconvert,
+    pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
+    pgamma_sd = c(inf_waning_rate[2], vac_waning_rate[2]),
+    pdelta = vaccine_efficacy,
+    linf_ab_delay = length(inf_ab_delay),
+    inf_ab_delay = rev(inf_ab_delay),
+    lvacc_ab_delay = length(vacc_ab_delay),
+    vacc_ab_delay = rev(vacc_ab_delay),
+    prev_likelihood = as.numeric(prev_likelihood),
+    ab_likelihood = as.numeric(ab_likelihood)
   )
 
   if (!is.null(ab)) {
@@ -106,7 +139,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
       ab_sd2 = ab$sd^2,
       ab_stime = ab$stime,
       ab_etime = ab$etime
-     ))
+    ))
   }
   if (!is.null(vacc)) {
     dat <- c(dat, list(
@@ -149,17 +182,22 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      beta = array(runif(1)),
-      gamma = array(runif(1)),
-      delta = array(runif(1)),
-       prob_detect = purrr::map2_dbl(
+      beta = array(inv_logit(rnorm(1, -2, 0.4))),
+      gamma = array(inv_logit(rnorm(2, -9, 0.4))),
+      delta = array(inv_logit(rnorm(1, 3, 0.4))),
+      prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
     if (!is.null(dat$ab)) {
-      init_list[["ab_sigma"]] =
+      init_list[["ab_sigma"]] <-
         array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
+      init_list[["init_dab"]] <-
+        array(truncnorm::rtruncnorm(
+          1,
+          mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
+        ))
     }
     return(init_list)
   }

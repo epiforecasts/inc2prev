@@ -25,13 +25,13 @@ joint_data <- prev %>%
   group_split(variable)
 
 # Location probability of detection posterior
-prob_detect <- fread("data/prob_detectable.csv")
+prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
 mod <- i2p_model()
 
 # Compile tune inverse gamma model
-tune <- rstan::stan_model("stan/tune_inv_gamma.stan")
+tune <- i2p_gp_tune_model()
 
 ## Fit model
 dir.create(here::here("outputs"), showWarnings = FALSE)
@@ -49,7 +49,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 
   fit <- safe_incidence(
     data$prevalence[[1]],
-    prob_detect = pb, parallel_chains = 2,
+    prob_detect = pb, parallel_chains = 2, iter_warmup = 500,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model),
     refresh = 0
@@ -63,33 +63,11 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     fit <- fit$result
   }
 
-  if (is.null(fit$error)) {
+  level <- unique(data$prevalence[[1]]$level)
+  variable <- data$variable
 
-    level <- unique(data$prevalence[[1]]$level)
-    variable <- data$variable
-
-    fit <- fit[, level := level]
-    fit <- fit[, variable := variable]
-
-    start_date <- min(data$prevalence[[1]]$start_date)
-    dates <- data$prevalence[[1]]$date
-    fit <-
-      fit[, summary := map(
-              summary, ~ as.data.table(.x)[
-                      , date :=
-                          index2date(name, index, start_date,
-                                     dates, data[[1]]$ut)
-                      ])
-          ]
-    fit <-
-      fit[, samples := map(
-              samples, ~ as.data.table(.x)[
-                      , date :=
-                          index2date(name, index, start_date,
-                                     dates, data[[1]]$ut)
-                      ])
-          ]
-  }
+  fit <- fit[, level := level]
+  fit <- fit[, variable := variable]
 
   return(fit)
 }

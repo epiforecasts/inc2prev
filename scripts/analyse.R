@@ -20,10 +20,11 @@ levels <- c(geo_levels, other_levels)
 prev <- read_cis()
 estimates <- readRDS(here::here("outputs", "estimates.rds"))
 samples <- readRDS(here::here("outputs", "samples.rds"))
+early <- read_early()
 
 safe_plot_wrapper <- purrr::safely(plot_wrapper)
 map(
-  levels, safe_plot_wrapper,
+  levels, plot_wrapper,
   prev = prev, estimates = estimates,
-  samples = samples
+  samples = samples, early = early
 )
