@@ -91,7 +91,7 @@ files <- list.files(here::here("data", "cis"), full.names = TRUE)
 list_file <- here::here("data", "cis_files.rds")
 
 if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
-  stop("Nothing new to extract")
+  warning("Nothing new to extract")
 }
 
 ## manual override for problematic spreadsheet (wrong table label in contents)
@@ -121,6 +121,8 @@ for (level in names(columns)) {
           "Wales",
         TRUE ~ "England"
       )
+    }
+    if (level == "national") {
       contents_sheet <- contents_sheet %>%
         filter(grepl("daily", contents)) %>%
         head(n = 1)
@@ -437,9 +439,10 @@ pop_geo <- pop %>%
       recode(all_caps_geography, EAST = "EAST OF ENGLAND")
   )
 pop_age <- pop %>%
-  filter(name == "ENGLAND") %>%
-  select(starts_with("x")) %>%
-  pivot_longer(everything(), names_to = "lower_age_limit") %>%
+  filter(name %in% c("ENGLAND", "SCOTLAND",
+		     "WALES", "NORTHERN IRELAND")) %>%
+  select(name, starts_with("x")) %>%
+  pivot_longer(starts_with("x"), names_to = "lower_age_limit") %>%
   mutate(
     lower_age_limit = as.integer(sub("^x", "", lower_age_limit)),
     lower_age_limit =
@@ -449,7 +452,7 @@ pop_age <- pop %>%
       )
   ) %>%
   filter(!is.na(lower_age_limit)) %>%
-  group_by(lower_age_limit) %>%
+  group_by(all_caps_geography = name, lower_age_limit) %>%
   summarise(age_population = sum(value), .groups = "drop")
 pop_local <- areas %>%
   mutate(all_caps_geography = toupper(ltla_name)) %>%
@@ -459,7 +462,7 @@ pop_local <- areas %>%
 populations <- aggregated %>%
   mutate(all_caps_geography = toupper(geography)) %>%
   left_join(pop_geo, by = "all_caps_geography") %>%
-  left_join(pop_age, by = "lower_age_limit") %>%
+  left_join(pop_age, by = c("lower_age_limit", "all_caps_geography")) %>%
   left_join(pop_local, by = "geography_code") %>%
   mutate(
     population = if_else(!is.na(age_population),
