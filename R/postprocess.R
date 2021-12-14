@@ -29,6 +29,7 @@ i2p_summarise <- function(fit, variables = NULL,
 i2p_add_date <- function(dt, prev, ab, data) {
   start_date <- min(prev$start_date, na.rm = TRUE)
   ut <- data$ut
+  if (is.null(ab)) ab <- prev ## needed to avoid error from fcase below
 
   dt <- suppressWarnings(
     data.table::as.data.table(dt)[
