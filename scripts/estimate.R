@@ -1,34 +1,72 @@
-## Packages
-library(cmdstanr)
-library(data.table)
-library(dplyr)
-library(purrr)
-library(ggplot2)
-library(here)
-library(socialmixr)
-library(lubridate)
-library(readr)
-library(tidyr)
-library(future.apply)
-library(future.callr)
-library(future)
+#! /usr/bin/env RScript
+suppressMessages(library(cmdstanr))
+suppressMessages(library(data.table))
+suppressMessages(library(dplyr))
+suppressMessages(library(purrr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(here))
+suppressMessages(library(socialmixr))
+suppressMessages(library(lubridate))
+suppressMessages(library(readr))
+suppressMessages(library(tidyr))
+suppressMessages(library(future.apply))
+suppressMessages(library(future.callr))
+suppressMessages(library(future))
+suppressMessages(library(docopt))
+
+doc <- "
+Estimate incidence from ONS positivity prevalence data,
+possibly including antibody and vaccination data
+Usage:
+    estimate.R
+
+Options:
+    -h --help Show this screen
+    -a --ab   Use antibody data
+"
+
+## if running interactively can set opts to run with options
+if (interactive()) {
+  if (!exists("opts")) opts <- list()
+} else {
+  opts <- docopt(doc)
+}
+
+antibodies <- !is.null(opts$ab) && opts$ab
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
 # Load prevalence data and split by location
-prev <- read_cis() %>%
+data <- read_cis() %>%
   nest(prevalence = c(-variable))
 
-joint_data <- prev %>%
+if (antibodies) {
+  ab <- read_ab() %>%
+    nest(antibodies = c(-variable))
+  vacc <- read_vacc() %>%
+    nest(vaccination = c(-variable))
+  early <- read_early() %>%
+    nest(initial_antibodies = c(-variable))
+  data <- data %>%
+    inner_join(ab, by = "variable") %>%
+    inner_join(vacc, by = "variable") %>%
+    inner_join(early, by = "variable")
+}
+
+data <- data %>%
   group_split(variable)
 
 # Location probability of detection posterior
 prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
-mod <- i2p_model()
+if (antibodies) {
+  mod <- i2p_model("stan/inc2prev_antibodies.stan")
+} else {
+  mod <- i2p_model()
+}
 
 # Compile tune inverse gamma model
 tune <- i2p_gp_tune_model()
@@ -47,12 +85,27 @@ incidence_with_var <- function(data, pb, model, gp_model) {
   )
   safe_incidence <- purrr::safely(incidence)
 
+  variables <- c("est_prev", "infections", "dcases", "r", "R")
+  prev <- data$prevalence[[1]]
+  if (antibodies) {
+    variables <- c(variables, "est_ab", "dab", "beta", "gamma", "delta")
+    ab <- data$antibodies[[1]]
+    vacc <- data$vaccination[[1]]
+    init_ab <- data$initial_antibodies[[1]]
+  } else {
+    ab <- NULL
+    vacc <- NULL
+    init_ab <- NULL
+  }
   fit <- safe_incidence(
-    data$prevalence[[1]],
-    prob_detect = pb, parallel_chains = 2, iter_warmup = 500,
+    prev = prev,
+    ab = ab,
+    vacc = vacc,
+    init_ab = init_ab,
+    variables = variables,
+    prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model),
-    refresh = 0
+    data_args = list(gp_tune_model = gp_model)
   )
 
   if (is.null(fit$result)) {
@@ -75,7 +128,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
 est <- future_lapply(
-  joint_data, incidence_with_var,
+  data, incidence_with_var,
   pb = prob_detect,
   model = mod, gp_model = tune, future.seed = TRUE
 )
@@ -92,8 +145,10 @@ estimates <- bind_rows(est$summary)
 samples <- bind_rows(est$samples)
 diagnostics <- select(est, -samples, -summary)
 
+suffix <- ifelse(antibodies, "_ab", "")
+
 # Save output
-saveRDS(samples, "outputs/samples.rds")
-saveRDS(estimates, "outputs/estimates.rds")
-fwrite(estimates, "outputs/estimates.csv")
-saveRDS(diagnostics, "outputs/diagnostics.rds")
+saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
+saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
+fwrite(estimates, paste0("outputs/estimates", suffix, ".csv"))
+saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
