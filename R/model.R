@@ -190,7 +190,7 @@ i2p_inits <- function(dat) {
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
-    if (!is.null(dat$ab)) {
+    if (!is.null(dat[["ab"]])) {
       init_list[["ab_sigma"]] <-
         array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
       init_list[["init_dab"]] <-
@@ -230,11 +230,8 @@ i2p_inits <- function(dat) {
 #' @importFrom cmdstanr cmdstan_model
 #' @examplesIf interactive()
 #' mod <- i2p_model()
-i2p_model <- function(model, include,
+i2p_model <- function(model = "stan/inc2prev.stan", include,
                       compile = TRUE, threads = FALSE, verbose = TRUE, ...) {
-  if (missing(model)) {
-    model <- "stan/inc2prev.stan"
-  }
   if (missing(include)) {
     include <- "stan/functions"
   }

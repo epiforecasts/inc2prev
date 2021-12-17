@@ -39,7 +39,8 @@ Imports:
     progressr,
     piggyback,
     fs,
-    forcats
+    forcats,
+    docopt
 Additional_repositories: 
     https://mc-stan.org/r-packages/
 Encoding: UTF-8

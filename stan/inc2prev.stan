@@ -1,7 +1,8 @@
 functions {
 #include gaussian_process.stan
 #include rt.stan
-#include prev.stan
+#include convolve.stan
+#include observed_in_window.stan
 #include generated_quantities.stan
 }
 
@@ -23,7 +24,6 @@ data {
   real gtm[2]; // mean and standard deviation (sd) of the mean generation time
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
-  int N;
   real inc_zero;
 }
 
@@ -51,9 +51,9 @@ transformed parameters {
   // relative probability of infection
   infections = inv_logit(inc_zero + gp);
   // calculate detectable cases
-  dcases = detectable_cases(infections, prob_detect, pbt, t);
+  dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
-  odcases = observed_cases(dcases, prev_stime, prev_etime, ut, obs);
+  odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
 }
@@ -79,7 +79,6 @@ generated quantities {
   real est_prev[obs];
   // cumulative incidence
   cumulative_infections = cumulative_sum(infections);
-  cumulative_infections = cumulative_infections / N;
 
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
