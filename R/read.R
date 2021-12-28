@@ -102,7 +102,38 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       variable = age_group,
       population
     )
-  prev <- bind_rows(prev_regional, prev_local, prev_age) %>%
+  prev_variants <- readr::read_csv(here::here("data", "cis_variants.csv")) %>%
+    left_join(pops %>%
+      filter(level != "age_school") %>%
+      select(geography_code, population),
+    by = "geography_code"
+    ) %>%
+    select(level,
+      start_date,
+      end_date,
+      middle = proportion_pos,
+      lower = proportion_pos_low_95,
+      upper = proportion_pos_high_95,
+      geography, variant,
+      population
+    )
+  if (nhse_regions) {
+    prev_variants <- prev_variants %>%
+      mutate(geography = ons_to_nhse_region(geography)) %>%
+      pivot_longer(c(middle, lower, upper)) %>%
+      group_by(level, geography, variant, start_date, end_date, name) %>%
+      summarise(
+        value = sum(population * value) / sum(population),
+        population = sum(population),
+        .groups = "drop"
+      ) %>%
+      pivot_wider()
+   }
+   prev_variants <- prev_variants %>%
+     filter(variant != "virus_too_low_for_variant_to_be_identifiable") %>%
+     mutate(variable = paste(variant, geography, sep = "|")) %>%
+     select(-variant, -geography)
+   prev <- bind_rows(prev_regional, prev_local, prev_age, prev_variants) %>%
     mutate(date = start_date + (end_date - start_date) / 2)
 
   return(prev)

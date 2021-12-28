@@ -152,3 +152,16 @@ regional,NA,South East,E12000008,9217265
 regional,NA,South West,E12000009,5659143
 regional,NA,West Midlands,E12000005,5961929
 regional,NA,Yorkshire and The Humber,E12000003,5526350
+variant_national,NA,England,E92000001,56550138
+variant_national,NA,Northern Ireland,N92000002,1895510
+variant_national,NA,Scotland,S92000003,5466000
+variant_national,NA,Wales,W92000004,3169586
+variant_regional,NA,East Midlands,E12000004,4865583
+variant_regional,NA,East of England,E12000006,6269161
+variant_regional,NA,London,E12000007,9002488
+variant_regional,NA,North East,E12000001,2680763
+variant_regional,NA,North West,E12000002,7367456
+variant_regional,NA,South East,E12000008,9217265
+variant_regional,NA,South West,E12000009,5659143
+variant_regional,NA,West Midlands,E12000005,5961929
+variant_regional,NA,Yorkshire and The Humber,E12000003,5526350

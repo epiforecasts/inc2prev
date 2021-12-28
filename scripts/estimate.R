@@ -18,12 +18,15 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab]
+    estimate.R [--ab] [--local | --age | --variants]
     estimate.R -h | --help
 
 Options:
-    -h, --help Show this screen
-    -a, --ab   Use antibody data
+    -h, --help       Show this screen
+    -a, --ab         Use antibody data
+    -l, --local      Model local dynamics
+    -g, --age        Model age
+    -v, --variants   Model variants
 "
 
 ## if running interactively can set opts to run with options
@@ -34,14 +37,35 @@ if (interactive()) {
 }
 
 antibodies <- !is.null(opts$ab) && opts$ab
+local <- !is.null(opts$local) && opts$local
+age <- !is.null(opts$age) && opts$age
+variants <- !is.null(opts$variants) && opts$variants
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
 # Load prevalence data and split by location
-data <- read_cis() %>%
-  filter(level %in% c("national", "regional")) %>%
+data <- read_cis()
+
+if (local) {
+  filter_level <- "local"
+  suffix <- "local"
+} else if (age) {
+  filter_level <- "age"
+  suffix <- "age"
+} else if (variants) {
+  filter_level <- c("variant_national", "variant_regional")
+  suffix <- "variants"
+} else {
+  filter_level <- c("national", "regional")
+  suffix <- ""
+}
+
+data <- data %>%
+  filter(level %in% filter_level)
+
+data <- data %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
@@ -147,7 +171,7 @@ estimates <- bind_rows(est$summary)
 samples <- bind_rows(est$samples)
 diagnostics <- select(est, -samples, -summary)
 
-suffix <- ifelse(antibodies, "_ab", "")
+suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 
 # Save output
 saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))

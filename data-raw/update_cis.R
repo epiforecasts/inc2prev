@@ -83,8 +83,8 @@ geography_codes <- c(
 )
 
 ## define levels to extract and table structure
-columns <- c(national = 4, regional = 5, local = 6, age_school = 5)
-super_headers <- c(regional = "region", age_school = "lower_age_limit")
+columns <- c(national = 4, regional = 5, local = 6, age_school = 5, variant_national = 6, variant_regional = 6)
+super_headers <- list(regional = "region", age_school = "lower_age_limit", variant_national = c("variant", "nation"), variant_regional = c("variant", "region"))
 
 ## list all files
 files <- list.files(here::here("data", "cis"), full.names = TRUE)
@@ -144,6 +144,20 @@ for (level in names(columns)) {
           grepl("age/school year$", contents)
         ) %>%
         head(n = 1)
+    } else if (level == "variant_national") {
+      contents_sheet <- contents_sheet %>%
+        filter(
+          grepl("daily", contents),
+          grepl("variants$", contents)
+        ) %>%
+        head(n = 1)
+    } else if (level == "variant_regional") {
+      contents_sheet <- contents_sheet %>%
+        filter(
+          grepl("daily", contents),
+          grepl("variants and region$", contents)
+        ) %>%
+        head(n = 1)
     } else {
       stop("Unknown level: ", level)
     }
@@ -163,10 +177,10 @@ for (level in names(columns)) {
       preview <- read_excel(x, sheet = sheet) %>%
         remove_empty("cols") %>%
         clean_names()
-      if (level %in% c("national", "regional", "age_school")) {
+      if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
         headers_row <- min(grep("(%|[Nn]umber)", unlist(preview[, 2]))) - 1
         skip <- headers_row + 1
-        if (level %in% c("regional", "age_school")) {
+        if (level %in% c("regional", "age_school", "variant_national", "variant_regional")) {
           headers <- preview[headers_row, 2:ncol(preview)] %>%
             t() %>%
             as_tibble(.name_repair = "minimal") %>%
@@ -205,7 +219,7 @@ for (level in names(columns)) {
       ) %>%
         remove_empty("cols") %>%
         clean_names()
-      if (level %in% c("national", "regional", "age_school")) {
+      if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
         colnames(data) <-
           c(
             "date",
@@ -213,7 +227,17 @@ for (level in names(columns)) {
               "(estimated_)?(.+)_[0-9]+$", "\\2", colnames(data)[2:ncol(data)]
             )
           )
-        if (level == c("regional")) {
+        if (level %in% c("variant_national", "variant_regional")) {
+          variant_header <- tibble(header = colnames(data)[-1]) %>%
+            mutate(header = sub("covid_19_", "covid_19|", header)) %>%
+            separate(header, c("var", "variant"), sep = "\\|") %>%
+            fill(variant) %>%
+            mutate(var = paste(var, variant, sep = "|")) %>%
+            select(var) %>%
+            suppressWarnings()
+          colnames(data)[2:ncol(data)] <- variant_header$var
+        }
+        if (level %in% c("regional", "variant_national", "variant_regional")) {
           colnames(data)[2:ncol(data)] <-
             paste(colnames(data)[2:ncol(data)], headers$header, sep = "|")
         } else if (level == "age_school") {
@@ -234,7 +258,7 @@ for (level in names(columns)) {
           pivot_longer(2:ncol(.))
         if (level %in% names(super_headers)) {
           data <- data %>%
-            separate(name, c("name", super_headers[level]), sep = "\\|")
+            separate(name, c("name", super_headers[[level]]), sep = "\\|")
         }
         data <- data %>%
           mutate(name = sub("covid_19", "covid", name)) %>%
@@ -268,14 +292,14 @@ for (level in names(columns)) {
         pivot_longer(starts_with("percentage")) %>%
         replace_na(list(value = 0)) %>%
         pivot_wider()
-      if (level %in% c("national", "regional", "age_school")) {
-        if (level %in% c("national", "age_school")) {
+      if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
+        if (level %in% c("national", "age_school", "variant_national")) {
           data <- data %>%
             mutate(
               region = NA_character_,
               geography = nation
             )
-        } else if (level == "regional") {
+        } else if (level %in% c("regional", "variant_regional")) {
           data <- data %>%
             mutate(region = sub("the Humber", "The Humber", region)) %>%
             mutate(geography = region)
@@ -311,6 +335,12 @@ for (level in names(columns)) {
           select(
             start_date, end_date, geography, geography_code,
             lower_age_limit, starts_with("percentage")
+          )
+      } else if (level %in% c("variant_national", "variant_regional")) {
+        data <- data %>%
+          select(
+            start_date, end_date, geography, geography_code,
+            region, variant, starts_with("percentage")
           )
       } else {
         data <- data %>%
@@ -365,7 +395,7 @@ aggregated <- combined %>%
   pivot_longer(starts_with("proportion")) %>%
   group_by(
     level, start_date, end_date, name, lower_age_limit,
-    geography, geography_code, region
+    variant, geography, geography_code, region
   ) %>%
   summarise(value = median(value), .groups = "drop") %>%
   pivot_wider()
@@ -490,6 +520,12 @@ write_csv(
     filter(level %in% c("age_school")) %>%
     remove_empty(which = "cols"),
   here::here("data", "cis_age.csv")
+)
+write_csv(
+  aggregated %>%
+    filter(level %in% c("variant_national", "variant_regional")) %>%
+    remove_empty(which = "cols"),
+  here::here("data", "cis_variants.csv")
 )
 write_csv(populations, here::here("data", "populations.csv"))
 write_csv(areas, here::here("data", "cis_areas.csv"))
