@@ -41,7 +41,7 @@ walk(functions, source)
 
 # Load prevalence data and split by location
 data <- read_cis() %>%
-  filter(level != "local") %>%
+  filter(level %in% c("national", "regional")) %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
@@ -154,14 +154,16 @@ saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
 saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
 saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
 
-pop <- read_pop()
+pop <- data %>% 
+  unnest(prevalence) %>%
+  group_by(variable, level) %>%
+  summarise(population = unique(population), .groups = "drop")
 format_estimates <- estimates %>%
-  left_join(pop %>% select(level, variable = "geography", population), 
-            by = c("level", "variable")) %>% 
+  left_join(pop, by = c("level", "variable")) %>% 
   filter(!is.na(population)) %>%
   pivot_longer(matches("^[0-9]+%"), names_to = "quantile") %>%
   mutate(value = if_else(name == "est_prev", value * 100, value),
 	 value = if_else(name == "infections", round(value * population), value)) %>%
   pivot_wider(names_from = "quantile")
 
-fwrite(formal_estimates, paste0("outputs/estimates", suffix, ".csv"))
+fwrite(format_estimates, paste0("outputs/estimates", suffix, ".csv"))
