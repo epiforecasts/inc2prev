@@ -13,6 +13,9 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
     if (nrow(level_ab) == 0) {
       stop("No antibody data available with these filter settings")
     }
+    suffix <- "_ab"
+  } else {
+    suffix <- ""
   }
   level_samples <- samples %>%
     filter(level == {{ level }}) %>%
@@ -43,8 +46,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   nvars <- n_distinct(level_prev$variable)
   ## 1) plot prevalence
   p <- plot_prev(level_estimates, level_samples, level_prev) +
-    facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("prev_", level, ".png")), p,
+    facet_wrap(~variable, scales = "free_y")
+  ggsave(here::here("figures", paste0("prev_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -53,15 +56,15 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
       modelled = "dab", observed = "est_ab"
     ) +
       facet_wrap(~variable)
-    ggsave(here::here("figures", paste0("ab_", level, ".png")), p,
+    ggsave(here::here("figures", paste0("ab_", level, suffix, ".png")), p,
       width = 7 + 3 * floor(sqrt(nvars)),
       height = 2 + 3 * floor(sqrt(nvars))
     )
   }
   ## 2) plot incidence
   p <- plot_trace(level_samples, "infections") +
-    facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("inf_", level, ".png")), p,
+    facet_wrap(~variable, scales = "free_y")
+  ggsave(here::here("figures", paste0("inf_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -70,37 +73,45 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
     geom_hline(yintercept = 1, linetype = "dashed") +
     ylab("R") +
     facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("R_", level, ".png")), p,
+  ggsave(here::here("figures", paste0("R_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 4) plot growth
   p <- plot_trace(level_samples, "r") +
     facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("growth_", level, ".png")), p,
+  ggsave(here::here("figures", paste0("growth_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 5) plot cumulative incidence
   ## sample from late April seroprevalence
+  if (!("cumulative_infections" %in% unique(level_samples$name))) {
+    level_samples <- level_samples %>%
+      filter(name == "infections") %>%
+      arrange(sample, index, variable) %>%
+      group_by(sample, variable) %>%
+      mutate(value = cumsum(value)) %>%
+      ungroup() %>%
+      mutate(name = "cumulative_infections") %>%
+      bind_rows(level_samples)
+  }
   p <- plot_trace(level_samples, "cumulative_infections") +
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
     xlab("") +
     facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("car_", level, ".png")), p,
+  ggsave(here::here("figures", paste0("car_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 6) cumulative infections
   ## get samples of estimated final cumulative incidence
   cumulative_infection_samples <- level_samples %>%
-    filter(name == "cumulative_infections") %>%
-    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
-    mutate(sample = as.integer(sample))
+    filter(name == "cumulative_infections")
   ## combine early seroprevalence with estimates of attack rates since start of CIS # nolint
-  n_samples <- max(cumulative_infection_samples)
+  n_samples <- max(cumulative_infection_samples$sample)
   early_samples <- level_early %>%
     group_by(variable) %>%
     summarise(
@@ -108,7 +119,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
         sample = seq_len(n_samples),
         initial = rtruncnorm(
           n = n_samples, a = 0, mean = mean,
-          sd = (high - low) / 4
+          sd = (upper - lower) / 4
         )
       )),
       .groups = "drop"
@@ -118,15 +129,14 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   combined_samples <- cumulative_infection_samples %>%
     inner_join(early_samples, by = c("variable", "sample")) %>%
     mutate(value = value + initial) %>%
-    select(-initial) %>%
-    pivot_wider(names_from = "sample")
+    select(-initial)
   p <- plot_trace(combined_samples, "cumulative_infections") +
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
     ) +
     xlab("") +
     facet_wrap(~variable)
-  ggsave(here::here("figures", paste0("cum_inc_", level, ".png")), p,
+  ggsave(here::here("figures", paste0("cum_inc_", level, suffix, ".png")), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -135,7 +145,6 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
   ## since start of CIS
   combined_aggregate <- combined_samples %>%
     filter(date == max(date)) %>%
-    pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
     group_by(variable) %>%
     summarise(
       mean = mean(value),
@@ -153,11 +162,11 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
       "Cumulative attack rate",
       labels = scales::percent_format(accuracy = 1L)
     ) +
-    theme_minimal() +
+    theme_light() +
     expand_limits(y = 0) +
     xlab("") +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-  ggsave(here::here("figures", paste0("car_", level, ".png")),
+  ggsave(here::here("figures", paste0("car_", level, suffix, ".png")),
     width = 7, height = 4
   )
   ## 8) final antibodies
@@ -167,7 +176,6 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
         date == max(date),
         name == "dab"
       ) %>%
-      pivot_longer(matches("[0-9]+"), names_to = "sample") %>%
       group_by(variable) %>%
       summarise(
         mean = mean(value),
@@ -185,11 +193,11 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early,
         "Seroprevalence",
         labels = scales::percent_format(accuracy = 1L)
       ) +
-      theme_minimal() +
+      theme_light() +
       expand_limits(y = 0) +
       xlab("") +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-    ggsave(here::here("figures", paste0("seroprevalence_", level, ".png")),
+    ggsave(here::here("figures", paste0("seroprevalence_", level, suffix, ".png")),
       width = 7, height = 4
     )
   }
