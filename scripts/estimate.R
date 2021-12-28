@@ -155,6 +155,7 @@ saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
 saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
 
 pop <- data %>% 
+  bind_rows() %>%
   unnest(prevalence) %>%
   group_by(variable, level) %>%
   summarise(population = unique(population), .groups = "drop")
