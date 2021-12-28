@@ -23,7 +23,7 @@ plot_trend <- function(fit, var, date_start) {
       col = NA, aes(ymin = `20%`, ymax = `80%`)
     ) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
-    theme_minimal()
+    theme_light()
 }
 
 plot_trace <- function(samples, var, alpha = 0.025) {
@@ -136,7 +136,7 @@ plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev",
       scale_colour_brewer("Region", palette = "Paired")
   }
   p <- p +
-    theme_minimal() +
+    theme_light() +
     xlab("") +
     ylab(var_name)
   return(p)
