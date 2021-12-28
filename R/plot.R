@@ -47,15 +47,16 @@ library(tidyr)
 library(scales)
 
 plot_prev <- function(estimates, samples, data, alpha = 0.05,
+                      modelled = "dcases", observed = "est_prev",
                       data_source = "ONS Prevalence") {
   trace_plot <- plot_trace(
     samples,
-    "dcases",
+    modelled,
     alpha = alpha
   )
 
   summary_prev <- estimates %>%
-    filter(name == "est_prev") %>%
+    filter(name == {{ observed }}) %>%
     mutate(
       middle = `50%`,
       lower = `5%`,
@@ -70,50 +71,6 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
   trace_plot +
     scale_y_continuous(labels = scales::percent) +
     labs(y = "Prevalence", x = "Date") +
-    geom_linerange(
-      data = summary_prev,
-      aes(
-        y = NULL, ymin = lower, ymax = upper, group = NULL,
-        col = type
-      ),
-      size = 1, alpha = 0.2
-    ) +
-    geom_point(
-      data = summary_prev,
-      aes(
-        y = middle, ymin = NULL, ymax = NULL, group = NULL,
-        col = type
-      ), size = 1.1, alpha = 0.2
-    ) +
-    theme(legend.position = "bottom") +
-    scale_color_brewer(palette = "Dark2") +
-    guides(col = guide_legend(title = data_source))
-}
-
-plot_ab <- function(estimates, samples, data, alpha = 0.05,
-                    data_source = "ONS Antibodies") {
-  trace_plot <- plot_trace(
-    samples,
-    "dab",
-    alpha = alpha
-  )
-
-  summary_prev <- estimates %>%
-    filter(name == "est_ab") %>%
-    mutate(
-      middle = `50%`,
-      lower = `5%`,
-      upper = `95%`,
-      type = "Modelled"
-    ) %>%
-    bind_rows(data %>%
-      mutate(
-        type = "Estimate"
-      ))
-
-  trace_plot +
-    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
-    labs(y = "Antibodies", x = "Date") +
     geom_linerange(
       data = summary_prev,
       aes(
