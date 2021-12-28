@@ -98,7 +98,6 @@ if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
 override <- list(
   `covid19infectionsurveydatasets20210305v2.xlsx` =
     list(
-      `1b` = "1b ",
       `1k` = "1l",
       `1h` = "1i"
     )
@@ -109,6 +108,7 @@ positivity <- list()
 for (level in names(columns)) {
   positivity[[level]] <- lapply(files, function(x) {
     ## first,  get table of contents sheet to work out which sheet we want
+    sheets <- excel_sheets(x)
     contents_sheet <- read_excel(x, sheet = "Contents") %>%
       clean_names()
     if (level %in% c("national", "age_school")) {
@@ -149,7 +149,10 @@ for (level in names(columns)) {
     }
     ## extract table number
     sheet <- sub("^Table ([^ ]+) ?- .*$", "\\1", contents_sheet$contents)
-    if (length(sheet) == 1) {
+    ## care for slight name discrepancies
+    sheet <- grep(paste0("^", sheet, "( |$)"), sheets, value = TRUE)
+    if (length(sheet) >= 1) {
+      sheet <- sheet[1]
       ## manual override
       if (basename(x) %in% names(override) &&
         sheet %in% names(override[[basename(x)]])) {
