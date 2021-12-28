@@ -10,7 +10,7 @@ ons_to_nhse_region <- function(x) {
   )
 }
 
-read_cis <- function(fill_missing = TRUE) {
+read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   pops <- read_pop()
   ## get prevalence by ONS region
   prev_regional <- readr::read_csv(here::here("data", "cis.csv")) %>%
@@ -48,7 +48,6 @@ read_cis <- function(fill_missing = TRUE) {
       bind_rows(additional_dates) %>%
       arrange(geography_code, start_date)
   }
-  ## convert retional prevalence to NHSE regional prevalence
   prev_regional <- prev_regional %>%
     select(level, start_date,
       end_date,
@@ -57,16 +56,20 @@ read_cis <- function(fill_missing = TRUE) {
       upper = proportion_pos_high_95,
       variable = geography,
       population
-    ) %>%
-    mutate(variable = ons_to_nhse_region(variable)) %>%
-    pivot_longer(c(middle, lower, upper)) %>%
-    group_by(level, start_date, end_date, variable, name) %>%
-    summarise(
-      value = sum(population * value) / sum(population),
-      population = sum(population),
-      .groups = "drop"
-    ) %>%
-    pivot_wider()
+    )
+  ## convert retional prevalence to NHSE regional prevalence
+  if (nhse_regions) {
+    prev_regional <- prev_regional %>%
+      mutate(variable = ons_to_nhse_region(variable)) %>%
+      pivot_longer(c(middle, lower, upper)) %>%
+      group_by(level, start_date, end_date, variable, name) %>%
+      summarise(
+        value = sum(population * value) / sum(population),
+        population = sum(population),
+        .groups = "drop"
+      ) %>%
+      pivot_wider()
+  }
   ## finalise local prevalence
   prev_local <- prev_local %>%
     left_join(pops %>%
@@ -109,7 +112,7 @@ read_pop <- function() {
   readr::read_csv(here::here("data", "populations.csv"))
 }
 
-read_ab <- function() {
+read_ab <- function(nhse_regions = TRUE) {
   pops <- read_pop()
   lower_age_limits <- read_cis() %>%
     filter(level == "age_school") %>%
@@ -130,16 +133,20 @@ read_ab <- function() {
       upper = proportion_pos_high_95,
       variable = geography,
       population
-    ) %>%
-    mutate(variable = ons_to_nhse_region(variable)) %>%
-    pivot_longer(c(middle, lower, upper)) %>%
-    group_by(level, start_date, end_date, variable, name) %>%
-    summarise(
-      value = sum(population * value) / sum(population),
-      population = sum(population),
-      .groups = "drop"
-    ) %>%
-    pivot_wider()
+    )
+
+  if (nhse_regions) {
+    ab_regional <- ab_regional %>%
+      mutate(variable = ons_to_nhse_region(variable)) %>%
+      pivot_longer(c(middle, lower, upper)) %>%
+      group_by(level, start_date, end_date, variable, name) %>%
+      summarise(
+        value = sum(population * value) / sum(population),
+        population = sum(population),
+        .groups = "drop"
+      ) %>%
+      pivot_wider()
+  }
   ab_age <- readr::read_csv(here::here("data", "ab_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
@@ -181,7 +188,7 @@ read_vacc <- function() {
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(geography, population),
-    by = "geography"
+      by = "geography"
     ) %>%
     mutate(vaccinated = vaccinated / population) %>%
     select(level,
@@ -193,7 +200,7 @@ read_vacc <- function() {
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(lower_age_limit, population),
-    by = "lower_age_limit"
+      by = "lower_age_limit"
     ) %>%
     mutate(
       vaccinated = vaccinated / population,
@@ -207,9 +214,27 @@ read_vacc <- function() {
   return(vacc)
 }
 
-read_early <- function() {
+read_early <- function(nhse_regions = TRUE) {
   early <- readr::read_csv(here::here("data", "early-seroprevalence.csv"))
-  return(early)
+  if (nhse_regions) {
+    pops <- read_pop()
+    early <- early %>%
+      left_join(pops %>%
+        filter(level != "age_school") %>%
+        select(variable = geography, population),
+        by = "variable"
+      ) %>%
+      replace_na(list(population = 1)) %>% ## equal weighting if no info
+      mutate(variable = ons_to_nhse_region(variable)) %>%
+      pivot_longer(c(mean, lower, upper)) %>%
+      group_by(level, variable, name) %>%
+      summarise(
+        value = sum(population * value) / sum(population),
+        .groups = "drop"
+      ) %>%
+      pivot_wider()
+  }
+   return(early)
 }
 
 read_prob_detectable <- function() {
