@@ -1,4 +1,4 @@
-#! /usr/bin/env RScript
+#! /usr/bin/env Rscript
 suppressMessages(library(cmdstanr))
 suppressMessages(library(data.table))
 suppressMessages(library(dplyr))
@@ -18,11 +18,12 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R
+    estimate.R [--ab]
+    estimate.R -h | --help
 
 Options:
-    -h --help Show this screen
-    -a --ab   Use antibody data
+    -h, --help Show this screen
+    -a, --ab   Use antibody data
 "
 
 ## if running interactively can set opts to run with options
@@ -40,6 +41,7 @@ walk(functions, source)
 
 # Load prevalence data and split by location
 data <- read_cis() %>%
+  filter(level != "local") %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
@@ -127,10 +129,10 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
-est <- future_lapply(
+est <- lapply(
   data, incidence_with_var,
   pb = prob_detect,
-  model = mod, gp_model = tune, future.seed = TRUE
+  model = mod, gp_model = tune
 )
 
 est <- rbindlist(est, use.names = TRUE, fill = TRUE)
@@ -150,5 +152,16 @@ suffix <- ifelse(antibodies, "_ab", "")
 # Save output
 saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
 saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
-fwrite(estimates, paste0("outputs/estimates", suffix, ".csv"))
 saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
+
+pop <- read_pop()
+format_estimates <- estimates %>%
+  left_join(pop %>% select(level, variable = "geography", population), 
+            by = c("level", "variable")) %>% 
+  filter(!is.na(population)) %>%
+  pivot_longer(matches("^[0-9]+%"), names_to = "quantile") %>%
+  mutate(value = if_else(name == "est_prev", value * 100, value),
+	 value = if_else(name == "infections", round(value * population), value)) %>%
+  pivot_wider(names_from = "quantile")
+
+fwrite(formal_estimates, paste0("outputs/estimates", suffix, ".csv"))
