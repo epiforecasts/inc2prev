@@ -52,7 +52,7 @@ if (local) {
   filter_level <- "local"
   suffix <- "local"
 } else if (age) {
-  filter_level <- "age"
+  filter_level <- "age_school"
   suffix <- "age"
 } else if (variants) {
   filter_level <- c("variant_national", "variant_regional")
