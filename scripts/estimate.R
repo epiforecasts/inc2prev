@@ -174,9 +174,9 @@ diagnostics <- select(est, -samples, -summary)
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 
 # Save output
-saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
-saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
-saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
+saveRDS(samples, paste0("outputs/samples", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+saveRDS(estimates, paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+saveRDS(diagnostics, paste0("outputs/diagnostics", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
 
 pop <- data %>% 
   bind_rows() %>%

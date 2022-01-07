@@ -57,8 +57,8 @@ if (local) {
 }
 
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
-estimates <- readRDS(paste0("outputs/estimates", suffix, ".rds"))
-samples <- readRDS(paste0("outputs/samples", suffix, ".rds"))
+estimates <- readRDS(paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+samples <- readRDS(paste0("outputs/samples", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
 if (variants) {
   early <- NULL
 } else {
