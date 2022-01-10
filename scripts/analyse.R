@@ -39,13 +39,6 @@ variants <- !is.null(opts$variants) && opts$variants
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
-prev <- read_cis()
-if (antibodies) {
-  ab <- read_ab()
-} else {
-  ab <- NULL
-}
-
 if (local) {
   suffix <- "local"
 } else if (age) {
@@ -59,10 +52,19 @@ if (local) {
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 estimates <- readRDS(paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
 samples <- readRDS(paste0("outputs/samples", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+
+nhse <- "Midlands" %in% estimates$variable
+prev <- read_cis(nhse_regions = nhse)
+if (antibodies) {
+  ab <- read_ab(nhse_regions = nhse)
+} else {
+  ab <- NULL
+}
+
 if (variants) {
   early <- NULL
 } else {
-  early <- read_early()
+  early <- read_early(nhse_regions = nhse)
 }
 
 levels <- unique(estimates$level)

@@ -18,7 +18,7 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--local | --age | --variants]
+    estimate.R [--ab] [--local | --age | --variants] [--nhse]
     estimate.R -h | --help
 
 Options:
@@ -27,6 +27,7 @@ Options:
     -l, --local      Model local dynamics
     -g, --age        Model age
     -v, --variants   Model variants
+    -n, --nhse       Analyes NHSE regions
 "
 
 ## if running interactively can set opts to run with options
@@ -40,13 +41,14 @@ antibodies <- !is.null(opts$ab) && opts$ab
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
+nhse <- !is.null(opts$nhse) && opts$nhse
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
 # Load prevalence data and split by location
-data <- read_cis()
+data <- read_cis(nhse_regions = nhse)
 
 if (local) {
   filter_level <- "local"
@@ -69,11 +71,11 @@ data <- data %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
-  ab <- read_ab() %>%
+  ab <- read_ab(nhse_regions = nhse) %>%
     nest(antibodies = c(-variable))
-  vacc <- read_vacc() %>%
+  vacc <- read_vacc(nhse_regions = nhse) %>%
     nest(vaccination = c(-variable))
-  early <- read_early() %>%
+  early <- read_early(nhse_regions = nhse) %>%
     nest(initial_antibodies = c(-variable))
   data <- data %>%
     inner_join(ab, by = "variable") %>%
@@ -191,4 +193,4 @@ format_estimates <- estimates %>%
 	 value = if_else(name == "infections", round(value * population), value)) %>%
   pivot_wider(names_from = "quantile")
 
-fwrite(format_estimates, paste0("outputs/estimates", suffix, ".csv"))
+fwrite(format_estimates, paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".csv"))

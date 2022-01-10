@@ -212,7 +212,7 @@ read_ab <- function(nhse_regions = TRUE) {
   return(ab)
 }
 
-read_vacc <- function() {
+read_vacc <- function(nhse_regions = TRUE) {
   pops <- read_pop()
   vacc_regional <- readRDS(here::here("data", "vacc.rds")) %>%
     filter(level != "age_school") %>%
@@ -226,7 +226,19 @@ read_vacc <- function() {
       date = vaccination_date,
       vaccinated, variable = geography
     )
-  vacc_age <- readRDS(here::here("data", "vacc.rds")) %>%
+  if (nhse_regions) {
+    vacc_regional <- vacc_regional %>%
+      mutate(variable = ons_to_nhse_region(variable)) %>%
+      pivot_longer(c(middle, lower, upper)) %>%
+      group_by(level, start_date, end_date, variable, name) %>%
+      summarise(
+        value = sum(population * value) / sum(population),
+        population = sum(population),
+        .groups = "drop"
+      ) %>%
+      pivot_wider()
+  }
+   vacc_age <- readRDS(here::here("data", "vacc.rds")) %>%
     filter(level == "age_school") %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
