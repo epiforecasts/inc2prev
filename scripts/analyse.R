@@ -40,18 +40,18 @@ functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 
 if (local) {
-  suffix <- "local"
+  suffix <- "_local"
 } else if (age) {
-  suffix <- "age"
+  suffix <- "_age"
 } else if (variants) {
-  suffix <- "variants"
+  suffix <- "_variants"
 } else {
-  suffix <- ""
+  suffix <- "_regional"
 }
-
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
-estimates <- readRDS(paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
-samples <- readRDS(paste0("outputs/samples", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+
+estimates <- readRDS(paste0("outputs/estimates", suffix, ".rds"))
+samples <- readRDS(paste0("outputs/samples", suffix, ".rds"))
 
 nhse <- "Midlands" %in% estimates$variable
 prev <- read_cis(nhse_regions = nhse)
@@ -74,5 +74,5 @@ map(
   levels, plot_wrapper,
   prev = prev, ab = ab, estimates = estimates,
   samples = samples, early = early,
-  extension = ".svg"
+  suffix = suffix, extension = ".svg"
 )

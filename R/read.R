@@ -17,8 +17,8 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     filter(level != "local") %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
+      select(level, geography_code, population),
+    by = c("level", "geography_code")
     )
   ## get local prevalence, filling with ONS region estimates where missing
   prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
@@ -74,8 +74,8 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   prev_local <- prev_local %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
+      select(level, geography_code, population),
+    by = c("level", "geography_code")
     ) %>%
     select(level,
       start_date,
@@ -89,8 +89,8 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   prev_age <- readr::read_csv(here::here("data", "cis_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
-      select(lower_age_limit, population),
-    by = "lower_age_limit"
+      select(level, lower_age_limit, population),
+    by = c("level", "lower_age_limit")
     ) %>%
     mutate(age_group = limits_to_agegroups(lower_age_limit)) %>%
     select(level,
@@ -105,8 +105,8 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   prev_variants <- readr::read_csv(here::here("data", "cis_variants.csv")) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
+      select(level, geography_code, population),
+    by = c("level", "geography_code")
     ) %>%
     select(level,
       start_date,
@@ -154,8 +154,8 @@ read_ab <- function(nhse_regions = TRUE) {
   ab_regional <- readr::read_csv(here::here("data", "ab.csv")) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
-      select(geography_code, population),
-    by = "geography_code"
+      select(level, geography_code, population),
+    by = c("level", "geography_code")
     ) %>%
     select(level, start_date,
       end_date,
@@ -181,8 +181,8 @@ read_ab <- function(nhse_regions = TRUE) {
   ab_age <- readr::read_csv(here::here("data", "ab_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
-      select(lower_age_limit, population),
-    by = "lower_age_limit"
+      select(level, lower_age_limit, population),
+    by = c("level", "lower_age_limit")
     ) %>%
     mutate(level = "age_school") %>%
     select(level,
@@ -214,12 +214,14 @@ read_ab <- function(nhse_regions = TRUE) {
 
 read_vacc <- function(nhse_regions = TRUE) {
   pops <- read_pop()
-  vacc_regional <- readRDS(here::here("data", "vacc.rds")) %>%
+  vacc_read <- readr::read_csv(here::here("data", "vacc.csv")) 
+  vacc_regional <- vacc_read %>%
     filter(level != "age_school") %>%
+    select(-lower_age_limit) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
-      select(geography, population),
-      by = "geography"
+      select(level, geography, population),
+      by = c("level", "geography")
     ) %>%
     mutate(vaccinated = vaccinated / population) %>%
     select(level,
@@ -238,12 +240,12 @@ read_vacc <- function(nhse_regions = TRUE) {
       ) %>%
       pivot_wider()
   }
-   vacc_age <- readRDS(here::here("data", "vacc.rds")) %>%
+  vacc_age <- vacc_read %>%
     filter(level == "age_school") %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
-      select(lower_age_limit, population),
-      by = "lower_age_limit"
+      select(level, lower_age_limit, population),
+      by = c("level", "lower_age_limit")
     ) %>%
     mutate(
       vaccinated = vaccinated / population,
@@ -264,8 +266,8 @@ read_early <- function(nhse_regions = TRUE) {
     early <- early %>%
       left_join(pops %>%
         filter(level != "age_school") %>%
-        select(variable = geography, population),
-        by = "variable"
+        select(level, variable = geography, population),
+        by = c("level", "variable")
       ) %>%
       replace_na(list(population = 1)) %>% ## equal weighting if no info
       mutate(variable = ons_to_nhse_region(variable)) %>%

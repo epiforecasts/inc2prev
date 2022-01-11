@@ -1,5 +1,5 @@
 plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NULL,
-                         dont_seroconvert = 0, extension = ".png") {
+                         dont_seroconvert = 0, suffix, extension = ".png") {
   level_prev <- prev %>%
     filter(level == {{ level }})
   if (nrow(level_prev) == 0) {
@@ -38,9 +38,6 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     if (nrow(level_ab) == 0) {
       stop("No antibody data available with these filter settings")
     }
-    suffix <- "_ab"
-  } else {
-    suffix <- ""
   }
   level_samples <- level_samples %>%
     mutate(variable = factor(variable, levels = levels(level_prev$variable)))
@@ -168,6 +165,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       width = 7 + 3 * floor(sqrt(nvars)),
       height = 2 + 3 * floor(sqrt(nvars))
     )
+    saveRDS(cumulative_infection_samples, 
+	    here::here("outputs", paste0("cumulative", suffix, ".rds")))
   } else {
     combined_samples <- level_samples
   }

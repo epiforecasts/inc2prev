@@ -52,16 +52,16 @@ data <- read_cis(nhse_regions = nhse)
 
 if (local) {
   filter_level <- "local"
-  suffix <- "local"
+  suffix <- "_local"
 } else if (age) {
   filter_level <- "age_school"
-  suffix <- "age"
+  suffix <- "_age"
 } else if (variants) {
   filter_level <- c("variant_national", "variant_regional")
-  suffix <- "variants"
+  suffix <- "_variants"
 } else {
   filter_level <- c("national", "regional")
-  suffix <- ""
+  suffix <- "_regional"
 }
 
 data <- data %>%
@@ -111,7 +111,8 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     model$stan_file(),
     include_paths = here::here("stan", "functions")
   )
-  safe_incidence <- purrr::safely(incidence)
+  ## safe_incidence <- purrr::safely(incidence)
+  safe_incidence <- incidence
 
   variables <- c("est_prev", "infections", "dcases", "r", "R")
   prev <- data$prevalence[[1]]
@@ -156,7 +157,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
 est <- lapply(
-  data, incidence_with_var,
+  data[1], incidence_with_var,
   pb = prob_detect,
   model = mod, gp_model = tune
 )
@@ -176,9 +177,9 @@ diagnostics <- select(est, -samples, -summary)
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 
 # Save output
-saveRDS(samples, paste0("outputs/samples", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
-saveRDS(estimates, paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
-saveRDS(diagnostics, paste0("outputs/diagnostics", if_else(suffix == "", "", paste0("_", suffix)), ".rds"))
+saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
+saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
+saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
 
 pop <- data %>% 
   bind_rows() %>%
@@ -193,4 +194,4 @@ format_estimates <- estimates %>%
 	 value = if_else(name == "infections", round(value * population), value)) %>%
   pivot_wider(names_from = "quantile")
 
-fwrite(format_estimates, paste0("outputs/estimates", if_else(suffix == "", "", paste0("_", suffix)), ".csv"))
+fwrite(format_estimates, paste0("outputs/estimates", suffix, ".csv"))
