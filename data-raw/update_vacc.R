@@ -35,5 +35,5 @@ vacc_all <- rbindlist(list(
 		       geography = "England",
 		       lower_age_limit)]
 ))
-setkey(vacc_all, vaccination_date)
-saveRDS(vacc_all, here::here("data", "vacc.rds"))
+setkey(vacc_all, level, geography, lower_age_limit, vaccination_date)
+fwrite(vacc_all, here::here("data", "vacc.csv"))
