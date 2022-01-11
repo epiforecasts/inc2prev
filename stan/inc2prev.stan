@@ -29,7 +29,7 @@ data {
 
 transformed data {
   // set up approximate gaussian process
-  matrix[t, M] PHI = setup_gp(M, L, t);
+  matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);
 }
 
 parameters {
@@ -38,20 +38,25 @@ parameters {
   vector[M] eta; // eta
   real<lower = 0> sigma;
   vector<lower = 0, upper = 1>[pbt] prob_detect;
+  real<lower = 0> init_log_inf;
 }
 
 transformed parameters {
-  vector[t] gp;
-  vector[t] infections;
+  vector[t] log_infections;
+  vector[t - 1] r;
   vector[t] dcases;
   vector[obs] odcases;
   vector[obs] combined_sigma;
   // update gaussian process
-  gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  // relative probability of infection
-  infections = inv_logit(inc_zero + gp);
+  r = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  // calculate infections
+  // growth
+  log_infections[1] = init_log_inf;
+  for (i in 2:t) {
+    log_infections[i] = log_infections[i - 1] + r[i-1];
+  }
   // calculate detectable cases
-  dcases = convolve(infections, prob_detect);
+  dcases = convolve(exp(log_infections), prob_detect);
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
   //combined standard error
@@ -69,14 +74,16 @@ model {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
   }
   sigma ~ normal(0.005, 0.0025) T[0,];
+  init_log_inf ~ normal(-5, 3);
   prev ~ normal(odcases, combined_sigma);
 }
 
 generated quantities {
   vector[t - ut] R;
-  vector[t - 1] r;
+  vector<lower = 0>[t]  infections;
   vector<lower = 0>[t]  cumulative_infections;
   real est_prev[obs];
+  infections = exp(log_infections);
   // cumulative incidence
   cumulative_infections = cumulative_sum(infections);
 
@@ -87,6 +94,4 @@ generated quantities {
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, ut, gtm_sample, gtsd_sample, gtmax, 1);
-  // calculate growth
-  r = calculate_growth(infections, 1);
 }
