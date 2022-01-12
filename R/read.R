@@ -226,19 +226,17 @@ read_vacc <- function(nhse_regions = TRUE) {
     mutate(vaccinated = vaccinated / population) %>%
     select(level,
       date = vaccination_date,
-      vaccinated, variable = geography
+      vaccinated, variable = geography,
+      population
     )
   if (nhse_regions) {
     vacc_regional <- vacc_regional %>%
       mutate(variable = ons_to_nhse_region(variable)) %>%
-      pivot_longer(c(middle, lower, upper)) %>%
-      group_by(level, start_date, end_date, variable, name) %>%
+      group_by(level, date, variable) %>%
       summarise(
-        value = sum(population * value) / sum(population),
-        population = sum(population),
+        vaccinated = sum(population * vaccinated) / sum(population),
         .groups = "drop"
-      ) %>%
-      pivot_wider()
+      )
   }
   vacc_age <- vacc_read %>%
     filter(level == "age_school") %>%
