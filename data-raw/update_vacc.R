@@ -37,3 +37,4 @@ vacc_all <- rbindlist(list(
 ))
 setkey(vacc_all, level, geography, lower_age_limit, vaccination_date)
 fwrite(vacc_all, here::here("data", "vacc.csv"))
+
