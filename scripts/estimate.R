@@ -156,10 +156,11 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 
 # Run model fits in parallel
 plan(callr, workers = future::availableCores())
-est <- lapply(
-  data[1], incidence_with_var,
+est <- future.lapply(
+  data, incidence_with_var,
   pb = prob_detect,
-  model = mod, gp_model = tune
+  model = mod, gp_model = tune,
+  future.seed = TRUE
 )
 
 est <- rbindlist(est, use.names = TRUE, fill = TRUE)
