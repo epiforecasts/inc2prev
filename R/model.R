@@ -189,7 +189,7 @@ i2p_inits <- function(dat) {
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       ),
-      init_inf = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0))
+      init_log_inf = rnorm(1, mean = log(dat$prev[1] / dat$ut), sd = 0.1)
     )
     if (!is.null(dat[["ab"]])) {
       init_list[["ab_sigma"]] <-

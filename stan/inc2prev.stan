@@ -38,7 +38,7 @@ parameters {
   vector[M] eta; // eta
   real<lower = 0> sigma;
   vector<lower = 0, upper = 1>[pbt] prob_detect;
-  real<lower = 0> init_log_inf;
+  real init_log_inf;
 }
 
 transformed parameters {
