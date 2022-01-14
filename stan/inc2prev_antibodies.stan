@@ -84,7 +84,7 @@ transformed parameters {
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   infections[1] = inv_logit(inc_init);
-  infections[2:t] = inv_logit(inc_init + sum(gp));
+  infections[2:t] = inv_logit(inc_init + cumulative_sum(gp));
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
