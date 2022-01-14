@@ -28,6 +28,7 @@ data {
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
   real L; // approximate gp boundary
+  int diff_order; // Order of differencing to use for the GP (0 = cases -> mean, 1 = growth_t -> 0, 2 = growth_t -> growth_{t-1})
   real gtm[2]; // mean and standard deviation (sd) of the mean generation time
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
@@ -51,7 +52,7 @@ data {
 transformed data {
   vector[t] vacc_with_ab;
   // set up approximate gaussian process
-  matrix[t-1, M] PHI = setup_gp(M, L, t-1);
+  matrix[diff_order == 0 ? t : t-1, M] PHI = setup_gp(M, L, t-1);
   // Calculate vaccinations with the potential to have antibodies
   vacc_with_ab = convolve(vacc, vacc_ab_delay);
 }
@@ -71,7 +72,7 @@ parameters {
 }
 
 transformed parameters {
-  vector[t-1] gp; // value of gp at time t
+  vector[diff_order == 0 ? t : t-1] gp; // value of gp at time t
   vector[t] infections; // incident infections at time t
   vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
@@ -82,9 +83,22 @@ transformed parameters {
   vector[ab_obs] combined_ab_sigma;
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  // setup differencing of the GP
+  if (diff_order) {
+    for (i in 1:diff_order) {
+      gp = cumulative_sum(gp);
+    }
+  }
   // relative probability of infection
-  infections[1] = inv_logit(inc_init);
-  infections[2:t] = inv_logit(inc_init + sum(gp));
+  if (diff_order) {
+    // inc_init is the initial incidence
+    infections[1] = inv_logit(inc_init);
+    infections[2:t] = inv_logit(inc_init + gp);
+  }else{
+    // inc_init is the mean incidence
+    infections = inv_logit(inc_init + gp);
+  }
+
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
