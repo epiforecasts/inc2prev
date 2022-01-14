@@ -51,7 +51,7 @@ data {
 transformed data {
   vector[t] vacc_with_ab;
   // set up approximate gaussian process
-  matrix[t, M] PHI = setup_gp(M, L, t);
+  matrix[t-1, M] PHI = setup_gp(M, L, t-1);
   // Calculate vaccinations with the potential to have antibodies
   vacc_with_ab = convolve(vacc, vacc_ab_delay);
 }
@@ -60,6 +60,7 @@ parameters {
   real<lower = 0> rho; // length scale of gp
   real<lower = 0> alpha; // scale of gp
   vector[M] eta; // eta of gp
+  real inc_init; // Initial infections
   real<lower = 0> sigma; // observation error
   real<lower = 0> ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
@@ -70,7 +71,7 @@ parameters {
 }
 
 transformed parameters {
-  vector[t] gp; // value of gp at time t
+  vector[t-1] gp; // value of gp at time t
   vector[t] infections; // incident infections at time t
   vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
@@ -82,7 +83,8 @@ transformed parameters {
   // update gaussian process
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
-  infections = inv_logit(inc_zero + gp);
+  infections[1] = inv_logit(inc_init);
+  infections[2:t] = inv_logit(inc_init + sum(gp));
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
@@ -105,6 +107,9 @@ model {
   alpha ~ std_normal() T[0,];
   eta ~ std_normal();
 
+  // Initial infections
+  init_inc ~ normal(init_zero, 5);
+  
   // prevalence observation model
   for (i in 1:pbt) {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
