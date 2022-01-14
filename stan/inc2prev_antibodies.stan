@@ -52,7 +52,7 @@ data {
 transformed data {
   vector[t] vacc_with_ab;
   // set up approximate gaussian process
-  matrix[diff_order == 0 ? t : t-1, M] PHI = setup_gp(M, L, t-1);
+  matrix[diff_order == 0 ? t : t-1, M] PHI = setup_gp(M, L, diff_order == 0 ? t : t-1);
   // Calculate vaccinations with the potential to have antibodies
   vacc_with_ab = convolve(vacc, vacc_ab_delay);
 }
