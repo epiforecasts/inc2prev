@@ -128,7 +128,7 @@ model {
 
 generated quantities {
   vector[t - ut] R;
-  vector[t - 1] r;
+  vector[t - ut] r;
   real est_prev[obs];
   real est_ab[ab_obs];
   // sample estimated prevalence
@@ -140,5 +140,5 @@ generated quantities {
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, ut, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
-  r = calculate_growth(infections, 1);
+  r = calculate_growth(infections, ut);
 }
