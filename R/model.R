@@ -23,6 +23,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
                      ),
                      gp_m = 0.3, gp_ls = c(14, 90),
                      gp_tune_model = NULL,
+                     differencing = 0,
                      prev_likelihood = TRUE,
                      ab_likelihood = TRUE) {
 
@@ -163,6 +164,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2], gp_tune_model)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
+  date$diff_order <- differencing
 
   # define generation time
   dat$gtm <- unlist(gt[c("mean", "mean_sd")])
