@@ -111,8 +111,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     model$stan_file(),
     include_paths = here::here("stan", "functions")
   )
-  ## safe_incidence <- purrr::safely(incidence)
-  safe_incidence <- incidence
+  safe_incidence <- purrr::safely(incidence)
 
   variables <- c("est_prev", "infections", "dcases", "r", "R")
   prev <- data$prevalence[[1]]
