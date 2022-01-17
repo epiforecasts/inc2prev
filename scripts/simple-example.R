@@ -75,11 +75,9 @@ prev_plot <- plot_prev(
 )
 ggsave("figures/prev.png", prev_plot, width = 9, height = 6)
 
-
 prev_logit_plot <- prev_plot +
   scale_y_continuous(tran = scales::logit_trans())
 ggsave("figures/prev-logit.png", prev_logit_plot, width = 9, height = 6)
-
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_prev(
@@ -89,7 +87,6 @@ ab_plot <- plot_prev(
   modelled = "dab"
 )
 ggsave("figures/ab.png", ab_plot, width = 9, height = 6)
-
 
 # pairs plot
 stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
