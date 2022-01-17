@@ -63,7 +63,7 @@ fit <- incidence(
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
   chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune, ht = 14),
+  data_args = list(gp_tune_model = tune, horizon = 14),
   keep_fit = TRUE
 )
 fit
