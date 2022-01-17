@@ -32,7 +32,7 @@ data {
   real gtm[2]; // mean and standard deviation (sd) of the mean generation time
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
-  real inc_zero; // number of infections at time zero
+  real init_inc_mean ; // Mean initial/mean incidence (logit)
   real init_ab_mean; // mean estimate of initial antibody prevalence
   real init_ab_sd;   // sd of estimate of initial antibody prevalence
   real pbeta[2]; // Mean and sd for prior proportion that don't seroconvert
@@ -52,7 +52,7 @@ data {
 transformed data {
   vector[t] vacc_with_ab;
   // set up approximate gaussian process
-  matrix[diff_order == 0 ? t : t-1, M] PHI = setup_gp(M, L, diff_order == 0 ? t : t-1);
+  matrix[t - diff_order, M] PHI = setup_gp(M, L, t - diff_order);
   // Calculate vaccinations with the potential to have antibodies
   vacc_with_ab = convolve(vacc, vacc_ab_delay);
 }
@@ -61,7 +61,8 @@ parameters {
   real<lower = 0> rho; // length scale of gp
   real<lower = 0> alpha; // scale of gp
   vector[M] eta; // eta of gp
-  real inc_init; // Initial infections
+  real init_inc; // Initial infections
+  vector[diff_order] init_growth;
   real<lower = 0> sigma; // observation error
   real<lower = 0> ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
@@ -72,7 +73,7 @@ parameters {
 }
 
 transformed parameters {
-  vector[diff_order == 0 ? t : t-1] gp; // value of gp at time t
+  vector[t] gp; // value of gp at time t + initialisation 
   vector[t] infections; // incident infections at time t
   vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
@@ -82,22 +83,17 @@ transformed parameters {
   vector[obs] combined_sigma;
   vector[ab_obs] combined_ab_sigma;
   // update gaussian process
-  gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  gp[(1 + diff_order):t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // setup differencing of the GP
   if (diff_order) {
+    gp[1:diff_order] = init_growth;
     for (i in 1:diff_order) {
       gp = cumulative_sum(gp);
     }
   }
   // relative probability of infection
-  if (diff_order) {
-    // inc_init is the initial incidence
-    infections[1] = inv_logit(inc_init);
-    infections[2:t] = inv_logit(inc_init + gp);
-  }else{
-    // inc_init is the mean incidence
-    infections = inv_logit(inc_init + gp);
-  }
+  // inc_init is the mean incidence
+  infections = inv_logit(init_inc + gp);
 
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
@@ -122,8 +118,10 @@ model {
   eta ~ std_normal();
 
   // Initial infections
-  init_inc ~ normal(init_zero, 5);
-  
+  init_inc ~ normal(init_inc_mean, 2);
+  if (diff_order) {
+    init_growth ~ normal(0, 0.25);
+  }
   // prevalence observation model
   for (i in 1:pbt) {
     prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];

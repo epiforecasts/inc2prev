@@ -109,7 +109,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     by = time
   ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$mean[unobserved_time]
+  init_inc_mean <- mean(prev$prev) / sum(prob_detectable$mean)
 
   # build stan data
   dat <- list(
@@ -123,7 +123,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
-    inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    init_inc_mean = logit(init_inc_mean),
     pbeta = prop_dont_seroconvert,
     pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
     pgamma_sd = c(inf_waning_rate[2], vac_waning_rate[2]),
@@ -167,7 +167,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2], gp_tune_model)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
-  date$diff_order <- differencing
+  dat$diff_order <- differencing
 
   # define generation time
   dat$gtm <- unlist(gt[c("mean", "mean_sd")])
@@ -195,6 +195,12 @@ i2p_inits <- function(dat) {
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
+    init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
+
+    if (dat$diff_order > 0) {
+      init_list$init_growth <- array(rnorm(dat$diff_order, 0, 0.01))
+    }
+
     if (!is.null(dat[["ab"]])) {
       init_list[["ab_sigma"]] <-
         array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
