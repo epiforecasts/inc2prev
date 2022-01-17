@@ -91,7 +91,8 @@ transformed parameters {
   vector[obs] combined_sigma;
   vector[ab_obs] combined_ab_sigma;
   // update gaussian process
-  inf_gp[(1 + diff_order):t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  inf_gp[(1 + diff_order):t] = update_gp(PHI, M, L, alpha[1], rho[1], eta[1:M],
+                                         0);
   // setup differencing of the GP
   if (diff_order) {
     inf_gp[1:diff_order] = init_growth;
@@ -119,8 +120,8 @@ transformed parameters {
   // calculate infections reported as counts
   if (c_grps) {
     for (i in 1:c_grps) {
-      cscale[i] = update_gp(cPHI[c_grps], M, L, alpha[2:(1+c_grps)],
-                            rho[2:(1+c_grps)],
+      cscale[i] = update_gp(cPHI[c_grps], M, L, alpha[1+c_grps],
+                            rho[1+c_grps],
                             eta[(c_grps-1)*M + 1:(c_grps*M)], 0);
       cscale[i] = inv_logit(cscale_mean[i] + cscale[i]);
       cdist = discretised_gamma_pmf(cdist_indexes, cdist_mean[i], cdist_sd[i],
@@ -163,7 +164,7 @@ model {
       cdist_sd[i] ~ normal(5, 10) T[0,];
     }
   }
-  
+
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];
   if (prev_likelihood) {
