@@ -16,14 +16,14 @@ cis_dir <- here::here("data", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
-england_years <- c(2020 + seq(0, 1))
+england_years <- c(2020 + seq(0, 2))
 england_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
   "coronaviruscovid19infectionsurveydata/", england_years
 ) # nolint
 
-other_years <- 2021
+other_years <- c(2020 + seq(1, 2))
 other_base_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
@@ -32,7 +32,14 @@ other_base_urls <- paste0(
 ) # nolint
 other_urls <- paste(other_base_urls, other_years, sep = "/")
 
-urls <- c(england_urls, other_urls)
+technical_years <- c(2020 + seq(1, 2))
+technical_urls <- paste0(
+  "https://www.ons.gov.uk/peoplepopulationandcommunity/",
+  "healthandsocialcare/conditionsanddiseases/datasets/",
+  "covid19infectionsurveytechnicaldata/", technical_years
+) # nolint
+
+urls <- c(england_urls, other_urls, technical_urls)
 
 ## get URLs of the spreadsheets, scraped from the web pages
 file_urls <- lapply(urls, function(url) {
@@ -107,6 +114,8 @@ override <- list(
 positivity <- list()
 for (level in names(columns)) {
   positivity[[level]] <- lapply(files, function(x) {
+    ## are we looking at a "technical" dataset?
+    technical <- grepl("technical\\.", x)
     ## first,  get table of contents sheet to work out which sheet we want
     sheets <- excel_sheets(x)
     contents_sheet <- read_excel(x, sheet = "Contents") %>%
@@ -122,36 +131,37 @@ for (level in names(columns)) {
         TRUE ~ "England"
       )
     }
-    if (level == "national") {
+    found <- TRUE
+    if (level == "national" && !technical) {
       contents_sheet <- contents_sheet %>%
         filter(grepl("daily", contents)) %>%
         head(n = 1)
-    } else if (level == "regional") {
+    } else if (level == "regional" && !technical) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
           grepl("(Region|region$)", contents)
         ) %>%
         head(n = 1)
-    } else if (level == "local") {
+    } else if (level == "local" && !technical) {
       contents_sheet <- contents_sheet %>%
         filter(grepl("CIS sub-region", contents)) %>%
         head(n = 1)
-    } else if (level == "age_school") {
+    } else if (level == "age_school" && !technical) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
           grepl("age/school year$", contents)
         ) %>%
         head(n = 1)
-    } else if (level == "variant_national") {
+    } else if (level == "variant_national" && technical) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
           grepl("variants$", contents)
         ) %>%
         head(n = 1)
-    } else if (level == "variant_regional") {
+    } else if (level == "variant_regional" && technical) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
@@ -159,12 +169,16 @@ for (level in names(columns)) {
         ) %>%
         head(n = 1)
     } else {
-      stop("Unknown level: ", level)
+      found <- FALSE
     }
-    ## extract table number
-    sheet <- sub("^Table ([^ ]+) ?- .*$", "\\1", contents_sheet$contents)
-    ## care for slight name discrepancies
-    sheet <- grep(paste0("^", sheet, "( |$)"), sheets, value = TRUE)
+    if (found) {
+      ## extract table number
+      sheet <- sub("^Table ([^ ]+) ?- .*$", "\\1", contents_sheet$contents)
+      ## care for slight name discrepancies
+      sheet <- grep(paste0("^", sheet, "( |$)"), sheets, value = TRUE)
+    } else {
+      sheet <- c()
+    }
     if (length(sheet) >= 1) {
       sheet <- sheet[1]
       ## manual override

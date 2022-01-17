@@ -103,7 +103,7 @@ transformed parameters {
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
-  // caclulate infections with potential to have antibodies
+  //calculate infections with potential to have antibodies
   infs_with_potential_abs = convolve(infections, inf_ab_delay);
   // calculate detectable antibodies
   dab = detectable_antibodies(infs_with_potential_abs, vacc_with_ab, beta,
@@ -147,7 +147,7 @@ model {
 
 generated quantities {
   vector[t - ut] R;
-  vector[t - 1] r;
+  vector[t - ut] r;
   real est_prev[obs];
   real est_ab[ab_obs];
   // sample estimated prevalence
@@ -159,5 +159,5 @@ generated quantities {
   // calculate Rt using infections and generation time
   R = calculate_Rt(infections, ut, gtm_sample, gtsd_sample, gtmax, 1);
   // calculate growth
-  r = calculate_growth(infections, 1);
+  r = calculate_growth(infections, ut);
 }

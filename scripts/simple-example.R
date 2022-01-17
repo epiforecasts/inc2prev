@@ -63,7 +63,7 @@ fit <- incidence(
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
   chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune),
+  data_args = list(gp_tune_model = tune, horizon = 14),
   keep_fit = TRUE
 )
 fit
@@ -75,13 +75,18 @@ prev_plot <- plot_prev(
 )
 ggsave("figures/prev.png", prev_plot, width = 9, height = 6)
 
+prev_logit_plot <- prev_plot +
+  scale_y_continuous(tran = scales::logit_trans())
+ggsave("figures/prev-logit.png", prev_logit_plot, width = 9, height = 6)
+
 # plot modelled and observed (but also modelled) antibodies
-ab_plot <- plot_ab(
+ab_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
-  joint_data$antibodies[[1]]
+  joint_data$antibodies[[1]],
+  data_source = "ONS Antibodies", observed = "est_ab",
+  modelled = "dab"
 )
 ggsave("figures/ab.png", ab_plot, width = 9, height = 6)
-
 
 # pairs plot
 stanfit <- read_stan_csv(fit$fit[[1]]$output_files())

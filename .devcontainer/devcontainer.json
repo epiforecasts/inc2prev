@@ -1,12 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.205.2/containers/r
 {
-	"name": "R (Community)",
+	"name": "inc2prev",
 	"image": "ghcr.io/epiforecasts/inc2prev:master",
-	"workspaceFolder": "/workspace",
-	// create this volume and then mount
-	// docker volume create inc2prev
-  //"workspaceMount": "source=inc2prev,target=/workspace,type=volume",
 	"shutdownAction": "none",
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
@@ -39,8 +35,5 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "Rscript -e 'cmdstanr::set_cmdstan_path(); precommit::use_precommit()'",
-
-	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"postCreateCommand": "Rscript -e 'cmdstanr::set_cmdstan_path(); precommit::use_precommit()'"
 }
