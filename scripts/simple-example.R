@@ -61,9 +61,9 @@ fit <- incidence(
     "est_prev", "est_ab", "infections", "dcases",
     "dab", "r", "R", "beta", "gamma", "delta"
   ),
-  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
-  chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune, horizon = 14, differencing = 1),
+  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
+  chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
+  data_args = list(gp_tune_model = tune, horizon = 14, differencing = 0),
   keep_fit = TRUE
 )
 fit
