@@ -122,7 +122,7 @@ transformed parameters {
     for (i in 1:c_grps) {
       cscale[i] = update_gp(cPHI[c_grps], M, L, alpha[1+c_grps],
                             rho[1+c_grps],
-                            eta[(c_grps-1)*M + 1:(c_grps*M)], 0);
+                            eta[((c_grps-1)*M + 1):(c_grps*M)], 0);
       cscale[i] = inv_logit(cscale_mean[i] + cscale[i]);
       cdist = discretised_gamma_pmf(cdist_indexes, cdist_mean[i], cdist_sd[i],
                                     cdist_max, 0);
