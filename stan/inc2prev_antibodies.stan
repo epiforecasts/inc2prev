@@ -86,8 +86,8 @@ transformed parameters {
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
-  odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
-  // caclulate infections with potential to have antibodies
+  od cases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
+  //calculate infections with potential to have antibodies
   infs_with_potential_abs = convolve(infections, inf_ab_delay);
   // calculate detectable antibodies
   dab = detectable_antibodies(infs_with_potential_abs, vacc_with_ab, beta,

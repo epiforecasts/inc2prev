@@ -65,7 +65,9 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     model_end_date <- max(prev$end_date)
   }
   model_end_date <- model_end_date + days(horizon)
-  all_dates <- seq(model_start_date - days(unobserved_time), model_end_date, by = "days")
+  all_dates <- seq(
+    model_start_date - days(unobserved_time), model_end_date, by = "days"
+  )
   prev[, `:=`(
     stime = as.integer(start_date - model_start_date),
     etime = as.integer(end_date - model_start_date)

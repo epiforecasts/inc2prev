@@ -72,9 +72,14 @@ fit
 prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$prevalence[[1]]
-) +
-  scale_y_continuous(tran = scales::logit_trans())
+)
 ggsave("figures/prev.png", prev_plot, width = 9, height = 6)
+
+
+prev_logit_plot <- prev_plot +
+  scale_y_continuous(tran = scales::logit_trans())
+ggsave("figures/prev-logit.png", prev_logit_plot, width = 9, height = 6)
+
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_prev(
