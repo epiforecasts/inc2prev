@@ -9,7 +9,7 @@ i2p_gp_tune_model <- function(path) {
 
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
-                     prob_detectable, ut = 14,
+                     prob_detectable, unobserved_time = 14, horizon = 0,
                      init_cum_infections = c(0, 0),
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
@@ -64,7 +64,10 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     model_start_date <- min(prev$start_date)
     model_end_date <- max(prev$end_date)
   }
-  all_dates <- seq(model_start_date - days(ut), model_end_date, by = "days")
+  model_end_date <- model_end_date + days(horizon)
+  all_dates <- seq(
+    model_start_date - days(unobserved_time), model_end_date, by = "days"
+  )
   prev[, `:=`(
     stime = as.integer(start_date - model_start_date),
     etime = as.integer(end_date - model_start_date)
@@ -105,11 +108,11 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     by = time
   ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$mean[ut]
+  baseline_inc <- prev$prev[1] * prob_detectable$mean[unobserved_time]
 
   # build stan data
   dat <- list(
-    ut = ut,
+    ut = unobserved_time,
     t = length(all_dates),
     obs = length(prev$prev),
     prev = prev$prev,

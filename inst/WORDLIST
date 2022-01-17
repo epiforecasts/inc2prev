@@ -58,13 +58,16 @@ BN
 BNS
 BNuD
 bo
+bocharov
 bP
+bracketedPaste
 Bsh
 bT
 Bt
 BTv
 Ɓ
 Č
+caclulate
 callr
 cB
 cdf
@@ -77,6 +80,7 @@ cmdstanr
 CmdStanR
 CmdStanR’s
 cN
+config
 conv
 convolve
 convolved
@@ -131,6 +135,8 @@ fH
 fI
 fns
 forcats
+formulahendry
+forwardPorts
 fQ
 Fq
 FQ
@@ -142,6 +148,7 @@ Fzo
 gC
 ggplot
 GH
+ghcr
 gi
 GID
 github
@@ -182,13 +189,16 @@ ig
 IǶ
 ǐI
 Ijs
+ikuyadeu
 indepedent
+infs
 init
 inv
 io
 ir
 Iu
 iV
+ivan
 iZb
 JA
 Jd
@@ -197,6 +207,7 @@ JH
 jk
 jM
 jQ
+json
 jx
 JӖ
 jﴑ
@@ -222,8 +233,10 @@ libssl
 libv
 libxml
 libxt
+linf
 linter
 linters
+linux
 Lk
 lN
 lorenzwalthert
@@ -231,6 +244,7 @@ lP
 Lp
 lshtm
 lV
+lvacc
 lw
 lz
 ͕M
@@ -245,6 +259,7 @@ microsoft
 mkdir
 modelled
 mS
+mutantdino
 ņ
 ncpus
 Nk
@@ -275,6 +290,7 @@ oPM
 ORCID
 ot
 Ov
+overrideName
 ۭp
 ۭP
 PÃ
@@ -294,6 +310,7 @@ PN
 pO
 positivity
 posivitiy
+postCreateCommand
 postitivity
 postive
 postprocessing
@@ -327,10 +344,12 @@ q탫
 Ȑ
 Ȓ
 ra
+README
 readr
 readxl
 refname
 reimplementation
+resourcemonitor
 rf
 rl
 rng
@@ -342,6 +361,7 @@ rpfD
 rQH
 Rscript
 rstan
+rterm
 RtmpI
 rvest
 rw
@@ -352,11 +372,13 @@ sam
 SAV
 sb
 sd
+searking
 sebastian
 seroconversion
 seroconversions
 seroconvert
 sH
+shutdownAction
 sK
 skipinstalled
 sN
@@ -390,6 +412,7 @@ tM
 tMH
 tmp
 tmux
+tomoki
 toolchain
 tp
 tq
@@ -419,9 +442,11 @@ uLH
 uo
 uPt
 Uq
+useHttpgd
 usermod
 USH
 usin
+usr
 ut
 Uv
 UX
@@ -442,6 +467,7 @@ wKk
 wLH
 wn
 Wn
+wordSeparators
 WPEm
 wr
 WR
