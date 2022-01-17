@@ -20,6 +20,12 @@ data {
   int prev_etime[obs]; // end times of positivity prevalence observations
   int ab_stime[ab_obs]; // starting times of antibody prevalence observations
   int ab_etime[ab_obs]; // end times of antibody prevalence observations
+  int c_obs; // Number of count observations
+  int c_grps; // Number of groups of counts
+  int c_obs_stime[c_grps]; // Group starting membership for each count
+  int c_obs_etime[c_grps]; // Group ending membership for each count
+  int c_time[c_obs]; // Occurance times for counts
+  vector[c_obs] counts;
   vector[t] vacc; // vaccinations
   int pbt; // maximum detection time
   vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
@@ -47,6 +53,7 @@ data {
   vector[lvacc_ab_delay] vacc_ab_delay; 
   int prev_likelihood; // Should the likelihood for prevalence data be included
   int ab_likelihood; // Should the likelihood for antibody data be included
+  int count_likelihood; // Should the likelihood for count data be included
 }
 
 transformed data {
@@ -73,7 +80,8 @@ parameters {
 }
 
 transformed parameters {
-  vector[t] gp; // value of gp at time t + initialisation 
+  vector[t] inf_gp; // value of gp at time t + initialisation 
+  vector[t] cscale[c_grps]; //time-varying scaling factor of infections to counts
   vector[t] infections; // incident infections at time t
   vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
@@ -83,18 +91,17 @@ transformed parameters {
   vector[obs] combined_sigma;
   vector[ab_obs] combined_ab_sigma;
   // update gaussian process
-  gp[(1 + diff_order):t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  inf_gp[(1 + diff_order):t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // setup differencing of the GP
   if (diff_order) {
-    gp[1:diff_order] = init_growth;
+    inf_gp[1:diff_order] = init_growth;
     for (i in 1:diff_order) {
-      gp = cumulative_sum(gp);
+      inf_gp = cumulative_sum(inf_gp);
     }
   }
   // relative probability of infection
   // inc_init is the mean incidence
-  infections = inv_logit(init_inc + gp);
-
+  infections = inv_logit(init_inc + inf_gp);
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
@@ -109,12 +116,26 @@ transformed parameters {
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
   combined_ab_sigma = sqrt(square(ab_sigma) + ab_sd2);
+  // calculate infections reported as counts
+  if (c_grps) {
+    for (i in 1:c_grps) {
+      cscale[i] = update_gp(cPHI[c_grps], M, L, alpha[2:(1+c_grps)],
+                            rho[2:(1+c_grps)],
+                            eta[(c_grps-1)*M + 1:(c_grps*M)], 0);
+      cscale[i] = inv_logit(cscale_mean[i] + cscale[i]);
+      cdist = discretised_gamma_pmf(cdist_indexes, cdist_mean[i], cdist_sd[i],
+                                    cdist_max, 0);
+      ecounts[c_grps] = convolve(cscale[c_grps] .* infections, cdist[c_grps]);
+    }
+  }
 }
 
 model {
   // gaussian process priors
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
-  alpha ~ std_normal() T[0,];
+  for (i in 1:gps) {
+    alpha[i] ~ std_normal() T[0,];
+  }
   eta ~ std_normal();
 
   // Initial infections
@@ -133,6 +154,16 @@ model {
   logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
   logit(delta) ~ normal(pdelta, pdelta); 
 
+
+  // Priors for count data model
+  if (c_grps) {
+    cscale_mean ~ normal(0, 5);
+    for (i in c_grps) {
+      cdist_mean[i] ~ normal(5, 10) T[0,];
+      cdist_sd[i] ~ normal(5, 10) T[0,];
+    }
+  }
+  
   sigma ~ normal(0.005, 0.0025) T[0,];
   ab_sigma ~ normal(0.025, 0.025) T[0,];
   if (prev_likelihood) {
@@ -140,6 +171,11 @@ model {
   }
   if (ab_likelihood) {
     ab ~ normal(odab, combined_ab_sigma);
+  }
+  if (count_likelihood & c_grps) {
+    for (i in 1:c_grps) {
+      counts[c_obs_stime[i]:c_obs_etime[i]] ~ neg_binomial_2(ecounts[i], phi[i]);
+    }
   }
 }
 
@@ -151,6 +187,11 @@ generated quantities {
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   est_ab = normal_rng(odab, combined_ab_sigma);
+  if (c_grps) {
+    for (i in 1:c_grps) {
+      est_counts[c_obs_stime[i]:c_obs_etime[i]] ~ neg_binomial_2(ecounts[i], phi[i]);
+        }
+  }
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);

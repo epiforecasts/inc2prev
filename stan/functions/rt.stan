@@ -1,7 +1,7 @@
 // Code from: 
 // https://github.com/epiforecasts/EpiNow2/tree/master/inst/stan/functions
 // discretised truncated gamma pmf
-vector discretised_gamma_pmf(int[] y, real mu, real sigma, int max_val) {
+vector discretised_gamma_pmf(int[] y, real mu, real sigma, int max_val, int off) {
   int n = num_elements(y);
   vector[n] pmf;
   real trunc_pmf;
@@ -18,9 +18,9 @@ vector discretised_gamma_pmf(int[] y, real mu, real sigma, int max_val) {
   beta = beta < small ? small : beta;
   beta = beta > large ? large : beta;
   // calculate pmf
-  trunc_pmf = gamma_cdf(max_val + 1 | alpha, beta) - gamma_cdf(1 | alpha, beta);
+  trunc_pmf = gamma_cdf(max_val + 1 | alpha, beta) - gamma_cdf(off | alpha, beta);
   for (i in 1:n){
-    pmf[i] = (gamma_cdf(y[i] + 1 | alpha, beta) - gamma_cdf(y[i] | alpha, beta)) /
+    pmf[i] = (gamma_cdf(y[i] | alpha, beta) - gamma_cdf(y[i] - 1 | alpha, beta)) /
     trunc_pmf;
   }
   return(pmf);
@@ -48,9 +48,9 @@ vector calculate_Rt(vector infections, int seeding_time,
   vector[ot] infectiousness = rep_vector(1e-5, ot);
   // calculate PMF of the generation time
   for (i in 1:(max_gt)) {
-    gt_indexes[i] = max_gt - i + 1;
+    gt_indexes[i] = max_gt - i + 2;
   }
-  gt_pmf = discretised_gamma_pmf(gt_indexes, gt_mean, gt_sd, max_gt);
+  gt_pmf = discretised_gamma_pmf(gt_indexes, gt_mean, gt_sd, max_gt, 1);
   // calculate Rt using Cori et al. approach
   for (s in 1:ot) {
     infectiousness[s] += update_infectiousness(infections, gt_pmf, seeding_time,
