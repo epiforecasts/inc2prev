@@ -46,7 +46,7 @@ joint_data <- prev %>%
 prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
-mod <- i2p_model("stan/inc2prev_antibodies.stan")
+mod <- i2p_model()
 
 # Compile tune inverse gamma model
 tune <- i2p_gp_tune_model()
@@ -60,7 +60,10 @@ fit <- incidence(
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
-  data_args = list(gp_tune_model = tune, horizon = 14, differencing = 1),
+  data_args = list(
+    gp_tune_model = tune, horizon = 14, differencing = 1,
+    gp_m = 0.1
+  ),
   keep_fit = TRUE
 )
 fit
