@@ -9,7 +9,7 @@ i2p_gp_tune_model <- function(path) {
 
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
-                     prob_detectable, unobserved_time = 14, horizon = 0,
+                     pb_params, unobserved_time = 14, horizon = 0,
                      init_cum_infections = c(0, 0),
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
@@ -90,26 +90,10 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     )]
   }
 
-  ## summarise prob_detectable for simplicity
-  prob_detectable <- melt(
-    copy(prob_detectable),
-    value.name = "p", id.vars = "sample"
-  )
-  prob_detectable[, time := as.numeric(as.character(variable))]
-  prob_detectable <- prob_detectable[, .(
-    median = median(p),
-    mean = mean(p),
-    sd = sd(p)
-  ),
-  by = time
-  ]
-  prob_detectable <- prob_detectable[,
-    purrr::map(.SD, signif, digits = 3),
-    .SDcols = c("mean", "median", "sd"),
-    by = time
-  ]
   # define baseline incidence
-  init_inc_mean <- mean(prev$prev) / sum(prob_detectable$mean)
+  init_inc_mean <- mean(prev$prev) / 
+    (pb_params[variable %in% "mean_pb"]$mean * 
+      pb_params[variable %in% "time"]$mean)
 
   # build stan data
   dat <- list(
@@ -120,9 +104,11 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prev_sd2 = prev$sd^2,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    prob_detect_mean = rev(prob_detectable$mean),
-    prob_detect_sd = rev(prob_detectable$sd),
-    pbt = max(prob_detectable$time) + 1,
+    pcr_eff_m = pb_params[grepl("beta", variable)]$mean,
+    pcr_eff_sd = pb_params[grepl("beta", variable)]$sd,
+    pcr_change_m = pb_params[variable %in% "cutpoint"]$mean,
+    pcr_change_sd = pb_params[variable %in% "cutpoint"]$sd,
+    pbt = pb_params[variable %in% "time"]$mean,
     init_inc_mean = logit(init_inc_mean),
     pbeta = prop_dont_seroconvert,
     pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
@@ -183,10 +169,10 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      prob_detect = purrr::map2_dbl(
-        dat$prob_detect_mean, dat$prob_detect_sd / 10,
-        ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
-      )
+      pcr_eff = array(
+        purrr::map2(dat$pcr_eff_m, dat$pcr_eff_sd, ~ rnorm(1. , .x, .y*0.1))
+      ),
+      pcr_change = rnorm(1, dat$pcr_change_m, dat$pcr_change_sd*0.1)
     )
     init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
 

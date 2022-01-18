@@ -1,4 +1,5 @@
 functions {
+#include detection_prob.stan
 #include gaussian_process.stan
 #include rt.stan
 #include convolve.stan
@@ -22,8 +23,10 @@ data {
   int ab_etime[max(ab_obs, 1)]; // end times of antibody prevalence observations
   vector[ab_obs ? t : 1] vacc; // vaccinations
   int pbt; // maximum detection time
-  vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
-  vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
+  vector[3] pcr_eff_m; //Mean detection probability effects
+  vector[3] pcr_eff_sd; //SD detection probability effects
+  real pcr_change_m; // breakpoint of PCR detection
+  real pcr_change_sd; // breakpoint of PCR detection
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -67,7 +70,8 @@ parameters {
   vector[diff_order] init_growth;
   real<lower = 0> sigma; // observation error
   vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
-  vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
+  vector[3] pcr_eff; // probability of detection piecewise linear effects
+  real<lower = 0> pcr_change; // probability of detection breakpoint
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] beta; // proportion that don't seroconvert
   vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
@@ -78,6 +82,7 @@ transformed parameters {
   vector[t] gp; // value of gp at time t + initialisation 
   vector[t] infections; // incident infections at time t
   vector[ab_obs ? t : 0] infs_with_potential_abs; // Infections with the potential to have ab
+  vector<lower = 0, upper = 1>[pbt] prob_detect;
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[ab_obs ? t : 0] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
@@ -97,7 +102,8 @@ transformed parameters {
   // relative probability of infection
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
-
+  // calculate probability of detection
+  prob_detect = detection_prob(pbt, pcr_eff, pcr_change);
   // calculate detectable cases
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
@@ -129,10 +135,10 @@ model {
   if (diff_order) {
     init_growth ~ normal(0, 0.25);
   }
+
   // prevalence observation model
-  for (i in 1:pbt) {
-    prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
-  }
+  pcr_eff ~ normal(pcr_eff_m, pcr_eff_sd);
+  pcr_change ~ normal(pcr_change_m, pcr_change_sd) T[0, ];
 
   // Priors for antibody model
   if (ab_obs) {

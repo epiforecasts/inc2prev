@@ -81,7 +81,7 @@ data <- data %>%
 filter_opt <- function(data, start_date) {
   if (!is.null(start_date)) {
     data <- data %>%
-      filter(end_date >= start_date)
+      filter(start_date >= start_date)
   }
   return(data)
 }
@@ -150,7 +150,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     vacc = vacc,
     init_ab = init_ab,
     variables = variables,
-    prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
+    pb_params = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(gp_tune_model = gp_model, gp_m = gp_frac)
   )
