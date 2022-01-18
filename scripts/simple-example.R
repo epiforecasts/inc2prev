@@ -18,7 +18,7 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2022-01-01"
+end_date <- "2022-08-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -55,8 +55,7 @@ tune <- i2p_gp_tune_model()
 fit <- incidence(
   joint_data$prevalence[[1]],
   variables = c(
-    "est_prev", "infections", "dcases",
-    "dab", "r", "R"
+    "est_prev", "infections", "dcases", "r", "R"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
