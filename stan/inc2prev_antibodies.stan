@@ -20,7 +20,7 @@ data {
   int prev_etime[obs]; // end times of positivity prevalence observations
   int ab_stime[ab_obs]; // starting times of antibody prevalence observations
   int ab_etime[ab_obs]; // end times of antibody prevalence observations
-  vector[t] vacc; // vaccinations
+  vector[ab_obs ? t : 0] vacc; // vaccinations
   int pbt; // maximum detection time
   vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
@@ -50,11 +50,13 @@ data {
 }
 
 transformed data {
-  vector[t] vacc_with_ab;
+  vector[ab_obs ? t : 0] vacc_with_ab;
   // set up approximate gaussian process
   matrix[t - diff_order, M] PHI = setup_gp(M, L, t - diff_order);
   // Calculate vaccinations with the potential to have antibodies
-  vacc_with_ab = convolve(vacc, vacc_ab_delay);
+  if (ab_obs) {
+    vacc_with_ab = convolve(vacc, vacc_ab_delay);
+  }
 }
 
 parameters {
@@ -64,20 +66,20 @@ parameters {
   real init_inc; // Initial infections
   vector[diff_order] init_growth;
   real<lower = 0> sigma; // observation error
-  real<lower = 0> ab_sigma; // observation error
+  vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
-  real<lower = 0, upper = 1> beta; // proportion that don't seroconvert
-  vector<lower = 0, upper = 1>[2] gamma; // antibody waning (inf & vac)
-  real<lower = 0, upper = 1> delta; // vaccine efficacy
-  real<lower = 0, upper = 1> init_dab; // initial proportion with antibodies
+  vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] beta; // proportion that don't seroconvert
+  vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
+  vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
+  vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] init_dab; // initial proportion with antibodies
 }
 
 transformed parameters {
   vector[t] gp; // value of gp at time t + initialisation 
   vector[t] infections; // incident infections at time t
-  vector[t] infs_with_potential_abs; // Infections with the potential to have ab
+  vector[ab_obs ? t : 0] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
-  vector[t] dab; // proportion of individuals with antibodies at time t
+  vector[ab_obs ? t : 0] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
   vector[ab_obs] odab;
   vector[obs] combined_sigma;
@@ -91,6 +93,7 @@ transformed parameters {
       gp = cumulative_sum(gp);
     }
   }
+
   // relative probability of infection
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
@@ -99,16 +102,20 @@ transformed parameters {
   dcases = convolve(infections, prob_detect);
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
-  //calculate infections with potential to have antibodies
-  infs_with_potential_abs = convolve(infections, inf_ab_delay);
-  // calculate detectable antibodies
-  dab = detectable_antibodies(infs_with_potential_abs, vacc_with_ab, beta,
-                              gamma, delta, init_dab, t);
-  // calculate observed detectable antibodies
-  odab = observed_in_window(dab, ab_stime, ab_etime, ut, ab_obs);
   //combined standard error
   combined_sigma = sqrt(square(sigma) + prev_sd2);
-  combined_ab_sigma = sqrt(square(ab_sigma) + ab_sd2);
+
+  //calculate infections with potential to have antibodies
+  if (ab_obs) {
+    infs_with_potential_abs = convolve(infections, inf_ab_delay);
+    // calculate detectable antibodies
+    dab = detectable_antibodies(infs_with_potential_abs, vacc_with_ab, beta[1],
+                                gamma, delta[1], init_dab[1], t);
+    // calculate observed detectable antibodies
+    odab = observed_in_window(dab, ab_stime, ab_etime, ut, ab_obs);
+    //combined standard error
+    combined_ab_sigma = sqrt(square(ab_sigma[1]) + ab_sd2);
+  }
 }
 
 model {
@@ -128,13 +135,16 @@ model {
   }
 
   // Priors for antibody model
-  init_dab ~ normal(init_ab_mean, init_ab_sd);
-  logit(beta) ~ normal(pbeta[1], pbeta[2]);
-  logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
-  logit(delta) ~ normal(pdelta, pdelta); 
+  if (ab_obs) {
+    init_dab ~ normal(init_ab_mean, init_ab_sd);
+    logit(beta) ~ normal(pbeta[1], pbeta[2]);
+    logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
+    logit(delta) ~ normal(pdelta, pdelta); 
+    ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
+  }
 
   sigma ~ normal(0.005, 0.0025) T[0,];
-  ab_sigma ~ normal(0.025, 0.025) T[0,];
+ 
   if (prev_likelihood) {
     prev ~ normal(odcases, combined_sigma);
   }
@@ -150,7 +160,9 @@ generated quantities {
   real est_ab[ab_obs];
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
-  est_ab = normal_rng(odab, combined_ab_sigma);
+  if (ab_obs) {
+    est_ab = normal_rng(odab, combined_ab_sigma);
+  }
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
