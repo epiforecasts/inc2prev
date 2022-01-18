@@ -55,12 +55,12 @@ tune <- i2p_gp_tune_model()
 fit <- incidence(
   joint_data$prevalence[[1]],
   variables = c(
-    "est_prev", "est_ab", "infections", "dcases",
-    "dab", "r", "R", "beta", "gamma", "delta"
+    "est_prev", "infections", "dcases",
+    "dab", "r", "R"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
-  data_args = list(gp_tune_model = tune, horizon = 14, differencing = 0),
+  data_args = list(gp_tune_model = tune, horizon = 14, differencing = 1),
   keep_fit = TRUE
 )
 fit
