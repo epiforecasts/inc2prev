@@ -54,9 +54,6 @@ tune <- i2p_gp_tune_model()
 # Fit the infection to prevalence model
 fit <- incidence(
   joint_data$prevalence[[1]],
-  joint_data$antibodies[[1]],
-  joint_data$vaccination[[1]],
-  joint_data$initial_antibodies[[1]],
   variables = c(
     "est_prev", "est_ab", "infections", "dcases",
     "dab", "r", "R", "beta", "gamma", "delta"

@@ -136,28 +136,22 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     ab_likelihood = as.numeric(ab_likelihood)
   )
 
-  if (!is.null(ab)) {
-    dat <- c(dat, list(
-      ab_obs = length(ab$prev),
-      ab = ab$prev,
-      ab_sd2 = ab$sd^2,
-      ab_stime = ab$stime,
-      ab_etime = ab$etime
+  dat <- c(dat, list(
+    ab_obs = ifelse(!is.null(ab), length(ab$prev), 0),
+    ab = ifelse(!is.null(ab), ab$prev, 1),
+    ab_sd2 = ifelse(!is.null(ab), ab$sd^2, 1),
+    ab_stime = ifelse(!is.null(ab), ab$stime, 1),
+    ab_etime = ifelse(!is.null(ab), ab$etime, 1)
+  ))
+
+  dat <- c(dat, list(
+      vacc = ifelse(!is.null(ab), vacc$vaccinated, 1)
     ))
-  }else{
-    dat$ab_obs <- 0
-  }
-  if (!is.null(vacc) & !is.null(ab)) {
-    dat <- c(dat, list(
-      vacc = vacc$vaccinated
-    ))
-  }
-  if (!is.null(init_ab) & !is.null(ab)) {
-    dat <- c(dat, list(
-      init_ab_mean = init_ab$prev,
-      init_ab_sd = init_ab$sd
-    ))
-  }
+
+  dat <- c(dat, list(
+      init_ab_mean = ifelse(!is.null(ab), init_ab$prev, 1),
+      init_ab_sd = ifelse(!is.null(ab), init_ab$sd, 1)
+  ))
 
   # gaussian process parameters
   dat$M <- ceiling(dat$t * gp_m)

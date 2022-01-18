@@ -14,13 +14,13 @@ data {
   int ab_obs; // number of antibody prevalence observations
   vector[obs] prev; // observed positivity prevalence
   vector[obs] prev_sd2; // squared standard deviation of observed positivity prevalence
-  vector[ab_obs] ab; // observed antibody posivitiy prevalence
-  vector[ab_obs] ab_sd2; // squared standard deviation of observed antibody prevalence
+  vector[max(ab_obs, 1)] ab; // observed antibody posivitiy prevalence
+  vector[max(ab_obs, 1)] ab_sd2; // squared standard deviation of observed antibody prevalence
   int prev_stime[obs]; // starting times of positivity prevalence observations
   int prev_etime[obs]; // end times of positivity prevalence observations
-  int ab_stime[ab_obs]; // starting times of antibody prevalence observations
-  int ab_etime[ab_obs]; // end times of antibody prevalence observations
-  vector[ab_obs ? t : 0] vacc; // vaccinations
+  int ab_stime[max(ab_obs, 1)]; // starting times of antibody prevalence observations
+  int ab_etime[max(ab_obs, 1)]; // end times of antibody prevalence observations
+  vector[ab_obs ? t : 1] vacc; // vaccinations
   int pbt; // maximum detection time
   vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
@@ -148,7 +148,7 @@ model {
   if (prev_likelihood) {
     prev ~ normal(odcases, combined_sigma);
   }
-  if (ab_likelihood) {
+  if (ab_likelihood && ab_obs) {
     ab ~ normal(odab, combined_ab_sigma);
   }
 }
