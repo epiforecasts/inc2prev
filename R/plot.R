@@ -150,6 +150,8 @@ plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev",
 
 plot_prob_detect <- function(samples, data, alpha = 0.05,
                       data_source = "ONS Prevalence") {
+  samples <- data.table::as.data.table(samples)
+  samples[, index := index - 1]
   trace_plot <- plot_trace(
     samples, "prob_detect", alpha = alpha, y_var = "index"
   )
@@ -163,6 +165,13 @@ plot_prob_detect <- function(samples, data, alpha = 0.05,
         y = median, x = time, group = NULL
       ),
       size = 1.1, alpha = 0.6, linetype = 2
+    ) +
+    geom_ribbon(
+      data = data,
+      aes(
+        ymin = q5, ymax = q95, x = time, group = NULL, y = NULL
+      ),
+      size = 1.1, alpha = 0.3, linetype = 2
     ) +
     theme(legend.position = "bottom") +
     scale_color_brewer(palette = "Dark2") +

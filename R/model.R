@@ -9,7 +9,7 @@ i2p_gp_tune_model <- function(path) {
 
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
-                     pb_params, unobserved_time = 14, horizon = 0,
+                     pb_params, unobserved_time = 40, horizon = 0,
                      init_cum_infections = c(0, 0),
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
@@ -108,6 +108,8 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     pcr_eff_sd = pb_params[grepl("beta", variable)]$sd,
     pcr_change_m = pb_params[variable %in% "cutpoint"]$mean,
     pcr_change_sd = pb_params[variable %in% "cutpoint"]$sd,
+    prob_detect_mean = pb_params[grepl("prob_detect", variable)]$mean,
+    prob_detect_sd = pb_params[grepl("prob_detect", variable)]$sd,
     pbt = pb_params[variable %in% "time"]$mean,
     init_inc_mean = logit(init_inc_mean),
     pbeta = prop_dont_seroconvert,
@@ -170,9 +172,10 @@ i2p_inits <- function(dat) {
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
       pcr_eff = array(
-        purrr::map2(dat$pcr_eff_m, dat$pcr_eff_sd, ~ rnorm(1. , .x, .y*0.1))
+        purrr::map2(dat$pcr_eff_m, dat$pcr_eff_sd, ~ rnorm(1, .x, .y * 0.1))
       ),
-      pcr_change = rnorm(1, dat$pcr_change_m, dat$pcr_change_sd*0.1)
+      pcr_change = rnorm(1, dat$pcr_change_m, dat$pcr_change_sd * 0.1),
+      pb_sigma = abs(rnorm(1, 0.025, 0.001))
     )
     init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
 

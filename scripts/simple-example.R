@@ -60,7 +60,7 @@ tune <- i2p_gp_tune_model()
 fit <- incidence(
   joint_data$prevalence[[1]],
   variables = c(
-    "est_prev", "infections", "dcases", "r", "R"
+    "est_prev", "infections", "dcases", "r", "R", "prob_detect"
   ),
   pb_params = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
@@ -129,3 +129,5 @@ ggsave("figures/Rt.png", width = 9, height = 6)
 plot_prob_detect(
   fit$samples[[1]][sample <= 100], read_prob_detectable("summary")
 )
+
+ggsave("figures/prob-detection.png", width = 9, height = 6)

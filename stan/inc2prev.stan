@@ -1,5 +1,6 @@
 functions {
 #include detection_prob.stan
+#include rev_vec.stan
 #include gaussian_process.stan
 #include rt.stan
 #include convolve.stan
@@ -27,6 +28,8 @@ data {
   vector[3] pcr_eff_sd; //SD detection probability effects
   real pcr_change_m; // breakpoint of PCR detection
   real pcr_change_sd; // breakpoint of PCR detection
+  vector[pbt+1] prob_detect_mean; // at each time since infection, probability of detection
+  vector[pbt+1] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -69,6 +72,7 @@ parameters {
   real init_inc; // Initial infections
   vector[diff_order] init_growth;
   real<lower = 0> sigma; // observation error
+  real<lower = 0> pb_sigma;
   vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
   vector[3] pcr_eff; // probability of detection piecewise linear effects
   real<lower = 0> pcr_change; // probability of detection breakpoint
@@ -82,7 +86,8 @@ transformed parameters {
   vector[t] gp; // value of gp at time t + initialisation 
   vector[t] infections; // incident infections at time t
   vector[ab_obs ? t : 0] infs_with_potential_abs; // Infections with the potential to have ab
-  vector<lower = 0, upper = 1>[pbt] prob_detect;
+  vector<lower = 0, upper = 1>[pbt+1] prob_detect;
+  vector[pbt+1] combined_pb_sigma;
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[ab_obs ? t : 0] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
@@ -104,8 +109,9 @@ transformed parameters {
   infections = inv_logit(init_inc + gp);
   // calculate probability of detection
   prob_detect = detection_prob(pbt, pcr_eff, pcr_change);
+  combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
   // calculate detectable cases
-  dcases = convolve(infections, prob_detect);
+  dcases = convolve(infections, rev_vec(prob_detect));
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
   //combined standard error
@@ -138,7 +144,9 @@ model {
 
   // prevalence observation model
   pcr_eff ~ normal(pcr_eff_m, pcr_eff_sd);
-  pcr_change ~ normal(pcr_change_m, pcr_change_sd) T[0, ];
+  pcr_change ~ normal(pcr_change_m, pcr_change_sd);
+  pb_sigma ~ normal(0.025, 0.01) T[0, ];
+  prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
 
   // Priors for antibody model
   if (ab_obs) {

@@ -8,7 +8,7 @@ dt <- fread("https://raw.githubusercontent.com/cmmid/pcr-profile/main/fitted_par
 
 source(here("R", "prob_detectable.R"))
 # Can pass a vector of quantiles
-pb <- purrr::map_df(0:60, prob_detectable, dt = dt)
+pb <- purrr::map_df(0:40, prob_detectable, dt = dt)
 pb <- data.table::dcast(pb, sample ~ time,
   value.var = "p"
 )
@@ -25,13 +25,15 @@ pb[, time := as.numeric(as.character(variable))]
 pb <- pb[, .(
   median = median(p),
   mean = mean(p),
-  sd = sd(p)
+  sd = sd(p),
+  q5 = quantile(p, 0.05),
+  q95 = quantile(p, 0.95)
 ),
   by = time
 ]
 pb <- pb[,
   purrr::map(.SD, signif, digits = 3),
-  .SDcols = c("mean", "median", "sd"),
+  .SDcols = c("mean", "median", "sd", "q5", "q95"),
   by = time
 ]
 
@@ -45,9 +47,14 @@ dt <- rbind(
   dt,
   data.table(
     variable = c("time", "mean_pb"),
-    mean = c(60, mean(pb$mean))
+    mean = c(40, mean(pb$mean))
   ),
   fill = TRUE
+)
+
+dt <- rbind(
+  dt,
+  pb[, .(variable = paste0("prob_detect", time), mean, sd)]
 )
 
 data.table::fwrite(dt, "data/prob_detectable_params.csv")
