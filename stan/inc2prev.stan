@@ -145,7 +145,7 @@ model {
   // prevalence observation model
   pcr_eff ~ normal(pcr_eff_m, pcr_eff_sd);
   pcr_change ~ normal(pcr_change_m, pcr_change_sd);
-  pb_sigma ~ normal(0.025, 0.01) T[0, ];
+  pb_sigma ~ normal(0.025, 0.025) T[0, ];
   prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
 
   // Priors for antibody model
