@@ -7,18 +7,22 @@ library(ggplot2)
 library(ggnewscale)
 library(here)
 
-test_final <- data.table::fread("https://raw.githubusercontent.com/cmmid/pcr-profile/main/test_data.csv") # nolint
-symp_final <- data.table::fread("https://raw.githubusercontent.com/cmmid/pcr-profile/main/symptom_data.csv") # nolint
-symp_final$date <- as.Date(symp_final$date)
+test_final <- data.table::fread(
+  "https://raw.githubusercontent.com/cmmid/pcr-profile/main/test_data.csv"
+)
+symp_final <- data.table::fread(
+  "https://raw.githubusercontent.com/cmmid/pcr-profile/main/symptom_data.csv"
+)
 
 ## Set days relative to a chosen start date
-start_date <- as.Date(min(test_final$date) - 10)
+start_date <- as.Date(min(test_final$date) - 20)
 test_final[, date := as.Date(date)]
 test_final[, serology_date := as.Date(serology_date)]
 test_final[, day := as.integer(date - start_date)]
 test_final[, serology_day := as.integer(serology_date - start_date)]
 
 ## Add initial asymptomatic reports on enrollment day
+symp_final[, date := as.Date(date)]
 symp_final <- rbind(
   symp_final, test_final[, .(date = min(date), symptom = FALSE), by = num_id]
 )
@@ -111,6 +115,6 @@ fig1 <- figure1(pcr_testing)
 
 # Save Figure 1
 ggsave(
-  fig1, filename = "data-raw/figure1.png",
+  fig1, filename = "figures/hellewell-hcw-prc-testing.png",
   height = 20, width = 40, units = "cm"
 )

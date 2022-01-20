@@ -59,10 +59,12 @@ model {
 
 generated quantities {
   vector[301] pb;
-  vector[301] k;
-  for(j in 1:301) {
-    k[j] = (j * 0.1) - 0.1;
-  } 
-  pb = detection_prob_logit(k, pcr_eff, pcr_change);
-  pb = inv_logit(pb);
+  {
+    vector[301] k;
+    for(j in 1:301) {
+      k[j] = (j * 0.1) - 0.1;
+    } 
+    pb = detection_prob_logit(k, pcr_eff, pcr_change);
+    pb = inv_logit(pb);
+  }
 }

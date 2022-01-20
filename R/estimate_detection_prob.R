@@ -42,7 +42,7 @@ estimate_detection_prob <- function(obs, inc_period = get_inc_period(), ...) {
 
   mod <- cmdstanr::cmdstan_model(
     here::here("stan", "prob_detection.stan"),
-    include_paths = here::here('stan')
+    include_paths = here::here("stan")
   )
   fit <- mod$sample(
     data = dt,
