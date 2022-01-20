@@ -30,6 +30,9 @@ data {
   real pcr_change_sd; // breakpoint of PCR detection
   vector[pbt+1] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt+1] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
+  // Mode to use for probability of detection, 0 = exact,
+  // 1 = posterior summary, and 2 = from study data
+  int pb_mode; 
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -108,7 +111,7 @@ transformed parameters {
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
   // calculate probability of detection
-  prob_detect = detection_prob(pbt, pcr_eff, pcr_change);
+  prob_detect = detection_prob_by_day(pbt, pcr_eff, pcr_change);
   combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
   // calculate detectable cases
   dcases = convolve(infections, rev_vec(prob_detect));

@@ -24,6 +24,7 @@ Imports:
     data.table,
     dplyr,
     ggplot2,
+    ggnewscale,
     bayesplot,
     posterior,
     truncnorm,

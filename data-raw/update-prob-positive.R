@@ -1,3 +1,5 @@
+# Based on: https://doi.org/10.1186/s12916-021-01982-x
+
 library(boot)
 library(data.table)
 library(boot)
