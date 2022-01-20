@@ -8,7 +8,7 @@ data {
 parameters {
   real inc_mean;
   real<lower = 0> inc_sd;
-  vector <lower = 0, upper = 1> [pcr_p] inf_at; 
+  vector <lower = 0, upper = 1> [pcr_n] inf_at; 
   vector[3] pcr_eff;
   real<lower = 0> pcr_change;
 }
@@ -16,7 +16,7 @@ parameters {
 model {
   // Priors on the incubation period
   inc_mean ~ normal(inc_mean_p[1], inc_mean_p[2]);
-  inc_sd ~ normal(inc_sd_p[1], inc_sd_p[2]);
+  inc_sd ~ normal(inc_sd_p[1], inc_sd_p[2]) T[0, ];
 
   // Prior on time infected at (as a proportion of time
   // from start to upper bound)
@@ -51,7 +51,9 @@ model {
     );
     pcr_result ~ bernoulli_logit(pcr_p_d);
     // Add negative test at date of infection to constrain PCR detection
-    target += bernoulli_logit_lupmf(0 | pcr_eff[1] - pcr_change * pcr_eff[2]);
+    target += pcr_n * bernoulli_logit_lupmf(
+      0 | pcr_eff[1] - pcr_change * pcr_eff[2]
+    );
   }
 }
 

@@ -1,6 +1,6 @@
   int pcr_n; // Number of study members
   int pcr_p; // data points in study
-  int pcr_id[pcr_n ? pcr_n : 1]; //study ids
+  int pcr_id[pcr_p ? pcr_p : 1]; //study ids
   vector[pcr_p] pcr_test_day; // day of test
   int pcr_result[pcr_p]; // Result of PCR test
   vector[pcr_n ? pcr_n : 1] pcr_sym_at_test; // day of first symptomatic test

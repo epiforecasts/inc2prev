@@ -5,6 +5,7 @@
 library(data.table)
 library(ggplot2)
 library(ggnewscale)
+library(here)
 
 test_final <- data.table::fread("https://raw.githubusercontent.com/cmmid/pcr-profile/main/test_data.csv") # nolint
 symp_final <- data.table::fread("https://raw.githubusercontent.com/cmmid/pcr-profile/main/symptom_data.csv") # nolint
@@ -113,34 +114,3 @@ ggsave(
   fig1, filename = "data-raw/figure1.png",
   height = 20, width = 40, units = "cm"
 )
-
-
-pcr_test_data_to_list <- function(dt) {
-
-if (!is.null(dt)) {
-  ids <- unique(dt[,
-   .(num_id, first_sym_day, last_asym_day, inf_upper_bound)])
-
-  dat <- list(
-    pcr_n = nrow(ids),
-    pcr_p = nrow(dt),
-    pcr_id = ids$num_id,
-    pcr_test_day = dt$day,
-    pcr_result = as.numeric(dt$pcr_result),
-    pcr_sym_at_test = ids$first_sym_day,
-    pcr_last_asym_at_test = ids$last_asym_day,
-    pcr_inf_upper_bound = ids$inf_upper_bound
-  )
-}else{
-  dat <- list(
-    pcr_n = 0,
-    pcr_p = 1,
-    pcr_test_day = 1,
-    pcr_result = 1,
-    pcr_sym_at_test = 1,
-    pcr_last_asym_at_test = 1,
-    pcr_inf_upper_bound = 1
-  )
-}
-  return(dat)
-}

@@ -286,3 +286,8 @@ read_prob_detectable <- function(type = "params") {
   dt <- data.table::fread(path)
   return(dt[])
 }
+
+read_pcr_testing <- function() {
+  dt <- data.table::fread(here::here("data", "pcr_testing.csv"))
+  return(dt[])
+}
