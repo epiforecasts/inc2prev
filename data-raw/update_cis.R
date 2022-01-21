@@ -30,7 +30,7 @@ other_base_urls <- paste0(
   "covid19infectionsurvey",
   c("northernireland", "scotland", "wales")
 ) # nolint
-other_urls <- paste(other_base_urls, other_years, sep = "/")
+other_urls <- unlist(lapply(other_base_urls, paste, other_years, sep = "/"))
 
 technical_years <- c(2020 + seq(1, 2))
 technical_urls <- paste0(
@@ -122,11 +122,11 @@ for (level in names(columns)) {
       clean_names()
     if (level %in% c("national", "age_school")) {
       nation <- case_when(
-        grepl("covid19infectionsurveydatasets[0-9]+ni[^/]*.xlsx?", x) ~
+        grepl("ni[^/]*.xlsx?", x) ~
           "Northern Ireland",
-        grepl("covid19infectionsurveydatasets[0-9]+scotland[^/]*.xlsx?", x) ~
+        grepl("scotland[^/]*.xlsx?", x) ~
           "Scotland",
-        grepl("covid19infectionsurveydatasets[0-9]+wales[^/]*.xlsx?", x) ~
+        grepl("wales[^/]*.xlsx?", x) ~
           "Wales",
         TRUE ~ "England"
       )
