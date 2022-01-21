@@ -31,7 +31,8 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
                       keep_fit = FALSE,
-                      p, ...) {
+                      p, 
+                      pre_fit_ab_dat=list(), ...) {
   dat <- do.call(
     i2p_data, c(
       list(
@@ -45,6 +46,8 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
     )
   )
   inits <- i2p_inits(dat)
+  
+  dat = append(dat, pre_fit_ab_dat)
 
   fit <- do.call(i2p_sample, list(
     model = model,
