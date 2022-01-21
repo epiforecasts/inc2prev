@@ -6,5 +6,5 @@
   vector[pcr_n ? pcr_n : 1] pcr_sym_at_test; // day of first symptomatic test
   vector[pcr_n ? pcr_n : 1] pcr_last_asym_at_test; // day of last test with no symptoms (currently or previously)
   vector[pcr_n ? pcr_n : 1] pcr_inf_upper_bound;  // maximum time at which infection must have occured before
-  real inc_mean_p[2]; // Mean and sd of the incubation period mean
-  real inc_sd_p[2]; // Mean and sd of the incubation period mean
+  vector[2] inc_mean_p; // Mean and sd of the incubation period mean
+  vector[2] inc_sd_p; // Mean and sd of the incubation period mean
