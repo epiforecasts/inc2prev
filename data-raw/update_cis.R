@@ -30,7 +30,7 @@ other_base_urls <- paste0(
   "covid19infectionsurvey",
   c("northernireland", "scotland", "wales")
 ) # nolint
-other_urls <- paste(other_base_urls, other_years, sep = "/")
+other_urls <- unlist(lapply(other_base_urls, paste, other_years, sep = "/"))
 
 technical_years <- c(2020 + seq(1, 2))
 technical_urls <- paste0(
