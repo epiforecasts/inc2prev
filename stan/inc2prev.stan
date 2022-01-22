@@ -14,13 +14,13 @@ data {
   int ab_obs; // number of antibody prevalence observations
   vector[obs] prev; // observed positivity prevalence
   vector[obs] prev_sd2; // squared standard deviation of observed positivity prevalence
-  vector[max(ab_obs, 1)] ab; // observed antibody posivitiy prevalence
-  vector[max(ab_obs, 1)] ab_sd2; // squared standard deviation of observed antibody prevalence
+  vector[ab_obs] ab; // observed antibody posivitiy prevalence
+  vector[ab_obs] ab_sd2; // squared standard deviation of observed antibody prevalence
   int prev_stime[obs]; // starting times of positivity prevalence observations
   int prev_etime[obs]; // end times of positivity prevalence observations
-  int ab_stime[max(ab_obs, 1)]; // starting times of antibody prevalence observations
-  int ab_etime[max(ab_obs, 1)]; // end times of antibody prevalence observations
-  vector[ab_obs ? t : 1] vacc; // vaccinations
+  int ab_stime[ab_obs]; // starting times of antibody prevalence observations
+  int ab_etime[ab_obs]; // end times of antibody prevalence observations
+  vector[ab_obs] vacc; // vaccinations
   int pbt; // maximum detection time
   vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
@@ -33,8 +33,8 @@ data {
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
   real init_inc_mean ; // Mean initial/mean incidence (logit)
-  real init_ab_mean; // mean estimate of initial antibody prevalence
-  real init_ab_sd;   // sd of estimate of initial antibody prevalence
+  real init_ab_mean[ab_obs > 0 ? 1 : 0]; // mean estimate of initial antibody prevalence
+  real init_ab_sd[ab_obs > 0 ? 1 : 0]; // sd of estimate of initial antibody prevalence
   real pbeta[2]; // Mean and sd for prior proportion that don't seroconvert
   real pgamma_mean[2]; // Means for prior infection and vaccine waning
   real pgamma_sd[2]; // Sds for prior infection and vaccine waning
@@ -136,7 +136,7 @@ model {
 
   // Priors for antibody model
   if (ab_obs) {
-    init_dab ~ normal(init_ab_mean, init_ab_sd);
+    init_dab ~ normal(init_ab_mean[1], init_ab_sd[1]);
     logit(beta) ~ normal(pbeta[1], pbeta[2]);
     logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
     logit(delta) ~ normal(pdelta, pdelta); 

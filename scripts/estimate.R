@@ -1,4 +1,7 @@
 #! /usr/bin/env Rscript
+
+options(echo = TRUE)
+
 suppressMessages(library(cmdstanr))
 suppressMessages(library(data.table))
 suppressMessages(library(dplyr))
@@ -18,21 +21,22 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--local | --age | --variants] [--nhse] [--start-date] [--gp-frac]
+    estimate.R [--ab] [--local | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
     estimate.R -h | --help
 
 Options:
-    -h, --help        Show this screen
-    -a, --ab          Use antibody data
-    -l, --local       Model local dynamics
-    -g, --age         Model age
-    -v, --variants    Model variants
-    -n, --nhse        Analyes NHSE regions
-    -sd, --start_date Start date to use for estimation
-    -gf, --gp_frac    Fraction of latent timepoints to use in the Gaussian
-                      process aproximation. Reducing this improves runtimes at
-                      the cost of reducing the accuracy of the Gaussian process
-                      approximation.
+    -h, --help                 Show this screen
+    -a, --ab                   Use antibody data
+    -l, --local                Model local dynamics
+    -g, --age                  Model age
+    -v, --variants             Model variants
+    -n, --nhse                 Analyse NHSE regions
+    -d, --differencing=<level> Level of differencing of GP (0 = infections,  1 = growth, 2 = differences in growth etc.)
+    -e, --start_date=<date>    Start date to use for estimation
+    -c, --gp_frac=<frac>       Fraction of latent timepoints to use in the Gaussian
+                               process approximation. Reducing this improves runtimes at
+                               the cost of reducing the accuracy of the Gaussian process
+                               approximation.
 "
 
 ## if running interactively can set opts to run with options
@@ -47,12 +51,9 @@ local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
-start_date <- !is.null(opts$start_date) { as.Date(opts$start_date)}
-gp_frac <- !is.null(opts$gp_frac) { 
-  opts$gp_frac
-}else{
-  0.3
-}
+differencing <- ifelse(is.null(opts$differencing), 0L, as.integer(opts$differencing))
+start_date <- as.Date(opts$start_date)
+gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
@@ -79,7 +80,7 @@ data <- data %>%
   filter(level %in% filter_level)
 
 filter_opt <- function(data, start_date) {
-  if (!is.null(start_date)) {
+  if (length(start_date) > 0) {
     data <- data %>%
       filter(end_date >= start_date)
   }
@@ -123,7 +124,7 @@ dir.create(here::here("outputs"), showWarnings = FALSE)
 
 # create a helper function to estimate the model and apply some
 # summary statistics
-incidence_with_var <- function(data, pb, model, gp_model) {
+incidence_with_var <- function(data, pb, model, gp_model, differencing = 0) {
   message("Fitting model")
 
   mod <- cmdstanr::cmdstan_model(
@@ -152,7 +153,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     variables = variables,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model, gp_m = gp_frac)
+    data_args = list(gp_tune_model = gp_model, gp_m = gp_frac, differencing = differencing)
   )
 
   if (is.null(fit$result)) {
@@ -173,7 +174,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
 }
 
 # Run model fits in parallel
-plan(callr, workers = future::availableCores())
+plan(callr, workers = future::availableCores() %/% 2)
 est <- future_lapply(
   data, incidence_with_var,
   pb = prob_detect,
@@ -200,7 +201,7 @@ saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
 saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
 saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
 
-pop <- data %>% 
+pop <- data %>%
   bind_rows() %>%
   unnest(prevalence) %>%
   group_by(variable, level) %>%
