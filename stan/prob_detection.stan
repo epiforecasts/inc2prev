@@ -31,3 +31,4 @@ generated quantities {
   vector[301] pb;
   pb = detection_prob(30, 10, 0, effs, change);
 }
+

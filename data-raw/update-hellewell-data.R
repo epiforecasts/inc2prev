@@ -30,8 +30,7 @@ symp_final <- rbind(
 ## Find first symptomatic report dates and last asymptomatic report dates
 symp_final[,
   first_symp := min(date[symptom == TRUE]), by = num_id
-]
-symp_final[,
+][,
  last_asym := max(date[symptom == FALSE & date < first_symp]), by = num_id
 ]
 
@@ -40,12 +39,10 @@ first_last_df <- symp_final[, .(
   last_asym_day = unique(as.integer(last_asym - start_date))),
   by = num_id
 ]
-
-symp_final[, day := as.integer(date - start_date)][, date := NULL]
-
 setkey(first_last_df, num_id)
 setkey(test_final, num_id)
 
+symp_final[, day := as.integer(date - start_date)][, date := NULL]
 test_final <- merge(test_final, first_last_df)
 
 # Merge testing and symptom data into one data table

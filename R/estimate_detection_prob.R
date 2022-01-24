@@ -2,7 +2,8 @@ detection_prob_obs_to_list <- function(dt) {
 
 if (!is.null(dt)) {
   ids <- unique(dt[,
-   .(num_id, first_sym_day, last_asym_day, inf_upper_bound)])
+   .(num_id, first_sym_day, last_asym_day, inf_upper_bound)]
+  )
 
   dat <- list(
     pcr_n = nrow(ids),
@@ -17,12 +18,13 @@ if (!is.null(dt)) {
 }else{
   dat <- list(
     pcr_n = 0,
-    pcr_p = 1,
-    pcr_test_day = 1,
-    pcr_result = 1,
-    pcr_sym_at_test = 1,
-    pcr_last_asym_at_test = 1,
-    pcr_inf_upper_bound = 1
+    pcr_p = 0,
+    pcr_id = numeric(0),
+    pcr_test_day = numeric(0),
+    pcr_result = numeric(0),
+    pcr_sym_at_test = numeric(0),
+    pcr_last_asym_at_test = numeric(0),
+    pcr_inf_upper_bound = numeric(0)
   )
 }
   return(dat)
