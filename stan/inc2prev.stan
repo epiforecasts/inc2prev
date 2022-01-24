@@ -159,8 +159,8 @@ generated quantities {
   vector[t] cumulative_infections;
   real est_prev[obs];
   real est_ab[ab_obs];
-  // get cumluative incidence
-  cumluative_infections = cumulative_sum(infections);
+  // get cumulative incidence
+  cumulative_infections = cumulative_sum(infections);
   // sample estimated prevalence
   est_prev = normal_rng(odcases, combined_sigma);
   if (ab_obs) {
