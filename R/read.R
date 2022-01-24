@@ -18,7 +18,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
-    by = c("level", "geography_code")
+      by = c("level", "geography_code")
     )
   ## get local prevalence, filling with ONS region estimates where missing
   prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
@@ -30,6 +30,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     )
     additional_dates <-
       expand_grid(
+        level = "local",
         geography_code = unique(prev_local$geography_code),
         start_date = missing_dates_local
       ) %>%
@@ -37,7 +38,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       inner_join(prev_local %>%
         select(level, geography, geography_code, region) %>%
         distinct(),
-      by = "geography_code"
+        by = c("level", "geography_code")
       ) %>%
       inner_join(prev_regional %>%
         select(start_date,
@@ -75,7 +76,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
-    by = c("level", "geography_code")
+      by = c("level", "geography_code")
     ) %>%
     select(level,
       start_date,
@@ -90,7 +91,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(level, lower_age_limit, population),
-    by = c("level", "lower_age_limit")
+      by = c("level", "lower_age_limit")
     ) %>%
     mutate(age_group = limits_to_agegroups(lower_age_limit)) %>%
     select(level,
@@ -106,7 +107,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
-    by = c("level", "geography_code")
+      by = c("level", "geography_code")
     ) %>%
     select(level,
       start_date,
@@ -155,7 +156,7 @@ read_ab <- function(nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
-    by = c("level", "geography_code")
+      by = c("level", "geography_code")
     ) %>%
     select(level, start_date,
       end_date,
@@ -182,7 +183,7 @@ read_ab <- function(nhse_regions = TRUE) {
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(level, lower_age_limit, population),
-    by = c("level", "lower_age_limit")
+      by = c("level", "lower_age_limit")
     ) %>%
     mutate(level = "age_school") %>%
     select(level,
