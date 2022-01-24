@@ -74,5 +74,5 @@ void detection_prob_lp(int[] result, vector test_day, vector sym_at_test,
   result ~ bernoulli_logit(p_d);
   // Add negative test at date of infection to constrain PCR detection
   real test_at_zero = effs[1] - change * effs[2];
-  target += n * bernoulli_logit_lpmf(0 | test_at_zero);
+  0 ~ binomial_logit(n, test_at_zero);
 }
