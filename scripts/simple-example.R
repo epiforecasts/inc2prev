@@ -18,7 +18,7 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2022-01-01"
+end_date <- "2022-08-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -46,7 +46,7 @@ joint_data <- prev %>%
 prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
-mod <- i2p_model("stan/inc2prev_antibodies.stan")
+mod <- i2p_model()
 
 # Compile tune inverse gamma model
 tune <- i2p_gp_tune_model()
@@ -54,16 +54,15 @@ tune <- i2p_gp_tune_model()
 # Fit the infection to prevalence model
 fit <- incidence(
   joint_data$prevalence[[1]],
-  joint_data$antibodies[[1]],
-  joint_data$vaccination[[1]],
-  joint_data$initial_antibodies[[1]],
   variables = c(
-    "est_prev", "est_ab", "infections", "dcases",
-    "dab", "r", "R", "beta", "gamma", "delta"
+    "est_prev", "infections", "dcases", "r", "R"
   ),
-  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 250,
-  chains = 2, model = mod, adapt_delta = 0.8, max_treedepth = 12,
-  data_args = list(gp_tune_model = tune, horizon = 14),
+  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
+  chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
+  data_args = list(
+    gp_tune_model = tune, horizon = 14, differencing = 1,
+    gp_m = 0.3
+  ),
   keep_fit = TRUE
 )
 fit

@@ -18,16 +18,21 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--local | --age | --variants] [--nhse]
+    estimate.R [--ab] [--local | --age | --variants] [--nhse] [--start-date] [--gp-frac]
     estimate.R -h | --help
 
 Options:
-    -h, --help       Show this screen
-    -a, --ab         Use antibody data
-    -l, --local      Model local dynamics
-    -g, --age        Model age
-    -v, --variants   Model variants
-    -n, --nhse       Analyes NHSE regions
+    -h, --help        Show this screen
+    -a, --ab          Use antibody data
+    -l, --local       Model local dynamics
+    -g, --age         Model age
+    -v, --variants    Model variants
+    -n, --nhse        Analyes NHSE regions
+    -sd, --start_date Start date to use for estimation
+    -gf, --gp_frac    Fraction of latent timepoints to use in the Gaussian
+                      process aproximation. Reducing this improves runtimes at
+                      the cost of reducing the accuracy of the Gaussian process
+                      approximation.
 "
 
 ## if running interactively can set opts to run with options
@@ -42,6 +47,12 @@ local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
+start_date <- !is.null(opts$start_date) { as.Date(opts$start_date)}
+gp_frac <- !is.null(opts$gp_frac) { 
+  opts$gp_frac
+}else{
+  0.3
+}
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
@@ -67,15 +78,27 @@ if (local) {
 data <- data %>%
   filter(level %in% filter_level)
 
+filter_opt <- function(data, start_date) {
+  if (!is.null(start_date)) {
+    data <- data %>%
+      filter(end_date >= start_date)
+  }
+  return(data)
+}
+
 data <- data %>%
+  filter_opt(start_date) %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
   ab <- read_ab(nhse_regions = nhse) %>%
+    filter_opt(start_date) %>%
     nest(antibodies = c(-variable))
   vacc <- read_vacc(nhse_regions = nhse) %>%
+    filter_opt(start_date) %>%
     nest(vaccination = c(-variable))
   early <- read_early(nhse_regions = nhse) %>%
+    filter_opt(start_date) %>%
     nest(initial_antibodies = c(-variable))
   data <- data %>%
     inner_join(ab, by = "variable") %>%
@@ -90,11 +113,7 @@ data <- data %>%
 prob_detect <- read_prob_detectable()
 
 # Compile incidence -> Prevalence model
-if (antibodies) {
-  mod <- i2p_model("stan/inc2prev_antibodies.stan")
-} else {
-  mod <- i2p_model()
-}
+mod <- i2p_model()
 
 # Compile tune inverse gamma model
 tune <- i2p_gp_tune_model()
@@ -133,7 +152,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     variables = variables,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model)
+    data_args = list(gp_tune_model = gp_model, gp_m = gp_frac)
   )
 
   if (is.null(fit$result)) {

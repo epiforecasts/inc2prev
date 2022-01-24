@@ -23,6 +23,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
                      ),
                      gp_m = 0.3, gp_ls = c(14, 90),
                      gp_tune_model = NULL,
+                     differencing = 0,
                      prev_likelihood = TRUE,
                      ab_likelihood = TRUE) {
 
@@ -108,7 +109,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     by = time
   ]
   # define baseline incidence
-  baseline_inc <- prev$prev[1] * prob_detectable$mean[unobserved_time]
+  init_inc_mean <- mean(prev$prev) / sum(prob_detectable$mean)
 
   # build stan data
   dat <- list(
@@ -122,7 +123,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
-    inc_zero = log(baseline_inc / (baseline_inc + 1)),
+    init_inc_mean = logit(init_inc_mean),
     pbeta = prop_dont_seroconvert,
     pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
     pgamma_sd = c(inf_waning_rate[2], vac_waning_rate[2]),
@@ -135,26 +136,22 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     ab_likelihood = as.numeric(ab_likelihood)
   )
 
-  if (!is.null(ab)) {
-    dat <- c(dat, list(
-      ab_obs = length(ab$prev),
-      ab = ab$prev,
-      ab_sd2 = ab$sd^2,
-      ab_stime = ab$stime,
-      ab_etime = ab$etime
+  dat <- c(dat, list(
+    ab_obs = ifelse(!is.null(ab), length(ab$prev), 0),
+    ab = ifelse(!is.null(ab), ab$prev, 1),
+    ab_sd2 = ifelse(!is.null(ab), ab$sd^2, 1),
+    ab_stime = ifelse(!is.null(ab), ab$stime, 1),
+    ab_etime = ifelse(!is.null(ab), ab$etime, 1)
+  ))
+
+  dat <- c(dat, list(
+      vacc = ifelse(!is.null(ab), vacc$vaccinated, 1)
     ))
-  }
-  if (!is.null(vacc)) {
-    dat <- c(dat, list(
-      vacc = vacc$vaccinated
-    ))
-  }
-  if (!is.null(init_ab)) {
-    dat <- c(dat, list(
-      init_ab_mean = init_ab$prev,
-      init_ab_sd = init_ab$sd
-    ))
-  }
+
+  dat <- c(dat, list(
+      init_ab_mean = ifelse(!is.null(ab), init_ab$prev, 1),
+      init_ab_sd = ifelse(!is.null(ab), init_ab$sd, 1)
+  ))
 
   # gaussian process parameters
   dat$M <- ceiling(dat$t * gp_m)
@@ -166,6 +163,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2], gp_tune_model)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
+  dat$diff_order <- differencing
 
   # define generation time
   dat$gtm <- unlist(gt[c("mean", "mean_sd")])
@@ -185,22 +183,29 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      beta = array(inv_logit(rnorm(1, -2, 0.4))),
-      gamma = array(inv_logit(rnorm(2, -9, 0.4))),
-      delta = array(inv_logit(rnorm(1, 3, 0.4))),
       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
+    init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
+
+    if (dat$diff_order > 0) {
+      init_list$init_growth <- array(rnorm(dat$diff_order, 0, 0.01))
+    }
+
     if (!is.null(dat[["ab"]])) {
-      init_list[["ab_sigma"]] <-
-        array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0))
-      init_list[["init_dab"]] <-
-        array(truncnorm::rtruncnorm(
-          1,
-          mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
+      init_list <- c(init_list, list(
+        beta = array(inv_logit(rnorm(1, -2, 0.4))),
+        gamma = array(inv_logit(rnorm(2, -9, 0.4))),
+        delta = array(inv_logit(rnorm(1, 3, 0.4))),
+        ab_sigma = array(
+          truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)
+        ),
+        init_dab = array(truncnorm::rtruncnorm(
+          1, mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
         ))
+      ))
     }
     return(init_list)
   }
