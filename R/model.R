@@ -136,22 +136,28 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     ab_likelihood = as.numeric(ab_likelihood)
   )
 
-  dat <- c(dat, list(
-    ab_obs = ifelse(!is.null(ab), length(ab$prev), 0),
-    ab = ifelse(!is.null(ab), ab$prev, 1),
-    ab_sd2 = ifelse(!is.null(ab), ab$sd^2, 1),
-    ab_stime = ifelse(!is.null(ab), ab$stime, 1),
-    ab_etime = ifelse(!is.null(ab), ab$etime, 1)
-  ))
-
-  dat <- c(dat, list(
-      vacc = ifelse(!is.null(ab), vacc$vaccinated, 1)
+  dat$ab_obs <- ifelse(is.null(ab), 0L, length(ab$prev))
+  if (!is.null(ab)) {
+    dat <- c(dat, list(
+      ab = ab$prev,
+      ab_sd2 = ab$sd^2,
+      ab_stime = ab$stime,
+      ab_etime = ab$etime,
+      init_ab_mean = init_ab$prev,
+      init_ab_sd = init_ab$sd,
+      vacc = vacc$vaccinated
     ))
-
-  dat <- c(dat, list(
-      init_ab_mean = ifelse(!is.null(ab), init_ab$prev, 1),
-      init_ab_sd = ifelse(!is.null(ab), init_ab$sd, 1)
-  ))
+  } else {
+    dat <- c(dat, list(
+      ab = numeric(0),
+      ab_sd2 = numeric(0),
+      ab_stime = numeric(0),
+      ab_etime = numeric(0),
+      init_ab_mean = numeric(0),
+      init_ab_sd = numeric(0),
+      vacc = numeric(0)
+    ))
+  }
 
   # gaussian process parameters
   dat$M <- ceiling(dat$t * gp_m)
@@ -194,7 +200,7 @@ i2p_inits <- function(dat) {
       init_list$init_growth <- array(rnorm(dat$diff_order, 0, 0.01))
     }
 
-    if (!is.null(dat[["ab"]])) {
+    if (dat$ab_obs > 0) {
       init_list <- c(init_list, list(
         beta = array(inv_logit(rnorm(1, -2, 0.4))),
         gamma = array(inv_logit(rnorm(2, -9, 0.4))),
