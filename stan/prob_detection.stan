@@ -8,9 +8,9 @@ data {
 parameters {
   real inc_mean;
   real<lower = 0> inc_sd;
-  vector <lower = 0, upper = 1> [pcr_n] inf_at; 
   vector[3] effs;
   real<lower = 0> change;
+  vector <lower = 0, upper = 1> [pcr_p] inf_at; 
 }
 
 model {
@@ -21,7 +21,7 @@ model {
     // Priors
     inc_mean, inc_sd, inf_at, effs, change,
     // Indexs
-    pcr_n, pcr_p, pcr_id,
+    pcr_p, pcr_n, pcr_id,
     // Prior parameterisation
     inc_mean_p, inc_sd_p
   );
@@ -31,4 +31,3 @@ generated quantities {
   vector[301] pb;
   pb = detection_prob(30, 10, 0, effs, change);
 }
-

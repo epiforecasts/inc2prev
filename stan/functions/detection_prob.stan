@@ -36,7 +36,7 @@ vector detection_prob_by_day(int days, vector effs, real bp) {
 void detection_prob_lp(int[] result, vector test_day, vector sym_at_test,
                        vector last_asym_at_test, vector inf_upper_bound, 
                        real inc_mean, real inc_sd, vector inf_at, 
-                       vector effs, real change, int n, int p, int[] id,
+                       vector effs, real change, int p, int n, int[] id,
                        vector inc_mean_p, vector inc_sd_p) {
 
   // Priors on the incubation period
@@ -52,25 +52,25 @@ void detection_prob_lp(int[] result, vector test_day, vector sym_at_test,
   change ~ normal(5, 5) T[0, ];
 
   // Infection time
-  vector[n] tinf = inf_upper_bound .* inf_at;
+  vector[p] tinf = inf_upper_bound .* inf_at;
 
   // Symptom onset likelihood
   // Probability of onset before first symptoms minus probability prior to
   // last asymptomatic test (or 0 if occurred prior to infection).
-  vector[n] inf_to_sym = sym_at_test - tinf;
-  vector[n] inf_to_lasym = last_asym_at_test - tinf;
-  for (i in 1:n) {
+  vector[p] inf_to_sym = sym_at_test - tinf;
+  vector[p] inf_to_lasym = last_asym_at_test - tinf;
+  for (i in 1:p) {
     target += log(
-      lognormal_cdf(inf_to_sym[i] | inc_mean, inc_sd_p[1]) - 
+      lognormal_cdf(inf_to_sym[i] | inc_mean, inc_sd) - 
       (inf_to_lasym[i] <= 0 ? 
-        0 : lognormal_cdf(inf_to_lasym[i] | inc_mean,  inc_sd_p[1])
+        0 : lognormal_cdf(inf_to_lasym[i] | inc_mean,  inc_sd)
       )
     );
   }
 
   // detection likelihood
-  vector[p] inf_to_test = test_day - tinf[id];
-  vector[p] p_d = detection_prob_logit(inf_to_test, effs, change);
+  vector[n] inf_to_test = test_day - tinf[id];
+  vector[n] p_d = detection_prob_logit(inf_to_test, effs, change);
   result ~ bernoulli_logit(p_d);
   // Add negative test at date of infection to constrain PCR detection
   real test_at_zero = effs[1] - change * effs[2];

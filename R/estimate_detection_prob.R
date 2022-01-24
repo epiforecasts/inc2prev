@@ -6,8 +6,8 @@ if (!is.null(dt)) {
   )
 
   dat <- list(
-    pcr_n = nrow(ids),
-    pcr_p = nrow(dt),
+    pcr_p = nrow(ids),
+    pcr_n = nrow(dt),
     pcr_id = dt$num_id,
     pcr_test_day = dt$day,
     pcr_result = as.numeric(dt$pcr_result),
@@ -31,7 +31,7 @@ if (!is.null(dt)) {
 }
 
 get_inc_period <- function(inc_mean = c(1.621, 0.0640),
-                                  inc_sd = c(0.418, 0.0691)) {
+                           inc_sd = c(0.418, 0.0691)) {
   list(
     inc_mean_p = inc_mean,
     inc_sd_p = inc_sd
