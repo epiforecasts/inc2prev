@@ -42,8 +42,8 @@ data {
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
   real init_inc_mean ; // Mean initial/mean incidence (logit)
-  real init_ab_mean[ab_obs > 0 ? 1 : 0]; // mean estimate of initial antibody prevalence
-  real init_ab_sd[ab_obs > 0 ? 1 : 0]; // sd of estimate of initial antibody prevalence
+  real init_ab_mean[ab_obs ? 1 : 0]; // mean estimate of initial antibody prevalence
+  real init_ab_sd[ab_obs ? 1 : 0]; // sd of estimate of initial antibody prevalence
   real pbeta[2]; // Mean and sd for prior proportion that don't seroconvert
   real pgamma_mean[2]; // Means for prior infection and vaccine waning
   real pgamma_sd[2]; // Sds for prior infection and vaccine waning
