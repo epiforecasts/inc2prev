@@ -42,6 +42,7 @@ local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
+kids_ab <- !is.null(opts$kids_ab) && opts$kids_ab
 
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
@@ -70,21 +71,43 @@ data <- data %>%
 data <- data %>%
   nest(prevalence = c(-variable))
 
-if (antibodies) {
-  ab <- read_ab(nhse_regions = nhse) %>%
-    nest(antibodies = c(-variable))
-  vacc <- read_vacc(nhse_regions = nhse) %>%
-    nest(vaccination = c(-variable))
-  early <- read_early(nhse_regions = nhse) %>%
-    nest(initial_antibodies = c(-variable))
+
+if (kids_ab){
+  if (antibodies) {
+    ab <- read_ab(nhse_regions = nhse) %>%
+      nest(antibodies = c(-variable))
+    vacc <- read_vacc(nhse_regions = nhse) %>%
+      nest(vaccination = c(-variable))
+    early <- read_early(nhse_regions = nhse) %>%
+      nest(initial_antibodies = c(-variable))
+    data <- data %>%
+      left_join(ab, by = "variable") %>%
+      left_join(vacc, by = "variable") %>%
+      left_join(early, by = "variable")
+  }
+
+
+  data_kids <- data %>% filter(variable %in% c('2-10', '11-15')) %>% 
+    group_split(variable)
+  data <- data %>% filter(!(variable %in% c('2-10', '11-15'))) %>% 
+    group_split(variable)
+}else{
+  if (antibodies) {
+    ab <- read_ab(nhse_regions = nhse) %>%
+      nest(antibodies = c(-variable))
+    vacc <- read_vacc(nhse_regions = nhse) %>%
+      nest(vaccination = c(-variable))
+    early <- read_early(nhse_regions = nhse) %>%
+      nest(initial_antibodies = c(-variable))
+    data <- data %>%
+      inner_join(ab, by = "variable") %>%
+      inner_join(vacc, by = "variable") %>%
+      inner_join(early, by = "variable")
+  }
   data <- data %>%
-    inner_join(ab, by = "variable") %>%
-    inner_join(vacc, by = "variable") %>%
-    inner_join(early, by = "variable")
+    group_split(variable)
 }
 
-data <- data %>%
-  group_split(variable)
 
 # Location probability of detection posterior
 prob_detect <- read_prob_detectable()
@@ -104,7 +127,7 @@ dir.create(here::here("outputs"), showWarnings = FALSE)
 
 # create a helper function to estimate the model and apply some
 # summary statistics
-incidence_with_var <- function(data, pb, model, gp_model) {
+incidence_with_var <- function(data, pb, model, gp_model, pre_fit_ab_dat=list()) {
   message("Fitting model")
 
   mod <- cmdstanr::cmdstan_model(
@@ -116,7 +139,7 @@ incidence_with_var <- function(data, pb, model, gp_model) {
   variables <- c("est_prev", "infections", "dcases", "r", "R")
   prev <- data$prevalence[[1]]
   if (antibodies) {
-    variables <- c(variables, "est_ab", "dab", "beta", "gamma", "delta")
+    variables <- c(variables, "est_ab", "dab", "beta", "gamma", "delta", 'ab_sigma', "init_dab")
     ab <- data$antibodies[[1]]
     vacc <- data$vaccination[[1]]
     init_ab <- data$initial_antibodies[[1]]
@@ -133,7 +156,8 @@ incidence_with_var <- function(data, pb, model, gp_model) {
     variables = variables,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model)
+    data_args = list(gp_tune_model = gp_model),
+    pre_fit_ab_dat = pre_fit_ab_dat
   )
 
   if (is.null(fit$result)) {
@@ -162,12 +186,17 @@ est <- future_lapply(
   future.seed = TRUE
 )
 
+
+
 est <- rbindlist(est, use.names = TRUE, fill = TRUE)
 # Add summary information to posterior summary and samples
 est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, summary := map2(summary, level, ~ as.data.table(.x)[, level := .y])]
 est[, samples := map2(samples, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
+
+
+
 
 # Bind posterior samples/summary together
 estimates <- bind_rows(est$summary)
@@ -180,6 +209,77 @@ suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))
 saveRDS(estimates, paste0("outputs/estimates", suffix, ".rds"))
 saveRDS(diagnostics, paste0("outputs/diagnostics", suffix, ".rds"))
+
+
+
+if (kids_ab) {
+
+  abdata = data[[1]]$antibodies
+  vcdata = data[[1]]$vaccination
+  vcdata = list(vcdata[[1]] %>%  mutate(vaccinated=0))
+  
+  
+  attr_abs = function(datadf, ab_data){
+    datadf$antibodies = ab_data
+    
+    datadf
+  }
+  
+  attr_vac = function(datadf, vc_data){
+    if (is.null(datadf$vaccination[[1]])){
+      datadf$vaccination = vc_data
+    }
+    
+    
+    datadf
+  }
+  
+  data_kids = lapply(data_kids, attr_abs, ab_data=abdata)
+  
+  data_kids = lapply(data_kids, attr_vac, vc_data=vcdata)
+  
+  ab_draws = unique(
+    est$samples[[1]] %>% 
+      filter(variable == '16-24') %>% 
+      select("beta", "gamma[1]", "gamma[2]", "delta", 'ab_sigma', "init_dab")
+    )
+  
+  pre_fit_ab_dat = list(n_ab_draws = dim(ab_draws)[1], n_ab_pars = dim(ab_draws)[2], ab_draws = ab_draws)
+
+
+  mod <- i2p_model("stan/inc2prev_prefitab_data.stan")
+  # Run model fits in parallel
+  plan(callr, workers = future::availableCores())
+  est_kids <- future_lapply(
+    data_kids, incidence_with_var,
+    pb = prob_detect,
+    model = mod, gp_model = tune,
+    future.seed = TRUE, 
+    pre_fit_ab_dat = pre_fit_ab_dat
+  )
+  
+  est_kids <- rbindlist(est_kids, use.names = TRUE, fill = TRUE)
+  # Add summary information to posterior summary and samples
+  est_kids[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
+  est_kids[, summary := map2(summary, level, ~ as.data.table(.x)[, level := .y])]
+  est_kids[, samples := map2(samples, variable, ~ as.data.table(.x)[, variable := .y])]
+  est_kids[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
+  
+  
+  
+  
+  # Bind posterior samples/summary together
+  estimates_kids <- bind_rows(est_kids$summary)
+  samples_kids <- bind_rows(est_kids$samples)
+  diagnostics_kids <- select(est_kids, -samples, -summary)
+  
+  saveRDS(samples_kids, paste0("outputs/samples_kids", suffix, ".rds"))
+  saveRDS(estimates_kids, paste0("outputs/estimates_kids", suffix, ".rds"))
+  saveRDS(diagnostics_kids, paste0("outputs/diagnostics_kids", suffix, ".rds"))
+  
+  
+}
+
 
 pop <- data %>% 
   bind_rows() %>%

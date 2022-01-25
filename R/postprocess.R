@@ -5,7 +5,7 @@ i2p_draws <- function(fit, variables = NULL, samples = 100) {
     dplyr::mutate(sample = 1:dplyr::n()) %>%
     dplyr::filter(sample <= samples) %>%
     dplyr::select(-.chain, -.iteration, -.draw) %>%
-    tidyr::pivot_longer(matches("[0-9]")) %>%
+    tidyr::pivot_longer(matches("[0-9]") & !matches('gam')) %>%
     dplyr::mutate(
       index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
       name = sub("\\[.*$", "", name)

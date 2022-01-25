@@ -132,12 +132,11 @@ generated quantities {
   // calculate growth
   r = calculate_growth(infections, 1);
   
-  ab_index_r = n_ab_draws * uniform_rng(0,1);
+  ab_index_r = n_ab_draws * uniform_rng(0.0 + 1.0/n_ab_draws,1);
   ab_index = 0;
   while(ab_index < ab_index_r)
     ab_index += 1;
   
-  ab_index += 1;
   
   beta = ab_draws[ab_index][1];
   gamma = to_vector(ab_draws[ab_index][2:3]);
