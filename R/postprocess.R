@@ -39,8 +39,8 @@ i2p_add_date <- function(dt, prev, ab, data) {
         index - 1 + start_date - ut,
         name == "est_prev", prev$date[index],
         name == "est_ab", ab$date[index],
-        name == "r", index + start_date - ut,
-        name == "R", index - ut + start_date
+        name == "r", index - 1 + start_date,
+        name == "R", index - 1 + start_date
       )
     ]
   )
