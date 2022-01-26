@@ -6,25 +6,25 @@ if (!is.null(dt)) {
   )
 
   dat <- list(
-    pcr_p = nrow(ids),
-    pcr_n = nrow(dt),
-    pcr_id = dt$num_id,
-    pcr_test_day = dt$day,
-    pcr_result = as.numeric(dt$pcr_result),
-    pcr_sym_at_test = ids$first_sym_day,
-    pcr_last_asym_at_test = ids$last_asym_day,
-    pcr_inf_upper_bound = ids$inf_upper_bound
+    pb_p = nrow(ids),
+    pb_n = nrow(dt),
+    pb_id = dt$num_id,
+    pb_test_day = dt$day,
+    pb_result = as.numeric(dt$pcr_result),
+    pb_sym_at_test = ids$first_sym_day,
+    pb_last_asym_at_test = ids$last_asym_day,
+    pb_inf_upper_bound = ids$inf_upper_bound
   )
 }else{
   dat <- list(
-    pcr_n = 0,
-    pcr_p = 0,
-    pcr_id = numeric(0),
-    pcr_test_day = numeric(0),
-    pcr_result = numeric(0),
-    pcr_sym_at_test = numeric(0),
-    pcr_last_asym_at_test = numeric(0),
-    pcr_inf_upper_bound = numeric(0)
+    pb_n = 0,
+    pb_p = 0,
+    pb_id = numeric(0),
+    pb_test_day = numeric(0),
+    pb_result = numeric(0),
+    pb_sym_at_test = numeric(0),
+    pb_last_asym_at_test = numeric(0),
+    pb_inf_upper_bound = numeric(0)
   )
 }
   return(dat)
