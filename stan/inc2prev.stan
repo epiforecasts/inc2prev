@@ -1,5 +1,5 @@
 functions {
-#include detection_prob.stan
+#include prob_detection.stan
 #include rev_vec.stan
 #include gaussian_process.stan
 #include rt.stan
@@ -69,20 +69,29 @@ transformed data {
 }
 
 parameters {
+  // Latent expected infections
   real<lower = 0> rho; // length scale of gp
   real<lower = 0> alpha; // scale of gp
   vector[M] eta; // eta of gp
   real init_inc; // Initial infections
   vector[diff_order] init_growth;
-  real<lower = 0> sigma; // observation error
-  real<lower = 0> pb_sigma;
-  vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
+
+  
+  // cross sectional prevalence
   vector[3] pb_effs; // probability of detection piecewise linear effects
   real<lower = 0> pb_change; // probability of detection breakpoint
+  real<lower = 0> pb_sigma;
+  real<lower = 0> prev_sigma; // observation error
+  vector[pb_mode == 2 ? 1 : 0] inc_mean; // Incubation period mean
+  real<lower = 0>[pb_mode == 2 ? 1 : 0] inc_sd; // Incubation period SD
+  vector <lower = 0, upper = 1> [pb_p] inf_at; 
+
+  // Antibody model parameters
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] beta; // proportion that don't seroconvert
   vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] init_dab; // initial proportion with antibodies
+  vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
 }
 
 transformed parameters {
@@ -90,7 +99,7 @@ transformed parameters {
   vector[t] infections; // incident infections at time t
   vector[ab_obs ? t : 0] infs_with_potential_abs; // Infections with the potential to have ab
   vector<lower = 0, upper = 1>[pbt+1] prob_detect;
-  vector[pbt+1] combined_pb_sigma;
+  vector[pb_mode == 1 ? pbt+1 : 0] combined_pb_sigma;
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[ab_obs ? t : 0] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
@@ -111,8 +120,16 @@ transformed parameters {
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
   // calculate probability of detection
-  prob_detect = detection_prob_by_day(pbt, pb_effs, pb_change);
-  combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
+  if (pb_mode) {
+    prob_detect = prob_detect_mean;
+  }else{
+    prob_detect = detection_prob_by_day(pbt, pb_effs, pb_change);
+  }
+  
+  if (pb_mode == 1) {
+    combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
+  }
+  
   // calculate detectable cases
   dcases = convolve(infections, rev_vec(prob_detect));
   // calculate observed detectable cases
@@ -128,7 +145,7 @@ transformed parameters {
                                 gamma, delta[1], init_dab[1], t);
     // calculate observed detectable antibodies
     odab = observed_in_window(dab, ab_stime, ab_etime, ut, ab_obs);
-    //combined standard error
+    //combined standard errors
     combined_ab_sigma = sqrt(square(ab_sigma[1]) + ab_sd2);
   }
 }
@@ -145,11 +162,30 @@ model {
     init_growth ~ normal(0, 0.25);
   }
 
+  // prevalence detection prob model
+  if (pb_mode == 1) {
+    // summary data
+    pb_effs ~ normal(pb_effs_m, pb_effs_sd);
+    pb_change ~ normal(pb_change_m, pb_change_sd);
+    pb_sigma ~ normal(0.025, 0.025) T[0, ];
+    prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
+  }else if (pb_mode == 2) {
+    // individual data
+    detection_prob_lp(
+      // Observations
+      pb_result, pb_test_day, pb_sym_at_test,
+      pb_last_asym_at_test, pb_inf_upper_bound, 
+      // Priors
+      inc_mean, inc_sd, inf_at, pb_effs, pb_change,
+      // Indexs
+      pb_p, pb_n, pb_id,
+      // Prior parameterisation
+      inc_mean_p, inc_sd_p
+    );
+  }    
   // prevalence observation model
-  pb_effs ~ normal(pb_effs_m, pb_effs_sd);
-  pb_change ~ normal(pb_change_m, pb_change_sd);
-  pb_sigma ~ normal(0.025, 0.025) T[0, ];
-  prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
+  prev_sigma ~ normal(0.005, 0.0025) T[0,];
+ 
 
   // Priors for antibody model
   if (ab_obs) {
@@ -160,8 +196,6 @@ model {
     ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
   }
 
-  sigma ~ normal(0.005, 0.0025) T[0,];
- 
   if (prev_likelihood) {
     prev ~ normal(odcases, combined_sigma);
   }

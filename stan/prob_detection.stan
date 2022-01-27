@@ -1,8 +1,8 @@
 functions {
-#include functions/detection_prob.stan
+#include functions/prob_detection.stan
 }
 data {
-#include chunks/data/pb_testing.stan
+#include chunks/data/prob_detection.stan
 }
 
 parameters {

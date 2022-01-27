@@ -37,7 +37,9 @@ void detection_prob_lp(int[] result, vector test_day, vector sym_at_test,
                        vector last_asym_at_test, vector inf_upper_bound, 
                        real inc_mean, real inc_sd, vector inf_at, 
                        vector effs, real change, int p, int n, int[] id,
-                       vector inc_mean_p, vector inc_sd_p) {
+                       vector inc_mean_p, vector inc_sd_p,
+                       vector effs_mean_p, vector effs_sd_p, 
+                       vector change_p) {
 
   // Priors on the incubation period
   inc_mean ~ normal(inc_mean_p[1], inc_mean_p[2]);
@@ -48,8 +50,8 @@ void detection_prob_lp(int[] result, vector test_day, vector sym_at_test,
   inf_at ~ beta(3, 1);
 
   // Priors on piecewise linear (on logit) probability
-  effs ~ std_normal();
-  change ~ normal(5, 5) T[0, ];
+  effs ~ std_normal(effs_mean_p, effs_sd_p);
+  change ~ normal(change_p[1], change_p[2]) T[0, ];
 
   // Infection time
   vector[p] tinf = inf_upper_bound .* inf_at;

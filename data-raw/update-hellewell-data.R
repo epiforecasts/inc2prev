@@ -20,6 +20,7 @@ test_final[, date := as.Date(date)]
 test_final[, serology_date := as.Date(serology_date)]
 test_final[, day := as.integer(date - start_date)]
 test_final[, serology_day := as.integer(serology_date - start_date)]
+setnames(test_final, "pcr_result", "result")
 
 ## Add initial asymptomatic reports on enrollment day
 symp_final[, date := as.Date(date)]
@@ -54,7 +55,7 @@ pcr_testing <- merge(
 # Must occur prior to symptoms or first positive  test
 pcr_testing[,
   inf_upper_bound := min(
-    day[pcr_result == TRUE], first_sym_day, na.rm = TRUE
+    day[result == TRUE], first_sym_day, na.rm = TRUE
     ),
   by = num_id
 ]
@@ -78,7 +79,7 @@ figure1 <- function(dfy = NULL) {
     geom_point(
       aes(fill = symptom), size = 3, shape = 21, stroke = 1.5, col = "white"
     ) +
-    geom_point(aes(col = pcr_result), size = 3, shape = 21, stroke = 1.5) +
+    geom_point(aes(col = result), size = 3, shape = 21, stroke = 1.5) +
     theme_bw() +
     scale_color_manual(
       values = cols1[c(2, 7)], name = "PCR result",

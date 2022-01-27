@@ -1,4 +1,4 @@
-num_id,day,symptom,first_symp,last_asym,date,pcr_result,serology_date,ct,serology_day,first_sym_day,last_asym_day,inf_upper_bound
+num_id,day,symptom,first_symp,last_asym,date,result,serology_date,ct,serology_day,first_sym_day,last_asym_day,inf_upper_bound
 1,20,FALSE,2020-04-06,2020-04-02,2020-03-26,FALSE,,0,,31,27,27
 1,20,FALSE,2020-04-06,2020-04-02,2020-03-26,FALSE,,0,,31,27,27
 1,25,FALSE,2020-04-06,2020-04-02,2020-03-31,FALSE,,0,,31,27,27

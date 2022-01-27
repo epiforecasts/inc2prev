@@ -176,7 +176,9 @@ i2p_inits <- function(dat) {
     init_list <- list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
-      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
+      prev_sigma = array(
+        truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)
+      ),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
       pb_effs = array(
         purrr::map2(dat$pb_effs_m, dat$pb_effs_sd, ~ rnorm(1, .x, .y * 0.1))
