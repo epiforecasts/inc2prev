@@ -97,8 +97,8 @@ stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
 np <- nuts_params(stanfit)
 pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
-  pars = c("alpha", "rho", "pcr_eff[1]", "pcr_eff[2]", "pcr_eff[3]",
-           "pcr_change")
+  pars = c("alpha", "rho", "pb_effs[1]", "pb_effs[2]", "pb_effs[3]",
+           "pb_change")
 )
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 

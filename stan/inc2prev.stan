@@ -24,10 +24,10 @@ data {
   int ab_etime[ab_obs]; // end times of antibody prevalence observations
   vector[ab_obs] vacc; // vaccinations
   int pbt; // maximum detection time
-  vector[3] pcr_eff_m; //Mean detection probability effects
-  vector[3] pcr_eff_sd; //SD detection probability effects
-  real pcr_change_m; // breakpoint of PCR detection
-  real pcr_change_sd; // breakpoint of PCR detection
+  vector[3] pb_effs_m; //Mean detection probability effects
+  vector[3] pb_effs_sd; //SD detection probability effects
+  real pb_change_m; // breakpoint of pb detection
+  real pb_change_sd; // breakpoint of pb detection
   vector[pbt+1] prob_detect_mean; // at each time since infection, probability of detection
   vector[pbt+1] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
   // Mode to use for probability of detection, 0 = exact,
@@ -77,8 +77,8 @@ parameters {
   real<lower = 0> sigma; // observation error
   real<lower = 0> pb_sigma;
   vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
-  vector[3] pcr_eff; // probability of detection piecewise linear effects
-  real<lower = 0> pcr_change; // probability of detection breakpoint
+  vector[3] pb_effs; // probability of detection piecewise linear effects
+  real<lower = 0> pb_change; // probability of detection breakpoint
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] beta; // proportion that don't seroconvert
   vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
@@ -111,7 +111,7 @@ transformed parameters {
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
   // calculate probability of detection
-  prob_detect = detection_prob_by_day(pbt, pcr_eff, pcr_change);
+  prob_detect = detection_prob_by_day(pbt, pb_effs, pb_change);
   combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
   // calculate detectable cases
   dcases = convolve(infections, rev_vec(prob_detect));
@@ -146,8 +146,8 @@ model {
   }
 
   // prevalence observation model
-  pcr_eff ~ normal(pcr_eff_m, pcr_eff_sd);
-  pcr_change ~ normal(pcr_change_m, pcr_change_sd);
+  pb_effs ~ normal(pb_effs_m, pb_effs_sd);
+  pb_change ~ normal(pb_change_m, pb_change_sd);
   pb_sigma ~ normal(0.025, 0.025) T[0, ];
   prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
 

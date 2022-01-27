@@ -10,7 +10,7 @@ if (!is.null(dt)) {
     pb_n = nrow(dt),
     pb_id = dt$num_id,
     pb_test_day = dt$day,
-    pb_result = as.numeric(dt$pcr_result),
+    pb_result = as.numeric(dt$result),
     pb_sym_at_test = ids$first_sym_day,
     pb_last_asym_at_test = ids$last_asym_day,
     pb_inf_upper_bound = ids$inf_upper_bound

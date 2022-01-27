@@ -91,8 +91,8 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   }
 
   # define baseline incidence
-  init_inc_mean <- mean(prev$prev) / 
-    (pb_params[variable %in% "mean_pb"]$mean * 
+  init_inc_mean <- mean(prev$prev) /
+     (pb_params[variable %in% "mean_prob"]$mean *
       pb_params[variable %in% "time"]$mean)
 
   # build stan data
@@ -104,12 +104,12 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prev_sd2 = prev$sd^2,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    pcr_eff_m = pb_params[grepl("beta", variable)]$mean,
-    pcr_eff_sd = pb_params[grepl("beta", variable)]$sd,
-    pcr_change_m = pb_params[variable %in% "cutpoint"]$mean,
-    pcr_change_sd = pb_params[variable %in% "cutpoint"]$sd,
-    prob_detect_mean = pb_params[grepl("prob_detect", variable)]$mean,
-    prob_detect_sd = pb_params[grepl("prob_detect", variable)]$sd,
+    pb_effs_m = pb_params[grepl("effs", variable)]$mean,
+    pb_effs_sd = pb_params[grepl("effs", variable)]$sd,
+    pb_change_m = pb_params[variable %in% "change"]$mean,
+    pb_change_sd = pb_params[variable %in% "change"]$sd,
+    prob_detect_mean = pb_params[grepl("prob[0-9]", variable)]$mean,
+    prob_detect_sd = pb_params[grepl("prob[0-9]", variable)]$sd,
     pbt = pb_params[variable %in% "time"]$mean,
     pb_mode = 0,
     init_inc_mean = logit(init_inc_mean),
@@ -178,10 +178,10 @@ i2p_inits <- function(dat) {
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      pcr_eff = array(
-        purrr::map2(dat$pcr_eff_m, dat$pcr_eff_sd, ~ rnorm(1, .x, .y * 0.1))
+      pb_effs = array(
+        purrr::map2(dat$pb_effs_m, dat$pb_effs_sd, ~ rnorm(1, .x, .y * 0.1))
       ),
-      pcr_change = rnorm(1, dat$pcr_change_m, dat$pcr_change_sd * 0.1),
+      pb_change = rnorm(1, dat$pb_change_m, dat$pb_change_sd * 0.1),
       pb_sigma = abs(rnorm(1, 0.025, 0.001))
     )
     init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)

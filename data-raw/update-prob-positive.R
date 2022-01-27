@@ -45,10 +45,12 @@ data.table::fwrite(pb, "data/prob_detectable_summary.csv")
 dt[, p := NULL]
 dt <- melt(dt)
 dt <- dt[, .(mean = mean(value), sd = sd(value)), by = c("variable")]
+dt[, variable := gsub("beta", "effs", variable)]
+dt[, variable := gsub("cutpoint", "change", variable)]
 dt <- rbind(
   dt,
   data.table(
-    variable = c("time", "mean_pb"),
+    variable = c("time", "mean_prob"),
     mean = c(40, mean(pb$mean))
   ),
   fill = TRUE
@@ -56,7 +58,7 @@ dt <- rbind(
 
 dt <- rbind(
   dt,
-  pb[, .(variable = paste0("prob_detect", time), mean, sd)]
+  pb[, .(variable = paste0("prob", time), mean, sd)]
 )
 
 data.table::fwrite(dt, "data/prob_detectable_params.csv")
