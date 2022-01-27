@@ -139,12 +139,17 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   return(prev)
 }
 
-read_pop <- function() {
-  readr::read_csv(here::here("data", "populations.csv"))
+read_pop <- function(ab=FALSE) {
+  if(ab==FALSE){
+    readr::read_csv(here::here("data", "populations.csv"))
+  }
+  else{
+    readr::read_csv(here::here("data", "populations_ab.csv"))
+  }
 }
 
 read_ab <- function(nhse_regions = TRUE) {
-  pops <- read_pop()
+  pops <- read_pop(ab=TRUE)
   lower_age_limits <- read_cis() %>%
     filter(level == "age_school") %>%
     select(variable) %>%
