@@ -165,7 +165,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       width = 7 + 3 * floor(sqrt(nvars)),
       height = 2 + 3 * floor(sqrt(nvars))
     )
-    saveRDS(cumulative_infection_samples, 
+    saveRDS(combined_samples,
 	    here::here("outputs", paste0("cumulative", suffix, ".rds")))
   } else {
     combined_samples <- level_samples

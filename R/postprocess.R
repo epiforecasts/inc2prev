@@ -15,7 +15,7 @@ i2p_draws <- function(fit, variables = NULL, samples = 100) {
 i2p_summarise <- function(fit, variables = NULL,
                           quantiles = seq(0.05, 0.95, by = 0.05)) {
   fit$summary(
-    variables = variables, ~ quantile(.x, probs = quantiles)
+    variables = variables, mean, sd, median, mad, ~ posterior::quantile2(.x, probs = quantiles)
   ) %>%
     dplyr::as_tibble() %>%
     dplyr::rename(name = variable) %>%

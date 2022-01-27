@@ -209,7 +209,7 @@ pop <- data %>%
 format_estimates <- estimates %>%
   left_join(pop, by = c("level", "variable")) %>% 
   filter(!is.na(population)) %>%
-  pivot_longer(matches("^[0-9]+%"), names_to = "quantile") %>%
+  pivot_longer(matches("^q[0-9]$"), names_to = "quantile") %>%
   mutate(value = if_else(name == "est_prev", value * 100, value),
 	 value = if_else(name == "infections", round(value * population), value)) %>%
   pivot_wider(names_from = "quantile")

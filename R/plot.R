@@ -12,7 +12,7 @@ plot_trend <- function(fit, var, date_start) {
       date = date_start + time - 1
     ) %>%
     ggplot() +
-    aes(x = date, y = `50%`, ymin = `5%`, ymax = `95%`) +
+    aes(x = date, y = `q50`, ymin = `q5`, ymax = `q95`) +
     geom_line(col = "lightblue", size = 1.4) +
     geom_ribbon(
       fill = "lightblue", alpha = 0.4,
@@ -20,7 +20,7 @@ plot_trend <- function(fit, var, date_start) {
     ) +
     geom_ribbon(
       fill = "lightblue", alpha = 0.4,
-      col = NA, aes(ymin = `20%`, ymax = `80%`)
+      col = NA, aes(ymin = `q20`, ymax = `q80`)
     ) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
     theme_light()
@@ -58,9 +58,9 @@ plot_prev <- function(estimates, samples, data, alpha = 0.05,
   summary_prev <- estimates %>%
     filter(name == {{ observed }}) %>%
     mutate(
-      middle = `50%`,
-      lower = `5%`,
-      upper = `95%`,
+      middle = `q50`,
+      lower = `q5`,
+      upper = `q95`,
       type = "Modelled"
     ) %>%
     bind_rows(data %>%
@@ -115,7 +115,7 @@ plot_ltla <- function(estimates, areas, names = c(), var = "pop_prev",
     inner_join(areas %>% rename(variable = geography_code), by = "variable")
   aesthetics <- list(
     x = "date",
-    y = "`50%`",
+    y = "`q50`",
     group = "variable"
   )
   if (length(names) > 0) {
