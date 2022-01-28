@@ -1,4 +1,6 @@
 functions {
+#include prob_detection.stan
+#include rev_vec.stan
 #include gaussian_process.stan
 #include rt.stan
 #include convolve.stan
@@ -22,8 +24,15 @@ data {
   int ab_etime[ab_obs]; // end times of antibody prevalence observations
   vector[ab_obs > 0 ? t : 0] vacc; // vaccinations
   int pbt; // maximum detection time
-  vector[pbt] prob_detect_mean; // at each time since infection, probability of detection
-  vector[pbt] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
+  vector[3] pb_effs_m; //Mean detection probability effects
+  vector[3] pb_effs_sd; //SD detection probability effects
+  real pb_change_m; // breakpoint of pb detection
+  real pb_change_sd; // breakpoint of pb detection
+  vector[pbt+1] prob_detect_mean; // at each time since infection, probability of detection
+  vector[pbt+1] prob_detect_sd; // at each time since infection, tandard deviation of probability of detection
+  // Mode to use for probability of detection, 0 = exact,
+  // 1 = posterior summary, and 2 = from study data
+  int pb_mode; 
   real lengthscale_alpha; // alpha for gp lengthscale prior
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M; // approximate gp dimensions
@@ -33,8 +42,8 @@ data {
   real gtsd[2]; // mean and sd of the sd of the generation time
   int gtmax; // maximum number of days to consider for the generation time
   real init_inc_mean ; // Mean initial/mean incidence (logit)
-  real init_ab_mean[ab_obs > 0 ? 1 : 0]; // mean estimate of initial antibody prevalence
-  real init_ab_sd[ab_obs > 0 ? 1 : 0]; // sd of estimate of initial antibody prevalence
+  real init_ab_mean[ab_obs ? 1 : 0]; // mean estimate of initial antibody prevalence
+  real init_ab_sd[ab_obs ? 1 : 0]; // sd of estimate of initial antibody prevalence
   real pbeta[2]; // Mean and sd for prior proportion that don't seroconvert
   real pgamma_mean[2]; // Means for prior infection and vaccine waning
   real pgamma_sd[2]; // Sds for prior infection and vaccine waning
@@ -60,24 +69,37 @@ transformed data {
 }
 
 parameters {
+  // Latent expected infections
   real<lower = 0> rho; // length scale of gp
   real<lower = 0> alpha; // scale of gp
   vector[M] eta; // eta of gp
   real init_inc; // Initial infections
   vector[diff_order] init_growth;
-  real<lower = 0> sigma; // observation error
-  vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
-  vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
+
+  
+  // cross sectional prevalence
+  vector[3] pb_effs; // probability of detection piecewise linear effects
+  real<lower = 0> pb_change; // probability of detection breakpoint
+  real<lower = 0> pb_sigma;
+  real<lower = 0> prev_sigma; // observation error
+  vector[pb_mode == 2 ? 1 : 0] inc_mean; // Incubation period mean
+  real<lower = 0>[pb_mode == 2 ? 1 : 0] inc_sd; // Incubation period SD
+  vector <lower = 0, upper = 1> [pb_p] inf_at; 
+
+  // Antibody model parameters
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] beta; // proportion that don't seroconvert
   vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] init_dab; // initial proportion with antibodies
+  vector<lower = 0>[ab_obs ? 1 : 0] ab_sigma; // observation error
 }
 
 transformed parameters {
   vector[t] gp; // value of gp at time t + initialisation 
   vector[t] infections; // incident infections at time t
   vector[ab_obs ? t : 0] infs_with_potential_abs; // Infections with the potential to have ab
+  vector<lower = 0, upper = 1>[pbt+1] prob_detect;
+  vector[pb_mode == 1 ? pbt+1 : 0] combined_pb_sigma;
   vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
   vector[ab_obs ? t : 0] dab; // proportion of individuals with antibodies at time t
   vector[obs] odcases;
@@ -97,9 +119,19 @@ transformed parameters {
   // relative probability of infection
   // inc_init is the mean incidence
   infections = inv_logit(init_inc + gp);
-
+  // calculate probability of detection
+  if (pb_mode) {
+    prob_detect = prob_detect_mean;
+  }else{
+    prob_detect = detection_prob_by_day(pbt, pb_effs, pb_change);
+  }
+  
+  if (pb_mode == 1) {
+    combined_pb_sigma = sqrt(square(pb_sigma) + square(prob_detect_sd));
+  }
+  
   // calculate detectable cases
-  dcases = convolve(infections, prob_detect);
+  dcases = convolve(infections, rev_vec(prob_detect));
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
   //combined standard error
@@ -113,7 +145,7 @@ transformed parameters {
                                 gamma, delta[1], init_dab[1], t);
     // calculate observed detectable antibodies
     odab = observed_in_window(dab, ab_stime, ab_etime, ut, ab_obs);
-    //combined standard error
+    //combined standard errors
     combined_ab_sigma = sqrt(square(ab_sigma[1]) + ab_sd2);
   }
 }
@@ -129,10 +161,31 @@ model {
   if (diff_order) {
     init_growth ~ normal(0, 0.25);
   }
+
+  // prevalence detection prob model
+  if (pb_mode == 1) {
+    // summary data
+    pb_effs ~ normal(pb_effs_m, pb_effs_sd);
+    pb_change ~ normal(pb_change_m, pb_change_sd);
+    pb_sigma ~ normal(0.025, 0.025) T[0, ];
+    prob_detect_mean ~ normal(prob_detect, combined_pb_sigma);
+  }else if (pb_mode == 2) {
+    // individual data
+    detection_prob_lp(
+      // Observations
+      pb_result, pb_test_day, pb_sym_at_test,
+      pb_last_asym_at_test, pb_inf_upper_bound, 
+      // Priors
+      inc_mean, inc_sd, inf_at, pb_effs, pb_change,
+      // Indexs
+      pb_p, pb_n, pb_id,
+      // Prior parameterisation
+      inc_mean_p, inc_sd_p
+    );
+  }    
   // prevalence observation model
-  for (i in 1:pbt) {
-    prob_detect[i] ~ normal(prob_detect_mean[i], prob_detect_sd[i]) T[0, 1];
-  }
+  prev_sigma ~ normal(0.005, 0.0025) T[0,];
+ 
 
   // Priors for antibody model
   if (ab_obs) {
@@ -143,8 +196,6 @@ model {
     ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
   }
 
-  sigma ~ normal(0.005, 0.0025) T[0,];
- 
   if (prev_likelihood) {
     prev ~ normal(odcases, combined_sigma);
   }

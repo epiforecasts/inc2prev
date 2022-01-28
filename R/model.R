@@ -9,7 +9,7 @@ i2p_gp_tune_model <- function(path) {
 
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
-                     prob_detectable, unobserved_time = 14, horizon = 0,
+                     pb_params, unobserved_time = 40, horizon = 0,
                      init_cum_infections = c(0, 0),
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
@@ -90,26 +90,10 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     )]
   }
 
-  ## summarise prob_detectable for simplicity
-  prob_detectable <- melt(
-    copy(prob_detectable),
-    value.name = "p", id.vars = "sample"
-  )
-  prob_detectable[, time := as.numeric(as.character(variable))]
-  prob_detectable <- prob_detectable[, .(
-    median = median(p),
-    mean = mean(p),
-    sd = sd(p)
-  ),
-  by = time
-  ]
-  prob_detectable <- prob_detectable[,
-    purrr::map(.SD, signif, digits = 3),
-    .SDcols = c("mean", "median", "sd"),
-    by = time
-  ]
   # define baseline incidence
-  init_inc_mean <- mean(prev$prev) / sum(prob_detectable$mean)
+  init_inc_mean <- mean(prev$prev) /
+     (pb_params[variable %in% "mean_prob"]$mean *
+      pb_params[variable %in% "time"]$mean)
 
   # build stan data
   dat <- list(
@@ -120,9 +104,14 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prev_sd2 = prev$sd^2,
     prev_stime = prev$stime,
     prev_etime = prev$etime,
-    prob_detect_mean = rev(prob_detectable$mean),
-    prob_detect_sd = rev(prob_detectable$sd),
-    pbt = max(prob_detectable$time) + 1,
+    pb_effs_m = pb_params[grepl("effs", variable)]$mean,
+    pb_effs_sd = pb_params[grepl("effs", variable)]$sd,
+    pb_change_m = pb_params[variable %in% "change"]$mean,
+    pb_change_sd = pb_params[variable %in% "change"]$sd,
+    prob_detect_mean = pb_params[grepl("prob[0-9]", variable)]$mean,
+    prob_detect_sd = pb_params[grepl("prob[0-9]", variable)]$sd,
+    pbt = pb_params[variable %in% "time"]$mean,
+    pb_mode = 0,
     init_inc_mean = logit(init_inc_mean),
     pbeta = prop_dont_seroconvert,
     pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
@@ -187,12 +176,15 @@ i2p_inits <- function(dat) {
     init_list <- list(
       eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
       alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
-      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
+      prev_sigma = array(
+        truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)
+      ),
       rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
-      prob_detect = purrr::map2_dbl(
-        dat$prob_detect_mean, dat$prob_detect_sd / 10,
-        ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
-      )
+      pb_effs = array(
+        purrr::map2(dat$pb_effs_m, dat$pb_effs_sd, ~ rnorm(1, .x, .y * 0.1))
+      ),
+      pb_change = rnorm(1, dat$pb_change_m, dat$pb_change_sd * 0.1),
+      pb_sigma = abs(rnorm(1, 0.025, 0.001))
     )
     init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
 

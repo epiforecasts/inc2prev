@@ -18,7 +18,9 @@ library(future)
 
 # Test target
 example_var <- "England"
-end_date <- "2022-08-01"
+end_date <- "2023-01-01"
+start_date <- "2021-07-01"
+
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -26,12 +28,15 @@ walk(functions, source)
 # Load prevalence data and split by location
 prev <- read_cis() %>%
   filter(end_date < {{ end_date }}) %>%
+  filter(start_date >= {{ start_date }}) %>%
   nest(prevalence = c(-variable))
 ab <- read_ab() %>%
   filter(end_date < {{ end_date }}) %>%
+  filter(start_date >= {{ start_date }}) %>%
   nest(antibodies = c(-variable))
 vacc <- read_vacc() %>%
   filter(date < {{ end_date }}) %>%
+  filter(start_date >= {{ start_date }}) %>%
   nest(vaccination = c(-variable))
 early <- read_early() %>%
   nest(initial_antibodies = c(-variable))
@@ -55,12 +60,12 @@ tune <- i2p_gp_tune_model()
 fit <- incidence(
   joint_data$prevalence[[1]],
   variables = c(
-    "est_prev", "infections", "dcases", "r", "R"
+    "est_prev", "infections", "dcases", "r", "R", "prob_detect"
   ),
-  prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
+  pb_params = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
   data_args = list(
-    gp_tune_model = tune, horizon = 14, differencing = 1,
+    gp_tune_model = tune, horizon = 14, differencing = 0,
     gp_m = 0.3
   ),
   keep_fit = TRUE
@@ -92,7 +97,8 @@ stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
 np <- nuts_params(stanfit)
 pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
-  pars = c("alpha", "rho", "beta", "gamma[1]", "gamma[2]", "delta")
+  pars = c("alpha", "rho", "pb_effs[1]", "pb_effs[2]", "pb_effs[3]",
+           "pb_change")
 )
 ggsave("figures/pairs.png", pairs, width = 16, height = 16)
 
@@ -119,3 +125,9 @@ plot_trace(
   labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
 ggsave("figures/Rt.png", width = 9, height = 6)
+
+plot_prob_detect(
+  fit$samples[[1]][sample <= 100], read_prob_detectable("summary")
+)
+
+ggsave("figures/prob-detection.png", width = 9, height = 6)

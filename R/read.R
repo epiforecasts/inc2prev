@@ -281,6 +281,14 @@ read_early <- function(nhse_regions = TRUE) {
    return(early)
 }
 
-read_prob_detectable <- function() {
-  data.table::fread("data/prob_detectable.csv")
+read_prob_detectable <- function(type = "params") {
+  type <- match.arg(type, choices = c("params", "summary", "samples"))
+  path <- here::here("data", paste0("prob_detectable_", type, ".csv"))
+  dt <- data.table::fread(path)
+  return(dt[])
+}
+
+read_pcr_testing <- function() {
+  dt <- data.table::fread(here::here("data", "pcr_testing.csv"))
+  return(dt[])
 }

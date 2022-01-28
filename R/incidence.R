@@ -22,11 +22,12 @@
 #' `fit_fn`.
 #' @export
 #' @family incidence
-incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
+incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, pb_params,
                       data_args = list(),
                       model = i2p_model(),
                       variables = c(
-                        "est_prev", "infections", "dcases", "r", "R"
+                        "est_prev", "infections", "dcases", "r", "R",
+                        "prob_detect"
                       ),
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
@@ -39,7 +40,7 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
         ab = ab,
         vacc = vacc,
         init_ab = init_ab,
-        prob_detectable = prob_detect
+        pb_params = pb_params
       ),
       data_args
     )
