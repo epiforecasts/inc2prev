@@ -143,8 +143,8 @@ i2p_data <- function(prev, ab, vacc, init_ab,
       ab_sd2 = ab$sd^2,
       ab_stime = ab$stime,
       ab_etime = ab$etime,
-      init_ab_mean = init_ab$prev,
-      init_ab_sd = init_ab$sd,
+      init_ab_mean = array(init_ab$prev),
+      init_ab_sd = array(init_ab$sd),
       vacc = vacc$vaccinated
     ))
   } else {
