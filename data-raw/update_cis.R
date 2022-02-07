@@ -115,14 +115,14 @@ positivity <- list()
 for (level in names(columns)) {
   positivity[[level]] <- lapply(files, function(x) {
     ## are we looking at a "technical" dataset?
-    technical <- grepl("technical\\.", x)
+    technical <- grepl("technical[a-z0-9]*\\.xlsx", x)
     ## first,  get table of contents sheet to work out which sheet we want
     sheets <- excel_sheets(x)
     contents_sheet <- read_excel(x, sheet = "Contents") %>%
       clean_names()
     if (level %in% c("national", "age_school")) {
       nation <- case_when(
-        grepl("ni[^/]*.xlsx?", x) ~
+        grepl("(northernireland|ni[0-9]*)\\.xlsx?", x) ~
           "Northern Ireland",
         grepl("scotland[^/]*.xlsx?", x) ~
           "Scotland",
@@ -391,8 +391,9 @@ percent_dates <- combined %>%
     must_divide =
       (level == "national" &
         report_date > "2020-06-27" & report_date < "2020-07-19") |
-        (level != "national" & report_date < "2020-07-19") |
-        report_date > "2021-06-12"
+      (level != "national" & report_date < "2020-07-19") |
+        report_date > "2021-06-12" |
+      grepl("^variant", level)
   )
 
 combined <- combined %>%
