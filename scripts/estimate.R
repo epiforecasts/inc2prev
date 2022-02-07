@@ -1,7 +1,5 @@
 #! /usr/bin/env Rscript
 
-options(echo = TRUE)
-
 suppressMessages(library(cmdstanr))
 suppressMessages(library(data.table))
 suppressMessages(library(dplyr))
