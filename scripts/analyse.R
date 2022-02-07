@@ -69,10 +69,15 @@ if (variants) {
 
 levels <- unique(estimates$level)
 
-safe_plot_wrapper <- purrr::safely(plot_wrapper)
-map(
+cumulative <- map(
   levels, plot_wrapper,
   prev = prev, ab = ab, estimates = estimates,
   samples = samples, early = early,
   suffix = suffix, extension = ".svg"
 )
+
+cumulative <- bind_rows(cumulative)
+
+saveRDS(cumulative,
+        here::here("outputs", paste0("cumulative", suffix, ".rds")))
+
