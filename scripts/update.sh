@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Rscript data-raw/update-cis.R
+Rscript data-raw/update_cis.R
 
 echo Space
 Rscript scripts/estimate.R -n -d 1
