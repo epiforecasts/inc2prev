@@ -392,7 +392,7 @@ percent_dates <- combined %>%
       (level == "national" &
         report_date > "2020-06-27" & report_date < "2020-07-19") |
       (level != "national" & report_date < "2020-07-19") |
-        report_date > "2021-06-12" |
+      report_date > "2021-06-12" |
       grepl("^variant", level)
   )
 
