@@ -17,17 +17,11 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   }
   if (grepl("^variant_", level)) {
     level_prev <- level_prev %>%
-      separate(variable, c("variant", "variable"), sep = "\\|") %>%
-      mutate(variant = sub("_variant(_compatible)?$", "", variant),
-             variant = sub("^not_compatible_with_", "not_", variant))
+      separate(variable, c("variant", "variable"), sep = "\\|")
     level_samples <- level_samples %>%
-      separate(variable, c("variant", "variable"), sep = "\\|") %>%
-      mutate(variant = sub("_variant(_compatible)?$", "", variant),
-             variant = sub("^not_compatible_with_", "not_", variant))
+      separate(variable, c("variant", "variable"), sep = "\\|")
     level_estimates <- level_estimates %>%
-      separate(variable, c("variant", "variable"), sep = "\\|") %>%
-      mutate(variant = sub("_variant(_compatible)?$", "", variant),
-             variant = sub("^not_compatible_with_", "not_", variant))
+      separate(variable, c("variant", "variable"), sep = "\\|")
     plot_formula <- as.formula(variant ~ variable)
   } else {
     plot_formula <- as.formula(~ variable)
