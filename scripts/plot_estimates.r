@@ -136,11 +136,12 @@ for (history in names(histories)) {
     }
   }
 }
+
 ## separate plots
 
 level <- "national"
 name <- "est_prev"
-df_plot <- all %>%
+df_plot <- variant %>%
   filter(
     level == {{ level }},
     name == {{ name }}
@@ -168,7 +169,7 @@ p <- ggplot(df_plot %>% filter(variable == "England"),
 
 level <- "age_school"
 name <- "est_prev"
-df_plot <- all %>%
+df_plot <- variant %>%
   filter(
     level == {{ level }},
     name == {{ name }},
