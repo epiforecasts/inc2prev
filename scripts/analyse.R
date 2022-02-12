@@ -69,14 +69,15 @@ if (variants) {
 
 levels <- unique(estimates$level)
 
-cumulative <- map(
+updated_samples <- map(
   levels, plot_wrapper,
   prev = prev, ab = ab, estimates = estimates,
   samples = samples, early = early,
   suffix = suffix, extension = ".svg"
 )
 
-cumulative <- bind_rows(cumulative)
+cumulative <- bind_rows(updated_samples) %>%
+  filter(name == "cumulative_infections")
 
 saveRDS(cumulative,
         here::here("outputs", paste0("cumulative", suffix, ".rds")))

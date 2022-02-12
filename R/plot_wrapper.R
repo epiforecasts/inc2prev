@@ -15,6 +15,46 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   if (nrow(level_estimates) == 0) {
     stop("No estimates available with these filter settings")
   }
+  ## estimate cumulative infections if not provided
+  if (!("cumulative_infections" %in% unique(level_samples$name))) {
+    level_samples <- level_samples %>%
+      filter(name == "infections") %>%
+      arrange(sample, index, variable) %>%
+      group_by(sample, variable) %>%
+      mutate(value = cumsum(value)) %>%
+      ungroup() %>%
+      mutate(name = "cumulative_infections") %>%
+      bind_rows(level_samples)
+  }
+  if (!is.null(early)) {
+    ## sample from late April seroprevalence to
+    ## get samples of estimated final cumulative incidence
+    cumulative_infection_samples <- level_samples %>%
+      filter(name == "cumulative_infections")
+    n_samples <- max(cumulative_infection_samples$sample)
+    early_samples <- level_early %>%
+      group_by(variable) %>%
+      summarise(
+        rand = list(tibble(
+          sample = seq_len(n_samples),
+          initial = rtruncnorm(
+            n = n_samples, a = 0, mean = mean,
+            sd = (upper - lower) / 4
+          )
+        )),
+        .groups = "drop"
+      ) %>%
+      unnest(rand) %>%
+      mutate(initial = initial / (1 - dont_seroconvert))
+    combined_samples <- cumulative_infection_samples %>%
+      inner_join(early_samples, by = c("variable", "sample")) %>%
+      mutate(value = value + initial) %>%
+      select(-initial)
+    level_samples <- level_samples %>%
+      filter(name != "cumulative_infections") %>%
+      bind_rows(combined_samples)
+  }
+  ## split geography and variants
   if (grepl("^variant_", level)) {
     level_prev <- level_prev %>%
       separate(variable, c("variant", "variable"), sep = "\\|")
@@ -99,24 +139,6 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 5) plot cumulative incidence
-  ## sample from late April seroprevalence
-  if (!("cumulative_infections" %in% unique(level_samples$name))) {
-    level_samples <- level_samples %>%
-      filter(name == "infections") %>%
-      arrange(sample, index, variable)
-    if (grepl("^variant_", level)) {
-      level_samples <- level_samples %>%
-        group_by(sample, variable, variant)
-    } else {
-      level_samples <- level_samples %>%
-        group_by(sample, variable)
-    }
-    level_samples <- level_samples %>%
-      mutate(value = cumsum(value)) %>%
-      ungroup() %>%
-      mutate(name = "cumulative_infections") %>%
-      bind_rows(level_samples)
-  }
   p <- plot_trace(level_samples, "cumulative_infections") +
     scale_y_continuous("Cumulative incidence",
       labels = scales::percent_format(1L)
@@ -127,48 +149,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
-  ## 6) cumulative infections
-  ## get samples of estimated final cumulative incidence
-  if (!is.null(early)) {
-    cumulative_infection_samples <- level_samples %>%
-      filter(name == "cumulative_infections")
-    ## combine early seroprevalence with estimates of attack rates since start of CIS # nolint
-    n_samples <- max(cumulative_infection_samples$sample)
-    early_samples <- level_early %>%
-      group_by(variable) %>%
-      summarise(
-        rand = list(tibble(
-          sample = seq_len(n_samples),
-          initial = rtruncnorm(
-            n = n_samples, a = 0, mean = mean,
-            sd = (upper - lower) / 4
-          )
-        )),
-        .groups = "drop"
-      ) %>%
-      unnest(rand) %>%
-      mutate(initial = initial / (1 - dont_seroconvert))
-    combined_samples <- cumulative_infection_samples %>%
-      inner_join(early_samples, by = c("variable", "sample")) %>%
-      mutate(value = value + initial) %>%
-      select(-initial)
-    p <- plot_trace(combined_samples, "cumulative_infections") +
-      scale_y_continuous("Cumulative incidence",
-        labels = scales::percent_format(1L)
-      ) +
-      xlab("") +
-      facet_wrap(~variable)
-    ggsave(here::here("figures", paste0("cumulative_attack_rate_", level, suffix, extension)), p,
-      width = 7 + 3 * floor(sqrt(nvars)),
-      height = 2 + 3 * floor(sqrt(nvars))
-    )
-  } else {
-    combined_samples <- level_samples
-  }
-  ## 7) final attack rates
-  ## combine early seroprevalence with estimates of attack rates
-  ## since start of CIS
-  combined_aggregate <- combined_samples %>%
+  ## 6) final attack rates
+  combined_aggregate <- level_samples %>%
     filter(date == max(date))
   if (grepl("^variant_", level)) {
     combined_aggregate <- combined_aggregate %>%
@@ -239,5 +221,5 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       width = 7, height = 4
     )
   }
-  return(combined_samples)
+  return(level_samples)
 }
