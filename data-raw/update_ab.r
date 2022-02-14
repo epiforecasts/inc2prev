@@ -200,6 +200,46 @@ combined <- ab %>%
   filter(report_date == max(report_date)) %>%
   arrange(level, geography, start_date)
 
+pop_file <- here::here("data-raw", "uk_pop.xls")
+if (!file.exists(pop_file)) {
+  download.file("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2020/ukpopestimatesmid2020on2021geography.xls", destfile = pop_file) # nolint
+}
+pop <- read_excel(pop_file, sheet = "MYE2 - Persons", skip = 7) %>%
+  clean_names()
+pop_geo <- pop %>%
+  mutate(all_caps_geography = sub("[^a-zA-Z]*$", "", toupper(name))) %>%
+  select(all_caps_geography, population = all_ages) %>%
+  mutate(
+    all_caps_geography =
+      recode(all_caps_geography, EAST = "EAST OF ENGLAND")
+  )
+pop_age <- pop %>%
+  filter(name %in% c("ENGLAND", "SCOTLAND",
+		     "WALES", "NORTHERN IRELAND")) %>%
+  select(name, starts_with("x")) %>%
+  pivot_longer(starts_with("x"), names_to = "lower_age_limit") %>%
+  mutate(
+    lower_age_limit = as.integer(sub("^x", "", lower_age_limit)),
+    lower_age_limit =
+      reduce_agegroups(
+        lower_age_limit,
+        unique(na.omit(combined$lower_age_limit))
+      )
+  ) %>%
+  filter(!is.na(lower_age_limit)) %>%
+  group_by(all_caps_geography = name, lower_age_limit) %>%
+  summarise(age_population = sum(value), .groups = "drop")
+populations <- combined %>%
+  mutate(all_caps_geography = toupper(geography)) %>%
+  left_join(pop_geo, by = "all_caps_geography") %>%
+  left_join(pop_age, by = c("lower_age_limit", "all_caps_geography")) %>%
+  mutate(
+    population = if_else(!is.na(age_population),
+      age_population, population)
+  ) %>%
+  select(level, lower_age_limit, geography, geography_code, population) %>%
+  distinct()
+
 ## save
 write_csv(combined %>%
           filter(level %in% c("national", "regional")) %>%
@@ -209,5 +249,6 @@ write_csv(combined %>%
           filter(level %in% c("age_school")) %>%
           remove_empty(which = "cols"),
           here::here("data", "ab_age.csv"))
+write_csv(populations, here::here("data", "populations_ab.csv"))
 saveRDS(files, list_file)
 
