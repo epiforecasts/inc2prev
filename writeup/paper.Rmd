@@ -1,8 +1,9 @@
 ---
 title: "Estimating epidemiological quantities from repeated cross-sectional prevalence measurements"
+author: Sam Abbott, Sebastian Funk
 bibliography: references.bib
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
-date: "`r format(Sys.Date(), format = '%B %d, %Y')`"
+date: "`r format(Sys.Date(), format = '%B %d, %Y')` - WORK IN PROGRESS DRAFT"
 output:
   bookdown::pdf_document2:
     toc: false
