@@ -19,12 +19,13 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--local | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
+    estimate.R [--ab] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
     estimate.R -h | --help
 
 Options:
     -h, --help                 Show this screen
     -a, --ab                   Use antibody data
+    -r, --regional             Model regional dynamics
     -l, --local                Model local dynamics
     -g, --age                  Model age
     -v, --variants             Model variants
@@ -45,6 +46,7 @@ if (interactive()) {
 }
 
 antibodies <- !is.null(opts$ab) && opts$ab
+regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
@@ -60,7 +62,10 @@ walk(functions, source)
 # Load prevalence data and split by location
 data <- read_cis(nhse_regions = nhse)
 
-if (local) {
+if (regional) {
+  filter_level <- "regional"
+  suffix <- "_regional"
+} else if (local) {
   filter_level <- "local"
   suffix <- "_local"
 } else if (age) {
@@ -70,8 +75,8 @@ if (local) {
   filter_level <- c("variant_national", "variant_regional")
   suffix <- "_variants"
 } else {
-  filter_level <- c("national", "regional")
-  suffix <- "_regional"
+  filter_level <- "national"
+  suffix <- "_national"
 }
 
 data <- data %>%

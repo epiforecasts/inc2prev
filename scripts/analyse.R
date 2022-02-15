@@ -12,12 +12,13 @@ suppressMessages(library(docopt))
 doc <- "
 Analyse outputs of the inc2prev model
 Usage:
-    estimate.R [--ab] [--local | --age | --variants]
+    estimate.R [--ab] [--local | --regional | --age | --variants]
     estimate.R -h | --help
 
 Options:
     -h --help        Show this screen
     -a --ab          Use antibody data
+    -r, --regional   Analyse regional dynamics
     -l, --local      Analyse local dynamics
     -g, --age        Analyse age
     -v, --variants   Analyse variants
@@ -31,6 +32,7 @@ if (interactive()) {
 }
 
 antibodies <- !is.null(opts$ab) && opts$ab
+regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
@@ -41,12 +43,14 @@ walk(functions, source)
 
 if (local) {
   suffix <- "_local"
+if (regional) {
+  suffix <- "_regional"
 } else if (age) {
   suffix <- "_age"
 } else if (variants) {
   suffix <- "_variants"
 } else {
-  suffix <- "_regional"
+  suffix <- "_national"
 }
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
 
