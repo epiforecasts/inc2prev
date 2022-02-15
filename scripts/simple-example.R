@@ -15,10 +15,11 @@ library(tidyr)
 library(future.apply)
 library(future.callr)
 library(future)
+library(cowplot)
 
 # Test target
 example_var <- "England"
-end_date <- "2022-08-01"
+end_date <- "2021-11-01"
 ## Get tools
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -54,8 +55,12 @@ tune <- i2p_gp_tune_model()
 # Fit the infection to prevalence model
 fit <- incidence(
   joint_data$prevalence[[1]],
+  joint_data$antibodies[[1]],
+  joint_data$vaccination[[1]],
+  joint_data$initial_antibodies[[1]],
   variables = c(
-    "est_prev", "infections", "dcases", "r", "R"
+    "est_prev", "infections", "dab", "dcases", "r", "R",
+    "alpha", "beta", "gamma", "delta", "k", "l"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
@@ -65,18 +70,15 @@ fit <- incidence(
   ),
   keep_fit = TRUE
 )
-fit
+fit$fit[[1]]$save_object(here::here("outputs", "example-fit.rds"))
 
 # plot modelled and observed (but also modelled) prevalence
 prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$prevalence[[1]]
-)
-ggsave("figures/prev.png", prev_plot, width = 9, height = 6)
-
-prev_logit_plot <- prev_plot +
-  scale_y_continuous(tran = scales::logit_trans())
-ggsave("figures/prev-logit.png", prev_logit_plot, width = 9, height = 6)
+) +
+  scale_x_date(date_breaks = "4 months", date_label = "%b %Y")
+ggsave("figures/readme/prev.png", prev_plot, width = 9, height = 6)
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_prev(
@@ -84,38 +86,53 @@ ab_plot <- plot_prev(
   joint_data$antibodies[[1]],
   data_source = "ONS Antibodies", observed = "est_ab",
   modelled = "dab"
-)
-ggsave("figures/ab.png", ab_plot, width = 9, height = 6)
+) +
+  scale_y_continuous("Antibody prevalence", labels = scales::percent) +
+  scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
+
+ggsave("figures/readme/ab.png", ab_plot, width = 9, height = 6)
 
 # pairs plot
 stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
 np <- nuts_params(stanfit)
 pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
-  pars = c("alpha", "rho", "beta", "gamma[1]", "gamma[2]", "delta")
+  pars = c("alpha[1]", "beta[1]", "gamma[1]", "gamma[2]", "delta[1]", "k[1]", "l[1]")
 )
-ggsave("figures/pairs.png", pairs, width = 16, height = 16)
+ggsave("figures/readme/pairs.png", pairs, width = 16, height = 16)
 
 # plot infections
-plot_trace(
+inc_plot <- plot_trace(
   fit$samples[[1]][sample <= 100], "infections"
 ) +
-  labs(y = "Infections", x = "Date") +
-  scale_y_continuous(labels = scales::percent)
-ggsave("figures/infections.png", width = 9, height = 6)
+  scale_y_continuous("Incident infections", labels = scales::percent) +
+  scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
+
+ggsave("figures/readme/infections.png", inc_plot, width = 9, height = 6)
 
 # plot growth
-plot_trace(
+growth_plot <- plot_trace(
   fit$samples[[1]][sample <= 100], "r"
 ) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
-ggsave("figures/growth.png", width = 9, height = 6)
+ggsave("figures/readme/growth.png", growth_plot, width = 9, height = 6)
 
 # plot Rt
-plot_trace(
+rt_plot <- plot_trace(
   fit$samples[[1]][sample <= 100], "R"
 ) +
-  labs(y = "Effective reproduction number", x = "Date") +
+  labs(y = "Reproduction number") +
+  scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
   geom_hline(yintercept = 1, linetype = 2)
-ggsave("figures/Rt.png", width = 9, height = 6)
+ggsave("figures/readme/Rt.png", rt_plot, width = 9, height = 6)
+
+p <- plot_grid(prev_plot, inc_plot, ab_plot, rt_plot, labels = c("A", "B", "C", "D"))
+ggsave("figures/readme/example-estimates.png", p, width = 12, height = 6)
+
+saveRDS(fit$summary[[1]], here::here("outputs", "example-summary.rds"))
+saveRDS(fit$samples[[1]], here::here("outputs", "example-samples"))
+
+params <- fit$summary[[1]][is.na(date)]
+params[, c("n_index", "t_index", "date") := NULL]
+fwrite(params, "outputs/example-parameters.csv")
