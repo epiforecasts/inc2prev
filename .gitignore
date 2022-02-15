@@ -2,6 +2,7 @@
 stan/model_threads
 figures/additional
 *.pdf       
+!writeup/paper.pdf
 data/cis
 outputs/*.rds
 *.rds
