@@ -1,0 +1,192 @@
+---
+title: "Estimating epidemiological quantities from repeated cross-sectional prevalence measurements"
+bibliography: references.bib
+csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
+date: "`r format(Sys.Date(), format = '%B %d, %Y')`"
+output:
+  bookdown::pdf_document2:
+    toc: false
+  bookdown::html_document2: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE,
+                      warning = FALSE, message = FALSE,
+                      root.dir = here::here())
+
+library(data.table)
+library(purrr)
+library(here)
+library(kableExtra)
+## Get tools
+functions <- list.files(here("R"), full.names = TRUE)
+walk(functions, source)
+
+params_table <- here::here("outputs", "example-parameters.csv")
+if (!file.exists(params_table)) {
+  source(here::here("scripts", "simple-example.R"))
+}
+params <- fread(params_table)
+params[name == "gamma", name := ifelse(p_index == 1, "gamma (infection)", "gamma (vaccination)")]
+params[, Description := fcase(
+           name == "beta", "Proportion infected that seroconvert",
+           name == "gamma (infection)", "Antibody waning following infection",
+           name == "gamma (vaccination)", "Antibody waning following vaccination",
+           name == "delta", "Proportion vaccinated that seroconvert",
+           name == "k", "Efficacy adjustment of immunity following infection",
+           name == "l", "Efficacy adjustment of immunity following vaccination")]
+biol_params <- params[!is.na(Description)]
+biol_params[, `Estimate (90% CI)` := paste0(signif(q5, 2), "--", signif(q95, 2))]
+biol_params <- biol_params[, list(Parameter = name,
+                                  Description,
+                                  `Estimate (90% CI)`)]
+
+```
+
+# Introduction
+
+Infectious disease surveillance serves to monitor the health of populations and identify new threats as quickly as possible after they arise [@murray2017].
+It is often based on healthcare-based reporting systems whereby primary care providers or hospitals report numbers of individuals identified as likely cases of a disease to central authorities where these numbers are collated and reported as aggregates.
+During the Covid-19 pandemic in the United Kingdom, reporting of cases has mostly involved collating numbers of laboratory-identified infections with SARS-CoV-2 via self-reporting, community testing sites or hospitals.
+
+A separate and independent system of collating information on the state of the pandemic has been run by the Office for National Statistics (ONS) via its Community Infection Survey, which conducts repeated cross-sectional surveys of Polymerase Chain Reaction (PCR) positivity indicating infection with SARS-CoV-2, as well as antibody seroprevalence via household visits [@pouwels2020]. 
+By adjusting for biases in the sampled population, the study has been used to estimate daily population-wide estimates of infection prevalence, unaffected by testing capacity or reporting behaviour that often varies by age as well as sociodemographic or other factors.
+
+While repeated randomised cross-sectional sampling of positivity and antibodies provides utility in themselves for tracking an epidemic in real time, they can also be used for estimating epidemiological quantities by combining them with information on infection kinetics and immunological responses.
+Here we present a semi-mechanistic model that combines PCR positivity curves, generation interval estimates and vaccination data with ONS PCR positivity and antibody data to estimate infection incidence and its growth rate, reproduction numbers and rates of antibody waning.
+
+# Methods
+
+## Data
+
+We obtained the published estimates of daily prevalence of Polymerase Chain Reaction (PCR) positivity beginning on 26 April, 2020, from the ONS Community infection survey separately by nation, region, age group and variant, alongside their 95% confidence intervals, from the published spreadsheets on the ONS web site.
+ONS estimates of a given prevalence vary between publication dates as the internal model to calculate prevalence involves smoothing, such that new data points in the present affect the estimates of times past.
+We aggregated estimates of PCR positivity for a single day produced for different publication dates by calculating the central estimate and confidence limits as the medians of the different respective central estimates and confidence limits.
+
+## Model
+
+We developed Bayesian model to estimate epidemiological quantities from ONS PCR positivity estimates and, optionally, population level antibody prevalence estimates and vaccination coverage.
+
+### PCR positivity
+
+We estimated the population proportion newly infected in the population $I(t)$ as a latent variable that is convolved with an PCR positivity curve $p(s)$, the probability of someone infected at time $s=0$ to test PCR positive to yield prevalence of PCR positivity $P(t)$.
+$$
+P(t) = \sum_{s= 0}^{t_\text{p,max}} p(s) I(t - s)
+$$
+where $t_\text{p,max}=60$ is the maximum time modelled for which a person can stay PCR positive.
+We assumed each $p(s)$ to have an independent normal prior distribution at each time $s$ after infection with given mean and standard deviation estimates from another study [@hellewell2021]. 
+Infection incidence $I(t)$ is distinct form the estimates of PCR positivity incidence provided by ONS alongside the prevalence estimates, as it allows for the probability of infections testing yielding negative PCR results as a function of the time since infection.
+
+We used Gaussian Process (GP) priors to ensure smoothness of the estimates and deal with data gaps, whereby alternatively either $I(t)$ is has a GP prior with exponential quadratic kernel.
+$$
+\begin{aligned}
+I(t) &\sim \text{logit}(i_0 + i(t))\\
+i(t) &\sim \text{GP}(t)
+\end{aligned}
+$$
+where $i_0$ is the estimated mean of the GP, or the GP prior is applied to higher order differences, for example the growth rate such as
+$$
+i(t) - i(t - 1) \sim \text{GP}(t)
+$$
+which implies that growth, rather than incidence, remains at an estimated mean level in the absence of data, usually leading to better real-time performance [@abbott2020].
+The results shown in this paper were obtained using this formulation with a GP prior on the growth rate.
+
+We assumed that the probability of observing prevalence $Y_{\text{P}, t}$ at time $t$ was given by independent normal distributions with mean $P(t)$ and standard deviation 
+$$\sigma_{\text{P}, t} = \sigma_\text{P} + Y^\sigma_{\text{P}, t}$$
+where $\sigma_\text{P}$ was estimated as part of the inference procedure and $Y^\sigma_{\text{P}, t}$ calculated based on the reported confidence intervals in the ONS data, assuming independent normal errors.
+For data sets where only weekly estimates were reported by ONS, for example at the sub-regional level, we calculated average prevalence across the time period reported from our daily prevalence estimates.
+
+Using the estimate infection incidences $I(t)$ we estimated growth rates $r(t)$ as
+$$
+r(t) = \log I(t) - \log I(t - 1)
+$$
+and reproduction numbers $R(t)$ using the renewal equation as
+$$
+R(t) = \frac{I(t)}{\sum_{s=0}^{t_\text{g,max}} g(s) I(t - s)}
+$$
+where $g(s)$ is the distribution of the generation interval since the time of infection [@fraser2007].
+We assumed a maximum generation interval of $t_\text{g,max}=14$.
+We use re-estimated generation intervals from early in the pandemic in Singapore as reported previously [@abbott2020].
+
+### Antibodies
+
+When additionally using antibodies we convolve the modelled infections $I(t)$ as well as input data on vaccinations $Y_{\text{V}, t}$ with distributions quantifying the delay to generating detectable antibodies following infection (by default set to 4 weeks for both infection and vaccination), yielding potentially antibody-generating time series from infection $I^{\text{A}}$ and $V^{\text{A}}$.
+We then calculate antibodies from infection as
+$$
+A^{\text{I}}(t) =
+A^{\text{I}}(t - 1) +
+\beta I^{\text{A}}(t)  (1 - A(t - 1))^k -
+\gamma_\text{I} A^{\text{I}}(t - 1) 
+$$
+and antibodies from vaccination as
+$$
+A^{\text{V}}(t) =
+A^{\text{V}}(t - 1) +
+\delta V^{\text{A}}(t) (1 - A(t - 1))^l -
+ \gamma_\text{V} A^{\text{V}}(t - 1)
+$$
+with the total population proportion with antibodies given as the sum of the two,
+$$
+A(t) = A^{\text{I}}(t)  + A^{\text{V}}(t)  
+$$
+
+Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropostives preferentially arise in those not seropositive so far. 
+Additional parameters $\gamma_\text{I}$ and $\gamma_\text{V}$ can be interpreted as rates of waning from natural infection and vaccination, respectively.
+This formulation implies simplifying assumptions that the rate of waning of detectable antibodies is exponential, that vaccine doses are allocated randomly amongst those with or without existing antibodies, and that the proportion of new vaccinations that lead to seroconversion $\delta$ is constant and independent of age, vaccine use, and dose number.
+
+## Implementation
+
+The model was implemented in _stan_ and using the _cmdstanr_ R package. 
+All code needed to reproduce the results shown in this paper is available at https://github.com/epiforecasts/inc2prev.
+
+# Results
+
+```{r prevalence-plot, out.width=".7\\paperwidth", fig.cap = "Model posteriors for England. A. Estimates of daily modelled prevalence and modelled prevalence as published by ONS. B. Estimated incidence of new infections. C. Estimated antibody prevalence and estimes as published by ONS. D. Estimated reproduction numbers."}
+knitr::include_graphics(here::here("figures", "readme", "example-estimates.png"))
+```
+
+The model was able to reproduce the daily prevalence estimates and weekly antibody prevalence estimates published by ONS with reasonable accuracy when run until 15 November 2021 (Figure \@ref(fig:prevalence-plot)).
+The peaks of the corresponding incidence curve are earlier, higher and sharper.
+Estimated reproduction numbers highlight some key phases of the UK pandemic between April 2020 and November 2021, in particular rapid increases due to emergence of the Alpha variant in December followed by a period of low transmission during lockdown until March 2021, and rapid spread of the Delta variant in May-July 2021 followed by a period of relatively steady transmission. 
+
+```{r params-table}
+biol_params %>%
+  kbl(caption = "90% credible intervals (as quantiles of the posterior distribution) of biological parameters.",
+      booktabs = TRUE)
+```
+
+Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:prams-table}.
+Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
+
+```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
+knitr::include_graphics(here::here("figures", "readme", "pairs.png"))
+```
+
+# Discussion
+
+We have presented a method to estimate epidemiological parameters such as infection incidence, time-varying reproduction numbers and growth rates from repeated cross-sectional PCR positivity estimates reported.
+The estimates of infection incidence are distinct from estimates of PCR positivity incidence that are reported alongside the positivity prevalence estimates, as the probability of detecting infections is low early in the course of an infection, and more generally varies over said course [@hellewell2021].
+When additionally using antibody and vaccination data, we recover estimates of relevant parameters such as seroconversion and waning rates that can be used to estimate antibody prevalence where infection and vaccination data is available but antibody data is not.
+
+As currently implemented, our method suffers from a number of limitations that risk biasing the results.
+Several of the key parameters in our model, especially the estimates of PCR positivity over time from infection and generation interval distributions, are fixed and based on estimates derived from wildtype virus in a particular cohort of healthcare workers and may well be incorrect for other circulating variants or populations.
+Furthermore, generation times have been shown to change over time due to behavioural changes and epidemiological dynamics, which would affect our reproduction number estimates [@champredon2015; @hart2021; @park2021].
+PCR detection probabilities as a function of time since infection were based on independent normal distributions, whereas in reality they are likely to be correlated over time.
+We modelled the growth of infections as a stationary Gaussian process, whereas in reality variation over time has changed between periods of stability and rapid change due to changes in contact behaviour in response to the epidemic.
+Lastly, we assumed that antibody waning was exponential and conferred either full protection if with detectable antibodies, or none whatsoever if not, and ignored any consequences of multiple rounds of vaccination or infection apart from converting those without detectable antibodies to having detectable antibodies.
+
+Future directions of this work should help address some of these limitations, for example by including more detail on antibody levels, or by including antibody measurements that may be able to distinguish between natural and vaccine-acquired immunity [@amjadi2021].
+It could further make use of more comprehensive information on PCR detection curves taking into account correlations in detectability since time from infection.
+Combined with other data streams, for example on test-positive community cases, or severe outcomes resulting in hospitalisations or deaths, our method could be used to understand rates of notification or sever disease given infection, or to generate forecasts of expected burden.
+Lastly, more detailed information on the infections detected, for example viral loads via Cycle threshold (Ct) values, could be used to improve real-time performance of growth rates and reproduction numbers [@hay2021].
+
+There is enormous potential for understanding epidemiological dynamics from repeated cross-sectional surveys.
+Where the generation interval distribution is the same or close to the distribution of detectability after infection, this could be done using recently developed methods for unified modelling of incidence and prevalence [@pakkanen2021].
+The methods presented here and related ones could be applied to other infections monitored in a similar way, and thus in combination with such data collection and publication become a tool for monitoring epidemic and endemic infectious diseases in the future.
+
+# Acknowledgements
+
+We thank Thomas House for insightful comments on this work, and the Office for National Statistics for making the data sets publicly available.
+
+# References
+
