@@ -59,8 +59,8 @@ fit <- incidence(
   joint_data$vaccination[[1]],
   joint_data$initial_antibodies[[1]],
   variables = c(
-    "est_prev", "infections", "dab", "dcases", "r", "R",
-    "alpha", "beta", "gamma", "delta", "k", "l"
+    "est_prev", "infections", "dcases", "r", "R",
+    "est_ab", "dab", "beta", "gamma", "delta", "k", "l"
   ),
   prob_detect = prob_detect, parallel_chains = 2, iter_warmup = 200,
   chains = 2, model = mod, adapt_delta = 0.85, max_treedepth = 15,
@@ -97,7 +97,7 @@ stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
 np <- nuts_params(stanfit)
 pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
-  pars = c("alpha[1]", "beta[1]", "gamma[1]", "gamma[2]", "delta[1]", "k[1]", "l[1]")
+  pars = c("beta[1]", "gamma[1]", "gamma[2]", "delta[1]", "k[1]", "l[1]")
 )
 ggsave("figures/readme/pairs.png", pairs, width = 16, height = 16)
 
