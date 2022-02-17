@@ -28,7 +28,7 @@ if (!file.exists(params_table)) {
   source(here::here("scripts", "simple-example.R"))
 }
 params <- fread(params_table)
-params[name == "gamma", name := ifelse(p_index == 1, "gamma (infection)", "gamma (vaccination)")]
+params[name == "gamma", name := ifelse(index == 1, "gamma (infection)", "gamma (vaccination)")]
 params[, Description := fcase(
            name == "beta", "Proportion infected that seroconvert",
            name == "gamma (infection)", "Antibody waning following infection",
