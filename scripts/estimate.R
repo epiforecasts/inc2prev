@@ -247,7 +247,7 @@ if (kids_ab) {
   pre_fit_ab_dat = list(n_ab_draws = dim(ab_draws)[1], n_ab_pars = dim(ab_draws)[2], ab_draws = ab_draws)
 
 
-  mod <- i2p_model("stan/inc2prev_prefitab_data.stan")
+  mod <- i2p_model("stan/inc_2_prev_abnodata.stan")
   # Run model fits in parallel
   plan(callr, workers = future::availableCores())
   est_kids <- future_lapply(
