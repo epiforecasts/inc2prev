@@ -11,15 +11,14 @@
 #' @param data_args A list of arguments to pass to `i2p_data()`
 #' @param model A stan model object as produced by `i2p_model()`
 #' or a similar compiled stan model.
-#' @param inits_fn A function that returns a function which produces
-#' a set of initial conditions. Defaults to `i2p_inits()`.
-#' @param fit_fn A function used to fit the `model` object. Defaults
-#' to `i2p_sample`.
+#' @param variables A vector of variables to summarise and return
+#' @param quantiles A vector of quantiles to return in summarising
+#' @param samples The number of samples to return
+#' @param keep_fit Whether to retain the stan fit object
 #' @param p A `progressr` function used when fitting multiple models
 #' to track progress
 #' @param ... Additional arguments passed to `fit_fn`.
-#' @return A fit stan model as produced by the option passed to
-#' `fit_fn`.
+#' @return A data.table including summarised estimates and parameter samples.
 #' @export
 #' @family incidence
 incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
