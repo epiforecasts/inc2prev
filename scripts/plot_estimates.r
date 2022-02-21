@@ -87,7 +87,7 @@ non_variant <- data %>%
   filter(!grepl("^variant", level))
 
 histories <- list(all = Inf, `1year` = months(12), `3months` = months(3))
-breaks <- c(all = "2 months", `1year` = "1 month", `3months` = "1 month")
+breaks <- c(all = "4 months", `1year` = "3 month", `3months` = "1 month")
 
 for (history in names(histories)) {
   for (level in unique(non_variant$level)) {
@@ -113,7 +113,7 @@ for (history in names(histories)) {
       ggsave(here::here("figures", "additional",
 			paste0(level, "_", name, "_",
                                history, ".svg")), p,
-             width = 14, height = 8)
+             width = 10, height = 5)
     }
   }
 }
