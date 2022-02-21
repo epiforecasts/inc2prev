@@ -1,7 +1,6 @@
 *.xlsx
 stan/model_threads
-figures/*
-!figures/readme
+figures/additional
 *.pdf       
 data/cis
 outputs/*.rds
