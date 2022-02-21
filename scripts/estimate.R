@@ -211,6 +211,7 @@ est <- future_lapply(
   data, incidence_with_var,
   pb = prob_detect,
   model = mod, gp_model = tune,
+  differencing = differencing,
   future.seed = TRUE
 )
 
