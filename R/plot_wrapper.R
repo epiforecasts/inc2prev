@@ -32,7 +32,8 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     cumulative_infection_samples <- level_samples %>%
       filter(name == "cumulative_infections")
     n_samples <- max(cumulative_infection_samples$sample)
-    early_samples <- level_early %>%
+    early_samples <- early %>%
+      filter(level == {{ level }}) %>%
       group_by(variable) %>%
       summarise(
         rand = list(tibble(
