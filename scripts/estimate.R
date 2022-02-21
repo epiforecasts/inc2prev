@@ -182,7 +182,10 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
     variables = variables,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
-    data_args = list(gp_tune_model = gp_model, gp_m = gp_frac, differencing = differencing)
+    data_args = list(
+      gp_tune_model = gp_model, gp_m = gp_frac, differencing = differencing
+    ),
+    ...
   )
 
   if (is.null(fit$result)) {
