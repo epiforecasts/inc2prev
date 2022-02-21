@@ -157,7 +157,7 @@ biol_params %>%
   kable_styling()
 ```
 
-Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:prams-table}.
+Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:params-table}.
 Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
 
 ```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
