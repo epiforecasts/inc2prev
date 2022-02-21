@@ -26,10 +26,8 @@
 incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
                       data_args = list(),
                       model = i2p_model(),
-                      variables = c(
-                        "est_prev", "infections", "dcases", "r", "R"
-                      ),
                       var_col = NULL,
+                      variables = NULL,
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
                       keep_fit = FALSE,
