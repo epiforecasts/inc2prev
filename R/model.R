@@ -10,7 +10,6 @@ i2p_gp_tune_model <- function(path) {
 # define required stan data
 i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, unobserved_time = 14, horizon = 0,
-                     init_cum_infections = c(0, 0),
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      prop_dont_seroconvert = c(-2, 1), # 10%
@@ -165,7 +164,6 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   if (is.na(gp_ls[2])) {
     gp_ls[2] <- dat$t
   }
-  gp_ls
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2], gp_tune_model)
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
