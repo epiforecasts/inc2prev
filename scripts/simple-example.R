@@ -78,7 +78,7 @@ prev_plot <- plot_prev(
   joint_data$prevalence[[1]]
 ) +
   scale_x_date(date_breaks = "4 months", date_label = "%b %Y")
-ggsave("figures/readme/prev.png", prev_plot, width = 9, height = 6)
+ggsave("figures/example/prev.png", prev_plot, width = 9, height = 6)
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_prev(
@@ -90,7 +90,7 @@ ab_plot <- plot_prev(
   scale_y_continuous("Antibody prevalence", labels = scales::percent) +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
 
-ggsave("figures/readme/ab.png", ab_plot, width = 9, height = 6)
+ggsave("figures/example/ab.png", ab_plot, width = 9, height = 6)
 
 # pairs plot
 stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
@@ -99,7 +99,7 @@ pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
   pars = c("beta[1]", "gamma[1]", "gamma[2]", "delta[1]", "k[1]", "l[1]")
 )
-ggsave("figures/readme/pairs.png", pairs, width = 16, height = 16)
+ggsave("figures/example/pairs.png", pairs, width = 16, height = 16)
 
 # plot infections
 inc_plot <- plot_trace(
@@ -108,7 +108,7 @@ inc_plot <- plot_trace(
   scale_y_continuous("Incident infections", labels = scales::percent) +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
 
-ggsave("figures/readme/infections.png", inc_plot, width = 9, height = 6)
+ggsave("figures/example/infections.png", inc_plot, width = 9, height = 6)
 
 # plot growth
 growth_plot <- plot_trace(
@@ -116,7 +116,7 @@ growth_plot <- plot_trace(
 ) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
-ggsave("figures/readme/growth.png", growth_plot, width = 9, height = 6)
+ggsave("figures/example/growth.png", growth_plot, width = 9, height = 6)
 
 # plot Rt
 rt_plot <- plot_trace(
@@ -125,10 +125,10 @@ rt_plot <- plot_trace(
   labs(y = "Reproduction number") +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
   geom_hline(yintercept = 1, linetype = 2)
-ggsave("figures/readme/Rt.png", rt_plot, width = 9, height = 6)
+ggsave("figures/example/Rt.png", rt_plot, width = 9, height = 6)
 
 p <- plot_grid(prev_plot, inc_plot, ab_plot, rt_plot, labels = c("A", "B", "C", "D"))
-ggsave("figures/readme/example-estimates.png", p, width = 12, height = 6)
+ggsave("figures/example/example-estimates.png", p, width = 12, height = 6)
 
 saveRDS(fit$summary[[1]], here::here("outputs", "example-summary.rds"))
 saveRDS(fit$samples[[1]], here::here("outputs", "example-samples"))
