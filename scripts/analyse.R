@@ -43,7 +43,7 @@ walk(functions, source)
 
 if (local) {
   suffix <- "_local"
-if (regional) {
+} else if (regional) {
   suffix <- "_regional"
 } else if (age) {
   suffix <- "_age"
