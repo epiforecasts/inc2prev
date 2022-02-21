@@ -32,6 +32,7 @@ Options:
     -n, --nhse                 Analyse NHSE regions
     -d, --differencing=<level> Level of differencing of GP (0 = infections,  1 = growth, 2 = differences in growth etc.)
     -e, --start_date=<date>    Start date to use for estimation
+    -w, --weekly               Aggregate all data to weekly
     -c, --gp_frac=<frac>       Fraction of latent timepoints to use in the Gaussian
                                process approximation. Reducing this improves runtimes at
                                the cost of reducing the accuracy of the Gaussian process
@@ -53,6 +54,7 @@ variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
 differencing <- ifelse(is.null(opts$differencing), 0L, as.integer(opts$differencing))
 start_date <- as.Date(opts$start_date)
+weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
 ## Get tools
@@ -110,6 +112,11 @@ if (antibodies) {
     inner_join(early, by = "variable")
 }
 
+if (local && !weekly) {
+  warning("Converting everything to weekly as needed for local estimates")
+  weekly <- TRUE
+}
+
 data <- data %>%
   group_split(variable)
 
@@ -125,9 +132,24 @@ tune <- i2p_gp_tune_model()
 ## Fit model
 dir.create(here::here("outputs"), showWarnings = FALSE)
 
+convert_to_weekly <- function(x, ref_end_date, cols = c("middle", "lower", "upper"), aggregate = mean) {
+  if (!("end_date" %in% colnames(x))) {
+    x <- x %>%
+      mutate(start_date = date,
+	     end_date = date)
+  }
+  x %>%
+    pivot_longer(all_of(cols)) %>%
+    mutate(end_date = end_date + as.integer(ref_end_date - end_date) %% 7) %>%
+    group_by(across(c(-value, -start_date, -date))) %>%
+    summarise(start_date = min(start_date), value = aggregate(value), .groups = "drop") %>%
+    mutate(date = start_date + (end_date - start_date) / 2) %>%
+    pivot_wider()
+}
+
 # create a helper function to estimate the model and apply some
 # summary statistics
-incidence_with_var <- function(data, pb, model, gp_model, differencing = 0) {
+incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, weekly = FALSE, ...) {
   message("Fitting model")
 
   mod <- cmdstanr::cmdstan_model(
@@ -138,6 +160,10 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0) {
 
   variables <- c("est_prev", "infections", "dcases", "r", "R")
   prev <- data$prevalence[[1]]
+  if (weekly) {
+    prev <- prev %>%
+      convert_to_weekly(max(.$end_date))
+  }
   if (antibodies) {
     variables <- c(variables, "est_ab", "dab", "beta", "gamma", "delta")
     ab <- data$antibodies[[1]]
