@@ -6,8 +6,7 @@
 #' @param ab Observed antibody prevalence data
 #' @param vacc Observed vaccination data
 #' @param init_ab Observed initial antibody data
-#' @param prob_detection A dataframe of posterior samples for the probability
-#' of detection
+#' @param prob_detect Time-varying probability of detection
 #' @param data_args A list of arguments to pass to `i2p_data()`
 #' @param model A stan model object as produced by `i2p_model()`
 #' or a similar compiled stan model.
@@ -15,6 +14,9 @@
 #' @param quantiles A vector of quantiles to return in summarising
 #' @param samples The number of samples to return
 #' @param keep_fit Whether to retain the stan fit object
+#' @param var_col Column of a common name in the data frames passed as data
+#' that should be treated as indicator of multiple data sets that should be used
+#' jointly for estimation
 #' @param p A `progressr` function used when fitting multiple models
 #' to track progress
 #' @param ... Additional arguments passed to `fit_fn`.
@@ -27,6 +29,7 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
                       variables = c(
                         "est_prev", "infections", "dcases", "r", "R"
                       ),
+                      var_col = NULL,
                       quantiles = seq(0.05, 0.95, by = 0.05),
                       samples = 100,
                       keep_fit = FALSE,
@@ -38,7 +41,8 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
         ab = ab,
         vacc = vacc,
         init_ab = init_ab,
-        prob_detectable = prob_detect
+        prob_detectable = prob_detect,
+        var_col = var_col
       ),
       data_args
     )
@@ -54,11 +58,13 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
 
   fit[, summary := list(
     i2p_summarise(fit[[1]], variables = variables, quantiles = quantiles) |>
+      i2p_add_var(prev = prev, data = dat, var_col = var_col) |>
       i2p_add_date(prev = prev, ab = ab, data = dat)
   )]
 
   fit[, samples := list(
     i2p_draws(fit[[1]], variables = variables, samples = ..samples) |>
+      i2p_add_var(prev = prev, data = dat, var_col = var_col) |>
       i2p_add_date(prev = prev, ab = ab, data = dat)
   )]
   if (!keep_fit) {

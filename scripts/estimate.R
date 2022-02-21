@@ -107,9 +107,38 @@ if (antibodies) {
     filter_opt(start_date) %>%
     nest(initial_antibodies = c(-variable))
   data <- data %>%
-    inner_join(ab, by = "variable") %>%
-    inner_join(vacc, by = "variable") %>%
-    inner_join(early, by = "variable")
+    left_join(ab, by = "variable") %>%
+    left_join(vacc, by = "variable") %>%
+    left_join(early, by = "variable")
+}
+
+## determine estimation strategy
+if (antibodies) {
+  if (regional) {
+    ## fit all at once
+    data <- data %>%
+      mutate(grouping = "all")
+  } else if (local) {
+    ## estimate parameters from regions
+  } else if (age) {
+    ## fit age groups without data alongside older ones
+    data <- data %>%
+      mutate(grouping = variable,
+	     grouping = recode(grouping,
+			       `2-10` = "16-24",
+			       `11-15` = "16-24"))
+  } else if (variants) {
+    ## doesn't really make sense with antibodies
+    stop("Fitting variant antibodies does not really make sense")
+  } else {
+    ## national: fit separately as time series have different lengths
+    data <- data %>%
+      mutate(grouping = variable)
+  }
+} else {
+  ## fit separately
+  data <- data %>%
+    mutate(grouping = variable)
 }
 
 if (local && !weekly) {
@@ -118,7 +147,7 @@ if (local && !weekly) {
 }
 
 data <- data %>%
-  group_split(variable)
+  group_split(grouping, .keep = FALSE)
 
 # Location probability of detection posterior
 prob_detect <- read_prob_detectable()
@@ -154,15 +183,19 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
 
   safe_incidence <- purrr::safely(incidence)
 
-  prev <- data$prevalence[[1]]
+  prev <- data %>%
+    unnest(prevalence)
   if (weekly) {
     prev <- prev %>%
       convert_to_weekly(max(.$end_date))
   }
   if (antibodies) {
-    ab <- data$antibodies[[1]]
-    vacc <- data$vaccination[[1]]
-    init_ab <- data$initial_antibodies[[1]]
+    ab <- data %>%
+      unnest(antibodies)
+    vacc <- data %>%
+      unnest(vaccination)
+    init_ab <- data %>%
+      unnest(initial_antibodies)
   } else {
     ab <- NULL
     vacc <- NULL
@@ -173,6 +206,7 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
     ab = ab,
     vacc = vacc,
     init_ab = init_ab,
+    var_col = "variable",
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = model, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(
@@ -190,10 +224,7 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
   }
 
   level <- unique(data$prevalence[[1]]$level)
-  variable <- data$variable
-
   fit <- fit[, level := level]
-  fit <- fit[, variable := variable]
 
   return(fit)
 }
@@ -211,9 +242,7 @@ est <- future_lapply(
 
 est <- rbindlist(est, use.names = TRUE, fill = TRUE)
 # Add summary information to posterior summary and samples
-est[, summary := map2(summary, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, summary := map2(summary, level, ~ as.data.table(.x)[, level := .y])]
-est[, samples := map2(samples, variable, ~ as.data.table(.x)[, variable := .y])]
 est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
 
 # Bind posterior samples/summary together
