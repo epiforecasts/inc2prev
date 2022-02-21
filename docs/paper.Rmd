@@ -143,7 +143,7 @@ All code needed to reproduce the results shown in this paper is available at htt
 # Results
 
 ```{r prevalence-plot, out.width=".7\\paperwidth", fig.cap = "Model posteriors for England. A. Estimates of daily modelled prevalence and modelled prevalence as published by ONS. B. Estimated incidence of new infections. C. Estimated antibody prevalence and estimes as published by ONS. D. Estimated reproduction numbers."}
-knitr::include_graphics(here::here("figures", "readme", "example-estimates.png"))
+knitr::include_graphics(here::here("figures", "example", "example-estimates.png"))
 ```
 
 The model was able to reproduce the daily prevalence estimates and weekly antibody prevalence estimates published by ONS with reasonable accuracy when run until 15 November 2021 (Figure \@ref(fig:prevalence-plot)).
@@ -153,14 +153,15 @@ Estimated reproduction numbers highlight some key phases of the UK pandemic betw
 ```{r params-table}
 biol_params %>%
   kbl(caption = "90% credible intervals (as quantiles of the posterior distribution) of biological parameters.",
-      booktabs = TRUE)
+      booktabs = TRUE) %>%
+  kable_styling()
 ```
 
 Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:prams-table}.
 Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
 
 ```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
-knitr::include_graphics(here::here("figures", "readme", "pairs.png"))
+knitr::include_graphics(here::here("figures", "example", "pairs.png"))
 ```
 
 # Discussion
