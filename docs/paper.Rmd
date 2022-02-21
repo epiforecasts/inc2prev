@@ -31,18 +31,20 @@ params <- fread(params_table)
 params[name == "gamma", name := ifelse(index == 1, "gamma (infection)", "gamma (vaccination)")]
 params[, Description := fcase(
            name == "beta", "Proportion infected that seroconvert",
-           name == "gamma (infection)", "Antibody waning following infection",
-           name == "gamma (vaccination)", "Antibody waning following vaccination",
+           name == "gamma (infection)", "Antibody waning following infection (daily rate)",
+           name == "gamma (vaccination)", "Antibody waning following vaccination (daily rate)",
            name == "delta", "Proportion vaccinated that seroconvert",
            name == "k", "Efficacy adjustment of immunity following infection",
            name == "l", "Efficacy adjustment of immunity following vaccination")]
 biol_params <- params[!is.na(Description)]
-biol_params[, `Estimate (90% CI)` := paste0(signif(q5, 2), "--", signif(q95, 2))]
+biol_params[, `Estimate (90% CI)` := paste0(signif(q50, 2), " (", signif(q5, 2), "--", signif(q95, 2), ")")]
 biol_params <- biol_params[, list(Parameter = name,
                                   Description,
                                   `Estimate (90% CI)`)]
 
 ```
+
+For correspondence contact: sebastian.funk@lshtm.ac.uk
 
 # Introduction
 
@@ -75,7 +77,7 @@ $$
 P(t) = \sum_{s= 0}^{t_\text{p,max}} p(s) I(t - s)
 $$
 where $t_\text{p,max}=60$ is the maximum time modelled for which a person can stay PCR positive.
-We assumed each $p(s)$ to have an independent normal prior distribution at each time $s$ after infection with given mean and standard deviation estimates from another study [@hellewell2021]. 
+We assumed each $p(s)$ to have an independent normal prior distribution at each time $s$ after infection with given mean and standard deviation estimates from another study [@hellewell2021].
 Infection incidence $I(t)$ is distinct form the estimates of PCR positivity incidence provided by ONS alongside the prevalence estimates, as it allows for the probability of infections testing yielding negative PCR results as a function of the time since infection.
 
 We used Gaussian Process (GP) priors to ensure smoothness of the estimates and deal with data gaps, whereby alternatively either $I(t)$ is has a GP prior with exponential quadratic kernel.
@@ -92,7 +94,7 @@ $$
 which implies that growth, rather than incidence, remains at an estimated mean level in the absence of data, usually leading to better real-time performance [@abbott2020].
 The results shown in this paper were obtained using this formulation with a GP prior on the growth rate.
 
-We assumed that the probability of observing prevalence $Y_{\text{P}, t}$ at time $t$ was given by independent normal distributions with mean $P(t)$ and standard deviation 
+We assumed that the probability of observing prevalence $Y_{\text{P}, t}$ at time $t$ was given by independent normal distributions with mean $P(t)$ and standard deviation
 $$\sigma_{\text{P}, t} = \sigma_\text{P} + Y^\sigma_{\text{P}, t}$$
 where $\sigma_\text{P}$ was estimated as part of the inference procedure and $Y^\sigma_{\text{P}, t}$ calculated based on the reported confidence intervals in the ONS data, assuming independent normal errors.
 For data sets where only weekly estimates were reported by ONS, for example at the sub-regional level, we calculated average prevalence across the time period reported from our daily prevalence estimates.
@@ -117,7 +119,7 @@ $$
 A^{\text{I}}(t) =
 A^{\text{I}}(t - 1) +
 \beta I^{\text{A}}(t)  (1 - A(t - 1))^k -
-\gamma_\text{I} A^{\text{I}}(t - 1) 
+\gamma_\text{I} A^{\text{I}}(t - 1)
 $$
 and antibodies from vaccination as
 $$
@@ -128,16 +130,16 @@ A^{\text{V}}(t - 1) +
 $$
 with the total population proportion with antibodies given as the sum of the two,
 $$
-A(t) = A^{\text{I}}(t)  + A^{\text{V}}(t)  
+A(t) = A^{\text{I}}(t)  + A^{\text{V}}(t)
 $$
 
-Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropostives preferentially arise in those not seropositive so far. 
+Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropostives preferentially arise in those not seropositive so far.
 Additional parameters $\gamma_\text{I}$ and $\gamma_\text{V}$ can be interpreted as rates of waning from natural infection and vaccination, respectively.
 This formulation implies simplifying assumptions that the rate of waning of detectable antibodies is exponential, that vaccine doses are allocated randomly amongst those with or without existing antibodies, and that the proportion of new vaccinations that lead to seroconversion $\delta$ is constant and independent of age, vaccine use, and dose number.
 
 ## Implementation
 
-The model was implemented in _stan_ and using the _cmdstanr_ R package. 
+The model was implemented in _stan_ and using the _cmdstanr_ R package.
 All code needed to reproduce the results shown in this paper is available at https://github.com/epiforecasts/inc2prev.
 
 # Results
@@ -148,16 +150,16 @@ knitr::include_graphics(here::here("figures", "example", "example-estimates.png"
 
 The model was able to reproduce the daily prevalence estimates and weekly antibody prevalence estimates published by ONS with reasonable accuracy when run until 15 November 2021 (Figure \@ref(fig:prevalence-plot)).
 The peaks of the corresponding incidence curve are earlier, higher and sharper.
-Estimated reproduction numbers highlight some key phases of the UK pandemic between April 2020 and November 2021, in particular rapid increases due to emergence of the Alpha variant in December followed by a period of low transmission during lockdown until March 2021, and rapid spread of the Delta variant in May-July 2021 followed by a period of relatively steady transmission. 
+Estimated reproduction numbers highlight some key phases of the UK pandemic between April 2020 and November 2021, in particular rapid increases due to emergence of the Alpha variant in December followed by a period of low transmission during lockdown until March 2021, and rapid spread of the Delta variant in May-July 2021 followed by a period of relatively steady transmission.
 
 ```{r params-table}
 biol_params %>%
-  kbl(caption = "90% credible intervals (as quantiles of the posterior distribution) of biological parameters.",
+  kbl(caption = "Estimates and 90% credible intervals (as quantiles of the posterior distribution) of biological parameters.",
       booktabs = TRUE) %>%
   kable_styling()
 ```
 
-Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:prams-table}.
+Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:params-table}.
 Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
 
 ```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
