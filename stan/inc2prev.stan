@@ -111,7 +111,7 @@ transformed parameters {
     // calculate observed detectable cases
     odcases[i] = to_row_vector(observed_in_window(to_vector(dcases[i]), prev_stime, prev_etime, ut, obs));
     //combined standard error
-    combined_sigma[i] = sqrt(square(sigma) + prev_sd2[i]);
+    combined_sigma[i] = sqrt(rep_row_vector(square(sigma), obs) + prev_sd2[i]);
   }
 
   //calculate infections with potential to have antibodies
@@ -125,7 +125,7 @@ transformed parameters {
     // calculate observed detectable antibodies
     odab[i] = to_row_vector(observed_in_window(to_vector(dab[i]), ab_stime, ab_etime, ut, ab_obs));
     //combined standard error
-    combined_ab_sigma[i] = sqrt(square(ab_sigma[1]) + ab_sd2[i]);
+    combined_ab_sigma[i] = sqrt(rep_row_vector(square(ab_sigma[1]), ab_obs) + ab_sd2[i]);
   }
 }
 
