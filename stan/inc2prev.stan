@@ -72,8 +72,8 @@ parameters {
   vector<lower = 0, upper = 1>[ab_obs ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[ab_obs ? 1 : 0] init_dab; // initial proportion with antibodies
-  vector<lower = 0>[n_ab > 0 ? 1 : 0] k; // Potential loss of efficacy from new infections in already seropositive people
-  vector<lower = 0>[n_ab > 0 ? 1 : 0] l; // Potential loss of efficacy from new doses being administered to already seropositive people
+  vector<lower = 0>[ab_obs ? 1 : 0] k; // Potential loss of efficacy from new infections in already seropositive people
+  vector<lower = 0>[ab_obs ? 1 : 0] l; // Potential loss of efficacy from new doses being administered to already seropositive people
 }
 
 transformed parameters {
