@@ -12,7 +12,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
                      prob_detectable, unobserved_time = 14, horizon = 0,
                      inf_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
                      vacc_ab_delay = c(rep(0, 7 * 4), rep(1 / 7, 7)),
-                     prop_dont_seroconvert = c(-2, 1), # 10%
+                     prop_seroconvert = c(2, 1), # 90%
                      inf_waning_rate = c(-9, 4),
                      vac_waning_rate = c(-9, 4), # 0.1%
                      vaccine_efficacy = c(3, 1), # 95%
@@ -123,7 +123,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
     init_inc_mean = logit(init_inc_mean),
-    pbeta = prop_dont_seroconvert,
+    pbeta = prop_seroconvert,
     pgamma_mean = c(inf_waning_rate[1], vac_waning_rate[1]),
     pgamma_sd = c(inf_waning_rate[2], vac_waning_rate[2]),
     pdelta = vaccine_efficacy,
