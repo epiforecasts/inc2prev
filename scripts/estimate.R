@@ -119,7 +119,7 @@ if (antibodies) {
     data <- data %>%
       mutate(grouping = "all")
   } else if (local) {
-    ## estimate parameters from regions
+    stop("No local antibody estimates are available")
   } else if (age) {
     ## fit age groups without data alongside older ones
     data <- data %>%
