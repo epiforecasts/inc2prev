@@ -44,6 +44,32 @@ biol_params <- biol_params[, list(Parameter = name,
 
 ```
 
+For correspondence: sebastian.funk@lshtm.ac.uk
+
+# Abstract
+
+## Background
+
+Repeated measurements of cross-sectional prevalence of Polymerase Chain Reaction (PCR) positivity or seropositivity provide rich insight into the dynamics of an infection.
+The UK Office for National Statistics (ONS) Community Infection Survey publishes such measurements for SARS-CoV-2 on a weekly basis based on testing enrolled households, contributing to situational awareness in the country.
+Here we present estimates of time-varying and static epidemiological quantities that were derived from the estimates published by ONS.
+
+## Methods
+
+We used discrete convolutions based to estimate the incidence of infections based on previously published PCR detection curves describing the probability of a positive test as a function of the time since infection.
+We further combined time-varying estimates of antibody prevalence with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
+
+## Results
+
+We produced incidence curves of infection describing the UK epidemic from late April 2020 until early 2022.
+We used these estimates of incidence to estimate the time-varying growth rate of infections, and combined them with estimates of the generation interval to estimate reproduction numbers.
+Biological parameters describing seroconversion and waning, while based on a simple model, were broadly in line with plausible ranges from individual-level studies.
+
+## Conclusions
+
+Beyond informing situational awareness and allowing for estimates using individual-level data, repeated cross-sectional studies make it possible to estimate epidemiological parameters from population-level models.
+Studies or public health surveillance methods based on similar designs offer opportunities for further improving our understanding of the dynamics of SARS-CoV-2 or other pathogens and their interaction with population-level immunity.
+
 # Introduction
 
 Infectious disease surveillance serves to monitor the health of populations and identify new threats as quickly as possible after they arise [@murray2017].
