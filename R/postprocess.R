@@ -7,7 +7,9 @@ i2p_draws <- function(fit, variables = NULL, samples = 100) {
     dplyr::select(-.chain, -.iteration, -.draw) %>%
     tidyr::pivot_longer(matches("[0-9]")) %>%
     dplyr::mutate(
-      index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
+      n_index = as.integer(sub("^.*\\[([0-9]+),.+]$", "\\1", name)),
+      t_index = as.integer(sub("^.*\\[.+,([0-9]+)]$", "\\1", name)),
+      p_index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
       name = sub("\\[.*$", "", name)
     )
 }
@@ -20,7 +22,9 @@ i2p_summarise <- function(fit, variables = NULL,
     dplyr::as_tibble() %>%
     dplyr::rename(name = variable) %>%
     dplyr::mutate(
-      index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
+      n_index = as.integer(sub("^.*\\[([0-9]+),.+]$", "\\1", name)),
+      t_index = as.integer(sub("^.*\\[.+,([0-9]+)]$", "\\1", name)),
+      p_index = as.integer(sub("^.*\\[([0-9]+)]$", "\\1", name)),
       name = sub("\\[.*$", "", name)
     )
 }
@@ -36,11 +40,32 @@ i2p_add_date <- function(dt, prev, ab, data) {
       ,
       date := fcase(
         name %in% c("infections", "dcases", "dab"),
-        index - 1 + start_date - ut,
-        name == "est_prev", prev$date[index],
-        name == "est_ab", ab$date[index],
-        name == "r", index - 1 + start_date,
-        name == "R", index - 1 + start_date
+        t_index - 1 + start_date - ut,
+        name == "est_prev", prev$date[t_index],
+        name == "est_ab", ab$date[t_index],
+        name == "r", t_index - 1 + start_date,
+        name == "R", t_index - 1 + start_date
+      )
+    ]
+  )
+  return(dt[])
+}
+
+## translate index into variable
+i2p_add_var <- function(dt, prev, data, var_col = NULL) {
+  if (is.null(var_col)) return(dt[])
+  vars <- unique(rownames(data$prev))
+  ab_index <- data$ab_index
+
+  dt <- suppressWarnings(
+    data.table::as.data.table(dt)[
+      ,
+      paste(var_col) := fcase(
+        name %in% c("est_prev", "est_ab", "infections",
+		    "dcases", "dab", "gen_dab", "r", "R"), 
+			      vars[n_index],
+        name %in% c("beta", "gamma", "delta", "k", "l"),
+        paste0(vars[ab_index], collapse = ";")
       )
     ]
   )

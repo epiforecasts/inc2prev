@@ -19,7 +19,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   if (!("cumulative_infections" %in% unique(level_samples$name))) {
     level_samples <- level_samples %>%
       filter(name == "infections") %>%
-      arrange(sample, index, variable) %>%
+      arrange(sample, t_index, variable) %>%
       group_by(sample, variable) %>%
       mutate(value = cumsum(value)) %>%
       ungroup() %>%

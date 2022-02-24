@@ -24,7 +24,8 @@ i2p_data <- function(prev, ab, vacc, init_ab,
                      gp_tune_model = NULL,
                      differencing = 0,
                      prev_likelihood = TRUE,
-                     ab_likelihood = TRUE) {
+                     ab_likelihood = TRUE,
+                     var_col = NULL) {
 
   # check PMFS
   if (sum(inf_ab_delay) - 1 >= 1e-4) {
@@ -35,25 +36,53 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     stop("inf_ab_delay must sum to 1 rather than ", sum(vacc_ab_delay))
   }
   # extract a prevalence and build features
-  prev <- data.table(prev)[, .(
+  prev <- data.table(prev)
+  if (is.null(var_col)) {
+    prev[, `..variable` := "dummy"]
+  } else {
+    setnames(prev, var_col, "..variable")
+  }
+
+  prev <- prev[, .(
     start_date = as.Date(start_date),
     end_date = as.Date(end_date),
     prev = middle,
     sd = (upper - lower) / (2 * 1.96),
-    population
+    population,
+    `..variable`
   )]
   prev[, `:=`(
     stime = as.integer(start_date - min(start_date)),
     etime = as.integer(end_date - min(start_date))
   )]
+  data_prev <- t(as.matrix(
+      dcast(prev, start_date ~ `..variable`, value.var = "prev")[, -1]
+  ))
+  data_prev_sd <- t(as.matrix(
+      dcast(prev, start_date ~ `..variable`, value.var = "sd")[, -1]
+  ))^2
   if (!is.null(ab)) {
     ## extract antibody prevalence and build features
-    ab <- data.table(ab)[, .(
+    ab <- data.table(ab)
+    if (is.null(var_col)) {
+      ab[, `..variable` := "dummy"]
+    } else {
+      setnames(ab, var_col, "..variable")
+    }
+    ab <- ab[, .(
       start_date = as.Date(start_date),
       end_date = as.Date(end_date),
       prev = middle,
-      sd = (upper - lower) / (2 * 1.96)
+      sd = (upper - lower) / (2 * 1.96),
+      `..variable`
     )]
+    data_ab <- t(as.matrix(
+      dcast(ab, start_date ~ `..variable`, value.var = "prev")[, -1]
+    ))
+    data_ab_sd <- t(as.matrix(
+      dcast(ab, start_date ~ `..variable`, value.var = "sd")[, -1]
+    ))^2
+    ab_index <- match(rownames(data_ab), rownames(data_prev))
     model_start_date <- min(prev$start_date, ab$start_date)
     model_end_date <- max(prev$end_date, ab$end_date)
     ab[, `:=`(
@@ -73,19 +102,41 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     etime = as.integer(end_date - model_start_date)
   )]
   ## extract vaccination prevalence and fill missing dates with zeroes
-  if (!is.null(vacc)) {
-    vacc <- data.table(vacc)[, .(
+  vacc_base <- expand.grid(date = all_dates,
+                          `..variable` = unique(prev$`..variable`))
+  if (is.null(vacc)) {
+    vacc <- data.table(vacc_base)[, vaccinated := 0]
+  } else {
+    vacc <- data.table(vacc)
+    if (is.null(var_col)) {
+      vacc[, `..variable` := "dummy"]
+    } else {
+      setnames(vacc, var_col, "..variable")
+    }
+    vacc <- vacc[, .(
       date = as.Date(date),
-      vaccinated = vaccinated
+      vaccinated = vaccinated,
+      ..variable
     )]
-    setkey(vacc, date)
-    vacc <- vacc[J(all_dates), roll = 0]
+    setkey(vacc, date, `..variable`)
+    vacc <- vacc[J(vacc_base), roll = 0]
     vacc <- vacc[is.na(vaccinated), vaccinated := 0]
   }
+  data_vacc <- t(as.matrix(
+    dcast(vacc, date ~ `..variable`, value.var = "vaccinated")[, -1]
+  ))
+
   if (!is.null(init_ab)) {
-    init_ab <- data.table(init_ab)[, .(
+    init_ab <- data.table(init_ab)
+    if (is.null(var_col)) {
+      init_ab[, `..variable` := "dummy"]
+    } else {
+      setnames(init_ab, var_col, "..variable")
+    }
+    init_ab <- init_ab[, .(
       prev = mean,
-      sd = (upper - lower) / (2 * 1.96)
+      sd = (upper - lower) / (2 * 1.96),
+      `..variable`
     )]
   }
 
@@ -108,17 +159,19 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     by = time
   ]
   # define baseline incidence
-  init_inc_mean <- mean(prev$prev) / sum(prob_detectable$mean)
+  init_inc_mean <- array(apply(data_prev, 1, mean) / sum(prob_detectable$mean))
 
   # build stan data
   dat <- list(
     ut = unobserved_time,
     t = length(all_dates),
-    obs = length(prev$prev),
-    prev = prev$prev,
-    prev_sd2 = prev$sd^2,
-    prev_stime = prev$stime,
-    prev_etime = prev$etime,
+    n = nrow(data_prev),
+    n_ab = ifelse(is.null(ab), 0L, nrow(data_ab)),
+    obs = ncol(data_prev),
+    prev = data_prev,
+    prev_sd2 = data_prev_sd,
+    prev_stime = unique(prev$stime),
+    prev_etime = unique(prev$etime),
     prob_detect_mean = rev(prob_detectable$mean),
     prob_detect_sd = rev(prob_detectable$sd),
     pbt = max(prob_detectable$time) + 1,
@@ -135,16 +188,17 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     ab_likelihood = as.numeric(ab_likelihood)
   )
 
-  dat$ab_obs <- ifelse(is.null(ab), 0L, length(ab$prev))
+  dat$ab_obs <- ifelse(is.null(ab), 0L, ncol(data_ab))
   if (!is.null(ab)) {
     dat <- c(dat, list(
-      ab = ab$prev,
-      ab_sd2 = ab$sd^2,
-      ab_stime = ab$stime,
-      ab_etime = ab$etime,
+      ab = data_ab,
+      ab_sd2 = data_ab_sd^2,
+      ab_stime = unique(ab$stime),
+      ab_etime = unique(ab$etime),
       init_ab_mean = array(init_ab$prev),
       init_ab_sd = array(init_ab$sd),
-      vacc = vacc$vaccinated
+      ab_index = array(ab_index),
+      vacc = data_vacc
     ))
   } else {
     dat <- c(dat, list(
@@ -154,6 +208,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
       ab_etime = numeric(0),
       init_ab_mean = numeric(0),
       init_ab_sd = numeric(0),
+      ab_index = integer(0),
       vacc = numeric(0)
     ))
   }
@@ -183,19 +238,27 @@ library(purrr)
 i2p_inits <- function(dat) {
   inits <- function() {
     init_list <- list(
-      eta = array(rnorm(dat$M, mean = 0, sd = 0.1)),
-      alpha = array(truncnorm::rtruncnorm(1, mean = 0, sd = 0.1, a = 0)),
+      eta = array(
+        rnorm(dat$M * dat$n, mean = 0, sd = 0.1), dim = c(dat$n, dat$M)
+      ),
+      alpha = array(
+        truncnorm::rtruncnorm(dat$n, mean = 0, sd = 0.1, a = 0)
+      ),
+      rho = array(
+        truncnorm::rtruncnorm(dat$n, mean = 36, sd = 21, a = 14, b = 90)
+      ),
       sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
-      rho = array(truncnorm::rtruncnorm(1, mean = 36, sd = 21, a = 14, b = 90)),
       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
       )
     )
-    init_list$init_inc <- rnorm(1, dat$init_inc_mean, 0.1)
+    init_list$init_inc <- array(rnorm(dat$n, dat$init_inc_mean, 0.1))
 
     if (dat$diff_order > 0) {
-      init_list$init_growth <- array(rnorm(dat$diff_order, 0, 0.01))
+      init_list$init_growth <- array(
+        rnorm(dat$n * dat$diff_order, 0, 0.01), dim = c(dat$n, dat$diff_order)
+      )
     }
 
     if (dat$ab_obs > 0) {
@@ -209,7 +272,7 @@ i2p_inits <- function(dat) {
           truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)
         ),
         init_dab = array(truncnorm::rtruncnorm(
-          1, mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
+          dat$n, mean = dat$init_ab_mean, sd = dat$init_ab_sd / 10, a = 0
         ))
       ))
     }
