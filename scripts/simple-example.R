@@ -65,8 +65,11 @@ fit <- incidence(
   ),
   keep_fit = TRUE
 )
-fit
+dir.create(here::here("outputs"), showWarnings = FALSE)
+fit$fit[[1]]$save_object(here::here("outputs", "example-fit.rds"))
 
+dir.create(here::here("figures", "example"), 
+	   showWarnings = FALSE, recursive = TRUE)
 # plot modelled and observed (but also modelled) prevalence
 prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
@@ -118,4 +121,14 @@ plot_trace(
 ) +
   labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
-ggsave("figures/Rt.png", width = 9, height = 6)
+ggsave("figures/example/Rt.png", rt_plot, width = 9, height = 6)
+
+p <- plot_grid(prev_plot, inc_plot, ab_plot, rt_plot, labels = c("A", "B", "C", "D"))
+ggsave("figures/example/example-estimates.png", p, width = 12, height = 6)
+
+saveRDS(fit$summary[[1]], here::here("outputs", "example-summary.rds"))
+saveRDS(fit$samples[[1]], here::here("outputs", "example-samples.rds"))
+
+params <- fit$summary[[1]][is.na(date)]
+params[, c("n_index", "t_index", "date") := NULL]
+fwrite(params, "outputs/example-parameters.csv")
