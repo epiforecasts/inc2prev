@@ -119,7 +119,7 @@ $$
 i(t) - i(t - 1) \sim \text{GP}(t)
 $$
 which implies that growth, rather than incidence, remains at an estimated mean level in the absence of data, usually leading to better real-time performance [@abbott2020].
-The results shown in this paper were obtained using this formulation with a GP prior on the growth rate.
+The results shown here were obtained using this formulation with a GP prior on the growth rate.
 
 We assumed that the probability of observing prevalence $Y_{\text{P}, t}$ at time $t$ was given by independent normal distributions with mean $P(t)$ and standard deviation
 $$\sigma_{\text{P}, t} = \sigma_\text{P} + Y^\sigma_{\text{P}, t}$$
@@ -140,24 +140,24 @@ We use re-estimated generation intervals from early in the pandemic in Singapore
 
 ### Antibodies
 
-When additionally using antibodies we convolve the modelled infections $I(t)$ as well as input data on vaccinations $Y_{\text{V}, t}$ with distributions quantifying the delay to generating detectable antibodies following infection (by default set to 4 weeks for both infection and vaccination), yielding potentially antibody-generating time series from infection $I^{\text{A}}$ and $V^{\text{A}}$.
+When additionally using antibodies we convolve the modelled infections $I(t)$ as well as input data on vaccinations $Y_{\text{V}, t}$ with distributions quantifying the delay to generating detectable antibodies following infection (by default set to 4 weeks for both infection and vaccination), yielding potentially antibody-generating time series from infection $I_{\text{A}}$ and $V_{\text{A}}$.
 We then calculate antibodies from infection as
 $$
-A^{\text{I}}(t) =
-A^{\text{I}}(t - 1) +
-\beta I^{\text{A}}(t)  (1 - A(t - 1))^k -
-\gamma_\text{I} A^{\text{I}}(t - 1)
+A_{\text{I}}(t) =
+A_{\text{I}}(t - 1) +
+\beta I_{\text{A}}(t)  (1 - A(t - 1))^k -
+\gamma_\text{I} A_{\text{I}}(t - 1)
 $$
 and antibodies from vaccination as
 $$
-A^{\text{V}}(t) =
-A^{\text{V}}(t - 1) +
-\delta V^{\text{A}}(t) (1 - A(t - 1))^l -
- \gamma_\text{V} A^{\text{V}}(t - 1)
+A_{\text{V}}(t) =
+A_{\text{V}}(t - 1) +
+\delta V_{\text{A}}(t) (1 - A(t - 1))^l -
+ \gamma_\text{V} A_{\text{V}}(t - 1)
 $$
 with the total population proportion with antibodies given as the sum of the two,
 $$
-A(t) = A^{\text{I}}(t)  + A^{\text{V}}(t)
+A(t) = A_{\text{I}}(t)  + A_{\text{V}}(t)
 $$
 
 Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropostives preferentially arise in those not seropositive so far.
@@ -166,8 +166,8 @@ This formulation implies simplifying assumptions that the rate of waning of dete
 
 ## Implementation
 
-The model was implemented in _stan_ and using the _cmdstanr_ R package.
-All code needed to reproduce the results shown in this paper is available at https://github.com/epiforecasts/inc2prev.
+The model was implemented in _Stan_ and using the _cmdstanr_ R package [@gabry2021;@standev2022].
+All code needed to reproduce the results shown here is available at https://github.com/epiforecasts/inc2prev.
 
 # Results
 
@@ -180,13 +180,15 @@ The peaks of the corresponding incidence curve are earlier, higher and sharper.
 Estimated reproduction numbers highlight some key phases of the UK pandemic between April 2020 and November 2021, in particular rapid increases due to emergence of the Alpha variant in December followed by a period of low transmission during lockdown until March 2021, and rapid spread of the Delta variant in May-July 2021 followed by a period of relatively steady transmission.
 
 ```{r params-table}
-biol_params %>%  kable()
-  ## kable(caption = "Estimates and 90% credible intervals (CIs, as quantiles of the posterior distribution) of biological parameters.")
-  ##       booktabs = TRUE) %>%
-  ## kable_styling()
+biol_params %>% 
+  kbl(caption = paste0(
+    "Estimates and credible intervals (CIs, as quantiles of the posterior",
+    "distribution) of biological parameters."
+    ), booktabs = TRUE) %>%
+  kable_styling()
 ```
 
-Posterior estimates of recovered biological parameters are shown in Table \@ref{tab:params-table}.
+Posterior estimates of recovered biological parameters are shown in Table \@ref(tab:params-table).
 Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
 
 ```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
@@ -202,7 +204,7 @@ When additionally using antibody and vaccination data, we recover estimates of r
 Our estimated parameters of antibody dynamics are averages across a various combinations of vaccine types and individual factors that are known to affect immunological responses to either infection or vaccination, particularly age [@ward2022]. 
 We estimated that `r 100 - signif(params[name == "beta"]$median, 2) * 100`% (90% credible interval, CI: `r 100 - signif(params[name == "beta"]$q95, 2) * 100`--`r 100 - signif(params[name == "beta"]$q5, 2) * 100`) of individuals do not seroconvert after infection, compared to 24% estimated from the same study population, but also lower estimates such as 10% in a different study [@gudbjartsson2020]. 
 We further estimated that `r signif(params[name == "delta"]$median, 2) * 100`% (90% CI: `r signif(params[name == "delta"]$q95, 2) * 100`--`r signif(params[name == "delta"]$q5, 2) * 100`) of individuals seroconverted following vaccination, in line with high such proportions estimated in healthcare workers [@eyre2021].
-Our estimates of waning correspond to an average duration of immunity of `r signif(1 / params[name == "gamma (infection)"]$median, 2)` days (90% CI: `r signif(params[name == "gamma (infection)"]$q95, 2)`--`r signif(params[name == "gamma (infection)"]$q5, 2) `) following infection and `r signif(1 / params[name == "gamma (vaccination)"]$median, 2)` days (90% CI: `r signif(params[name == "gamma (vaccination)"]$q95, 2)`--`r signif(params[name == "gamma (vaccination)"]$q5, 2)`) following vaccination.
+Our estimates of waning correspond to an average duration of immunity of `r signif(1 / params[name == "gamma (infection)"]$median, 2)` days (90% CI: `r signif(1 / params[name == "gamma (infection)"]$q95, 2)`--`r signif(1 / params[name == "gamma (infection)"]$q5, 2) `) following infection and `r signif(1 / params[name == "gamma (vaccination)"]$median, 2)` days (90% CI: `r signif(1 / params[name == "gamma (vaccination)"]$q95, 2)`--`r signif(1 / params[name == "gamma (vaccination)"]$q5, 2)`) following vaccination.
 
 As currently implemented, our method suffers from a number of limitations that risk biasing the results.
 Several of the key parameters in our model, especially the estimates of PCR positivity over time from infection, generation interval distributions, are fixed and based on estimates derived from wildtype virus in a particular cohort of healthcare workers and may well be incorrect for other circulating variants or populations.
@@ -216,12 +218,12 @@ It could further make use of more comprehensive information on PCR detection cur
 Combined with other data streams, for example on test-positive community cases, or severe outcomes resulting in hospitalisations or deaths, our method could be used to understand rates of notification or sever disease given infection, or to generate forecasts of expected burden.
 Lastly, more detailed information on the infections detected, for example viral loads via Cycle threshold (Ct) values, could be used to improve real-time performance of growth rates and reproduction numbers [@hay2021].
 
-There is enormous potential for understanding epidemiological dynamics from repeated cross-sectional surveys.
+There is enormous potential for understanding epidemiological dynamics from repeated cross-sectional surveys, whether to identify current or past infection [@metcalf2016].
 Where the generation interval distribution is the same or close to the distribution of detectability after infection, this could be done using recently developed methods for unified modelling of incidence and prevalence [@pakkanen2021].
 The methods presented here and related ones could be applied to other infections monitored in a similar way, and thus in combination with such data collection and publication become a tool for monitoring epidemic and endemic infectious diseases in the future.
 
 # Acknowledgements
 
-We thank Thomas House for insightful comments on this work, and the Office for National Statistics for making the data sets publicly available.
+We thank Thomas House for insightful comments on this work, and the Office for National Statistics for making the data sets publicly available. We acknowledge funding by the Wellcome Trust (210758/Z/18/Z).
 
 # References
