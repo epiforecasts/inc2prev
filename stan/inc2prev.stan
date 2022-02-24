@@ -180,9 +180,9 @@ model {
 generated quantities {
   matrix[n, t - ut] R;
   matrix[n, t - ut] r;
-  matrix[n, t] cumulative_infections;
   real est_prev[n, obs];
   real est_ab[n, ab_obs];
+  matrix[n, t] gen_dab;
 
   {
     // sample generation time
@@ -191,7 +191,6 @@ generated quantities {
 
     // get cumulative incidence
     for (i in 1:n) {
-      cumulative_infections[i] = cumulative_sum(infections[i]);
       // sample estimated prevalence
       est_prev[i] = normal_rng(odcases[i], sigma);
       // calculate Rt using infections and generation time
@@ -202,7 +201,6 @@ generated quantities {
 
     if (n_ab > 0) {
       matrix[n, t] gen_infs_with_potential_abs; // Infections with the potential to have ab
-      matrix[n, t] gen_dab;
       matrix[n, ab_obs] gen_odab;
 
       for (i in 1:n) {
