@@ -141,7 +141,9 @@ model {
     init_dab ~ normal(init_ab_mean[1], init_ab_sd[1]);
     logit(beta) ~ normal(pbeta[1], pbeta[2]);
     logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
-    logit(delta) ~ normal(pdelta[1], pdelta[2]); 
+    logit(delta) ~ normal(pdelta[1], pdelta[2]);
+    log(k) ~ normal(0, 0.1);
+    log(l) ~ normal(0, 0.1);
     ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
   }
 
