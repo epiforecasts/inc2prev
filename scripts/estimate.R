@@ -152,10 +152,6 @@ convert_to_weekly <- function(x, ref_end_date, cols = c("middle", "lower", "uppe
 incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, weekly = FALSE, ...) {
   message("Fitting model")
 
-  mod <- cmdstanr::cmdstan_model(
-    model$stan_file(),
-    include_paths = here::here("stan", "functions")
-  )
   safe_incidence <- purrr::safely(incidence)
 
   prev <- data$prevalence[[1]]
@@ -178,7 +174,7 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
     vacc = vacc,
     init_ab = init_ab,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
-    chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
+    chains = 2, model = model, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(
       gp_tune_model = gp_model, gp_m = gp_frac, differencing = differencing
     ),
