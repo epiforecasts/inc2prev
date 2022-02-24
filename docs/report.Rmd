@@ -1,0 +1,46 @@
+---
+title: "Real-time epidemiological estimates from ONS Community Infection Survey data"
+author: Sam Abbott, Sebastian Funk
+date: "`r format(Sys.Date(), format = '%B %d, %Y')`"
+output: html_document
+---
+
+```{r setup, echo = FALSE, include = FALSE}
+library(cowplot)
+library(here)
+
+estimates <- c(national = "National",
+               regional = "Regional",
+               age_school = "Age")
+
+quantities <- c(est_prev = "PCR positivity prevalence",
+                infections = "Daily infection incidence",
+                r = "Growth rate",
+                Rt = "Reproduction number")
+
+time_horizon <- c(est_prev = "1year",
+                  infections = "1year",
+                  r = "3months",
+                  Rt = "3months")
+```
+
+Estimates were derived from the modelled daily and weekly data published weekly as part of the Covid-19 Community Infection Survey by the Office of National Statistics. Prevalence and incidence estimates are shown for the last year, and reproduction number for the past three months. Code to reproduce the results and links to data tables with estimates are available at [https://github.com/epiforecasts/inc2prev](https://github.com/epiforecasts/inc2prev).
+
+```{r, results = 'asis', echo = FALSE}
+for (level in names(estimates)) {
+  cat("\n\n#", estimates[[level]], "estimates", "{.tabset}", "\n")
+  for (quantity in names(quantities)) {
+    cat("\n\n##", quantities[[quantity]], "\n")
+    file_name <-
+      paste0(level, "_", quantity, "_", time_horizon[[quantity]], ".svg")
+    p <- ggdraw() + draw_image(here::here("figures", "additional", file_name))
+    print(p)
+  }
+}
+```
+
+# License
+
+This project uses data from the Office for National Statistics Community Infection Survey, which is licensed under the [Open Government License v3.0](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata).
+
+
