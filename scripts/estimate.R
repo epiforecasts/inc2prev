@@ -219,6 +219,7 @@ est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
 # Bind posterior samples/summary together
 estimates <- bind_rows(est$summary)
 samples <- bind_rows(est$samples)
+est[, variable := data$variable]
 diagnostics <- select(est, -samples, -summary)
 
 suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
