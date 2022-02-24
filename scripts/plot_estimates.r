@@ -23,7 +23,10 @@ files <-
 data <- map(files, read_csv) %>%
   bind_rows() %>%
   separate(variable, c("variable", "geography"), sep = "\\|")
-data <- left_join(data, local_region, by = c("level", "variable"))
+data <- left_join(data, local_region, by = c("level", "variable")) %>%
+  pivot_longer(starts_with("q"), names_to = "quantile") %>%
+  mutate(value = if_else(name == "infections", value / population, value)) %>%
+  pivot_wider(names_from = "quantile")
 
 cum_files <-
   list.files(here("outputs"), pattern = "cumulative_[^_]+\\.rds", full.names = TRUE)
@@ -63,16 +66,18 @@ var_names <- c(
   dcases = "Daily estimated prevalence",
   r = "Growth rate",
   Rt = "Reproduction number",
-  cumulative_infections = "Cumulative attack rate"
+  cumulative_infections = "Cumulative attack rate",
+  cumulative_exposure = "Cumulative exposure"
 )
 
 labels <- list(
   est_prev = scales::percent_format(1L, scale = 1),
-  infections = scales::comma,
+  infections = scales::percent_format(0.1),
   dcases = scales::percent_format(1L),
   r = waiver(),
   Rt = waiver(),
-  cumulative_infections = scales::percent_format(1L)
+  cumulative_infections = scales::percent_format(1L),
+  cumulative_exposure = scales::percent_format(1L)
 )
 
 group <- c(
@@ -81,6 +86,11 @@ group <- c(
   regional = "Region",
   variant_regional = "Variant",
   variant_national = "Variant"
+)
+
+hline <- c(
+  r = 0,
+  Rt = 1
 )
 
 non_variant <- data %>%
@@ -110,6 +120,9 @@ for (history in names(histories)) {
         scale_colour_brewer(group[level],  palette = "Set1") +
         scale_fill_brewer(group[level], palette = "Set1") +
         theme_minimal()
+      if (name %in% names(hline)) {
+        p <- p + geom_hline(yintercept = hline[[name]], linetype = "dashed")
+      }
       ggsave(here::here("figures", "additional",
 			paste0(level, "_", name, "_",
                                history, ".svg")), p,
@@ -146,6 +159,9 @@ for (history in names(histories)) {
         scale_fill_brewer(group[level], palette = "Set1") +
         theme_minimal() +
         facet_wrap(~geography)
+      if (name %in% names(hline)) {
+        p <- p + geom_hline(yintercept = hline[[name]], linetype = "dashed")
+      }
       ggsave(here::here("figures", "additional",
 			paste0(level, "_", name, ".svg")), p,
         width = 14, height = 8
@@ -154,62 +170,3 @@ for (history in names(histories)) {
   }
 }
 
-## separate plots
-
-level <- "national"
-name <- "est_prev"
-df_plot <- variant %>%
-  filter(
-    level == {{ level }},
-    name == {{ name }}
-  ) %>%
-  pivot_longer(starts_with("q"), names_to = "quantile") %>%
-  mutate(value = value / 100) %>%
-  pivot_wider(names_from = "quantile")
-
-p <- ggplot(df_plot %>% filter(variable == "England"),
-  aes(x = date, colour = variable, fill = variable)
-) +
-  geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`), alpha = 0.5) +
-  geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.25) +
-  geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.125) +
-  ylab(name) +
-  xlab("") +
-  expand_limits(x = as.Date("2020-03-01")) +
-  scale_x_date(breaks = "4 months", labels = date_format("%b %Y")) +
-  scale_y_continuous("Percentage testing positive",
-                     labels = scales::percent_format(1L)) +
-  scale_colour_brewer("Age group", palette = "Set1") +
-  scale_fill_brewer("Age group", palette = "Set1") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-level <- "age_school"
-name <- "est_prev"
-df_plot <- variant %>%
-  filter(
-    level == {{ level }},
-    name == {{ name }},
-    date >"2021-05-01"
-  ) %>%
-  pivot_longer(starts_with("q"), names_to = "quantile") %>%
-  mutate(value = value / 100) %>%
-  pivot_wider(names_from = "quantile")
-
-p <- ggplot(df_plot,
-  aes(x = date, colour = variable, fill = variable)
-) +
-  geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`), alpha = 0.5) +
-  geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.25) +
-  geom_ribbon(mapping = aes(ymin = `q10`, ymax = `q95`), alpha = 0.125) +
-  ylab(name) +
-  xlab("") +
-  expand_limits(x = as.Date("2021-04-01")) +
-  scale_x_date(breaks = "2 months", labels = date_format("%b %Y")) +
-  scale_y_continuous("Percentage testing positive",
-                     labels = scales::percent_format(1L)) +
-  scale_colour_brewer("Age group", palette = "Dark2") +
-  scale_fill_brewer("Age group", palette = "Dark2") +
-  theme_minimal() +
-  ggtitle("England, by age") +
-  theme(legend.position = "bottom")
