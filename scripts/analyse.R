@@ -81,7 +81,8 @@ updated_samples <- map(
 )
 
 cumulative <- bind_rows(updated_samples) %>%
-  filter(name == "cumulative_infections")
+  filter(name %in% c("cumulative_infections",
+                     "cumulative_exposure"))
 
 saveRDS(cumulative,
         here::here("outputs", paste0("cumulative", suffix, ".rds")))

@@ -51,9 +51,12 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       inner_join(early_samples, by = c("variable", "sample")) %>%
       mutate(value = value + initial) %>%
       select(-initial)
+    cumulative_exposure_samples <- combined_samples %>%
+      mutate(value = 1 - exp(-value),
+	     name = "cumulative_exposure")
     level_samples <- level_samples %>%
-      filter(name != "cumulative_infections") %>%
-      bind_rows(combined_samples)
+      filter(!(name %in% c("cumulative_infections", "cumulative_exposure"))) %>%
+      bind_rows(combined_samples, cumulative_exposure_samples)
   }
   ## split geography and variants
   if (grepl("^variant_", level)) {
@@ -102,7 +105,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   ## 1) plot prevalence
   p <- plot_prev(level_estimates, level_samples, level_prev) +
     facet_wrap(plot_formula, scales = "free_y")
-  ggsave(here::here("figures", paste0("prev_", level, suffix, extension)), p,
+  ggsave(here::here("figures", "additional", paste0("prev_", level, suffix, extension)), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -111,7 +114,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       modelled = "dab", observed = "est_ab"
     ) +
       facet_wrap(plot_formula)
-    ggsave(here::here("figures", paste0("ab_", level, suffix, extension)), p,
+    ggsave(here::here("figures", "additional", paste0("ab_", level, suffix, extension)), p,
       width = 7 + 3 * floor(sqrt(nvars)),
       height = 2 + 3 * floor(sqrt(nvars))
     )
@@ -119,7 +122,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   ## 2) plot incidence
   p <- plot_trace(level_samples, "infections") +
     facet_wrap(plot_formula, scales = "free_y")
-  ggsave(here::here("figures", paste0("inf_", level, suffix, extension)), p,
+  ggsave(here::here("figures", "additional", paste0("inf_", level, suffix, extension)), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -128,14 +131,14 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     geom_hline(yintercept = 1, linetype = "dashed") +
     ylab("R") +
     facet_wrap(plot_formula)
-  ggsave(here::here("figures", paste0("R_", level, suffix, extension)), p,
+  ggsave(here::here("figures", "additional", paste0("R_", level, suffix, extension)), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
   ## 4) plot growth
   p <- plot_trace(level_samples, "r") +
     facet_wrap(plot_formula)
-  ggsave(here::here("figures", paste0("growth_", level, suffix, extension)), p,
+  ggsave(here::here("figures", "additional", paste0("growth_", level, suffix, extension)), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
@@ -146,21 +149,32 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
     ) +
     xlab("") +
     facet_wrap(plot_formula)
-  ggsave(here::here("figures", paste0("cumulative_incidence_", level, suffix, extension)), p,
+  ggsave(here::here("figures", "additional", paste0("cumulative_incidence_", level, suffix, extension)), p,
     width = 7 + 3 * floor(sqrt(nvars)),
     height = 2 + 3 * floor(sqrt(nvars))
   )
-  ## 6) final attack rates
-  combined_aggregate <- level_samples %>%
-    filter(date == max(date))
+  ## 6) plot cumulative exposure
+  p <- plot_trace(level_samples, "cumulative_exposure") +
+    scale_y_continuous("Cumulative exposure",
+      labels = scales::percent_format(1L)
+    ) +
+    xlab("") +
+    facet_wrap(plot_formula)
+  ggsave(here::here("figures", "additional", paste0("cumulative_exposure_", level, suffix, extension)), p,
+    width = 7 + 3 * floor(sqrt(nvars)),
+    height = 2 + 3 * floor(sqrt(nvars))
+  )
+  ## 7) final attack rates
   if (grepl("^variant_", level)) {
-    combined_aggregate <- combined_aggregate %>%
+    combined_aggregate <- level_samples %>%
       group_by(variable, variant)
   } else {
-    combined_aggregate <- combined_aggregate %>%
+    combined_aggregate <- level_samples %>%
       group_by(variable)
   }
-  combined_aggregate <- combined_aggregate %>%
+  cumulative_incidence <- combined_aggregate %>%
+    filter(name == "cumulative_infections") %>%
+    filter(date == max(date)) %>%
     summarise(
       mean = mean(value),
       low = quantile(value, 0.025),
@@ -168,7 +182,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       .groups = "drop"
     )
   p <- ggplot(
-    combined_aggregate,
+    cumulative_incidence,
     aes(x = variable, y = mean, ymin = low, ymax = high)
   ) +
     geom_point() +
@@ -187,7 +201,40 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
   } else {
     height <- 4
   }
-  ggsave(here::here("figures", paste0("final_attack_rate_", level, suffix, extension)),
+  ggsave(here::here("figures", "additional", paste0("final_attack_rate_", level, suffix, extension)),
+    width = 7, height = height
+  )
+  ## 8) final cumluative_exposure
+  cumulative_exposure <- combined_aggregate %>%
+    filter(name == "cumulative_exposure") %>%
+    filter(date == max(date)) %>%
+    summarise(
+      mean = mean(value),
+      low = quantile(value, 0.025),
+      high = quantile(value, 0.975),
+      .groups = "drop"
+    )
+  p <- ggplot(
+    cumulative_exposure,
+    aes(x = variable, y = mean, ymin = low, ymax = high)
+  ) +
+    geom_point() +
+    geom_linerange() +
+    scale_y_continuous(
+      "Cumulative exposure",
+      labels = scales::percent_format(accuracy = 1L)
+    ) +
+    theme_light() +
+    expand_limits(y = 0) +
+    xlab("") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  if (grepl("^variant_", level)) {
+    p <- p + facet_wrap(~ variant)
+    height <- 8
+  } else {
+    height <- 4
+  }
+  ggsave(here::here("figures", "additional", paste0("final_cumulative_exposure_", level, suffix, extension)),
     width = 7, height = height
   )
   ## 8) final antibodies
@@ -218,7 +265,7 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       expand_limits(y = 0) +
       xlab("") +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-    ggsave(here::here("figures", paste0("seroprevalence_", level, suffix, extension)),
+    ggsave(here::here("figures", "additional", paste0("seroprevalence_", level, suffix, extension)),
       width = 7, height = 4
     )
   }
