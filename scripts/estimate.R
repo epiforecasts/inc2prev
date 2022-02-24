@@ -158,14 +158,12 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
   )
   safe_incidence <- purrr::safely(incidence)
 
-  variables <- c("est_prev", "infections", "dcases", "r", "R")
   prev <- data$prevalence[[1]]
   if (weekly) {
     prev <- prev %>%
       convert_to_weekly(max(.$end_date))
   }
   if (antibodies) {
-    variables <- c(variables, "est_ab", "dab", "beta", "gamma", "delta")
     ab <- data$antibodies[[1]]
     vacc <- data$vaccination[[1]]
     init_ab <- data$initial_antibodies[[1]]
@@ -179,7 +177,6 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
     ab = ab,
     vacc = vacc,
     init_ab = init_ab,
-    variables = variables,
     prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
     chains = 2, model = mod, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(
