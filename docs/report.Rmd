@@ -24,9 +24,9 @@ time_horizon <- c(est_prev = "1year",
                   Rt = "3months")
 ```
 
-Estimates were derived from the modelled daily and weekly data published weekly as part of the Covid-19 Community Infection Survey by the Office of National Statistics. Prevalence and incidence estimates are shown for the last year, and reproduction number for the past three months. Code to reproduce the results and links to data tables with estimates are available at https://github.com/epiforecasts/inc2prev
+Estimates were derived from the modelled daily and weekly data published weekly as part of the Covid-19 Community Infection Survey by the Office of National Statistics. Prevalence and incidence estimates are shown for the last year, and reproduction number for the past three months. Code to reproduce the results and links to data tables with estimates are available at [https://github.com/epiforecasts/inc2prev](https://github.com/epiforecasts/inc2prev).
 
-```{r, results = 'asis'}
+```{r, results = 'asis', echo = FALSE}
 for (level in names(estimates)) {
   cat("\n\n#", estimates[[level]], "estimates", "{.tabset}", "\n")
   for (quantity in names(quantities)) {
