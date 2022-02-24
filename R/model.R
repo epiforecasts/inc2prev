@@ -203,6 +203,8 @@ i2p_inits <- function(dat) {
         beta = array(inv_logit(rnorm(1, -2, 0.4))),
         gamma = array(inv_logit(rnorm(2, -9, 0.4))),
         delta = array(inv_logit(rnorm(1, 3, 0.4))),
+        k = array(exp(rnorm(1, 0, 0.1))),
+        l = array(exp(rnorm(1, 0, 0.1))),
         ab_sigma = array(
           truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)
         ),
