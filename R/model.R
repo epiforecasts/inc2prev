@@ -243,9 +243,15 @@ i2p_inits <- function(dat) {
 #' @examplesIf interactive()
 #' mod <- i2p_model()
 i2p_model <- function(model = "stan/inc2prev.stan", include,
-                      compile = TRUE, threads = FALSE, verbose = TRUE, ...) {
+                      compile = TRUE, threads = FALSE, verbose = TRUE,
+                      optimise = TRUE, ...) {
   if (missing(include)) {
     include <- "stan/functions"
+  }
+  if (optimise) {
+    stanc_options <- list("O1")
+  } else {
+    stanc_options <- list()
   }
 
   if (compile) {
@@ -255,6 +261,7 @@ i2p_model <- function(model = "stan/inc2prev.stan", include,
         cpp_options = list(
           stan_threads = threads
         ),
+        stanc_options = stanc_options,
         ...
       )
     } else {
@@ -263,7 +270,9 @@ i2p_model <- function(model = "stan/inc2prev.stan", include,
           include_path = include,
           cpp_options = list(
             stan_threads = threads
-          ), ...
+          ),
+          stanc_options = stanc_options,
+	  ...
         )
       )
     }
