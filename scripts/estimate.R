@@ -205,6 +205,7 @@ est <- future_lapply(
   pb = prob_detect,
   model = mod, gp_model = tune,
   differencing = differencing,
+  weekly = weekly,
   future.seed = TRUE
 )
 
