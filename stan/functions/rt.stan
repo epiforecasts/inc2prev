@@ -1,7 +1,7 @@
 // Code from: 
 // https://github.com/epiforecasts/EpiNow2/tree/master/inst/stan/functions
 // discretised truncated gamma pmf
-vector discretised_gamma_pmf(int[] y, real mu, real sigma, int max_val) {
+vector discretised_gamma_pmf(array[] int y, real mu, real sigma, int max_val) {
   int n = num_elements(y);
   vector[n] pmf;
   real trunc_pmf;
@@ -40,7 +40,7 @@ vector calculate_Rt(vector infections, int seeding_time,
                     real gt_mean, real gt_sd, int max_gt,
                     int smooth) {
   vector[max_gt] gt_pmf;
-  int gt_indexes[max_gt];
+  array[max_gt] int gt_indexes;
   int t = num_elements(infections);
   int ot = t - seeding_time;
   vector[ot] R;
