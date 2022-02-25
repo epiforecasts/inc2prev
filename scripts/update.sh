@@ -18,3 +18,4 @@ git status | grep -q cis_variants.csv && Rscript scripts/estimate.R -v -d 1 && R
 
 Rscript scripts/plot_estimates.r
 Rscript -e 'rmarkdown::render("docs/report.Rmd")'
+Rscript -e 'rmarkdown::render("docs/paper.Rmd")'
