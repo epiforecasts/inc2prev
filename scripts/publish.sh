@@ -12,5 +12,5 @@ git rm -rf .
 git add docs/*.html
 git commit -m "Update report"
 git push --force origin gh-pages
-git checkout main
+git checkout master
 
