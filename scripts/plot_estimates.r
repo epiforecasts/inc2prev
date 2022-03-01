@@ -118,13 +118,11 @@ for (file in files) {
         plot_df <- level_data %>%
           filter(name == {{ name }}, 
 		 date > max(date) - histories[[history]])
-        aes_str <- list(x = "date")
+        aes_str <- list(x = "date", colour = colour_var)
         if (spaghetti) {
           plot_df <- plot_df %>%
             mutate(var_sample = interaction(variable, sample))
-          aes_str <- c(
-	    aes_str, list(y = "value", group = "var_sample", colour = colour_var)
-	  )
+          aes_str <- c(aes_str, list(y = "value", group = "var_sample"))
         } else {
           aes_str <- c(aes_str, list(fill = colour_var))
         }
@@ -135,9 +133,9 @@ for (file in files) {
             geom_line(alpha = 0.25)
         } else {
           p <- p +
-            geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`), alpha = 0.5, colour = NA) +
-            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.25, colour = NA)
-            geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.1, colour = NA)
+            geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`)) +
+            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35, colour = NA)
+            geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.175, colour = NA)
         }
         p <- p +
           scale_x_date(breaks = breaks[[history]],
@@ -145,7 +143,7 @@ for (file in files) {
           scale_y_continuous(var_names[name], labels = labels[[name]]) +
           scale_colour_brewer(group[level],  palette = "Set1") +
           scale_fill_brewer(group[level],  palette = "Set1") +
-          theme_minimal()
+          theme_light()
         if (name %in% names(hline)) {
           p <- p +
             geom_hline(yintercept = hline[[name]], linetype = "dashed")
