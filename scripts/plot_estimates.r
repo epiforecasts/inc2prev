@@ -117,11 +117,13 @@ for (file in files) {
         plot_df <- level_data %>%
           filter(name == {{ name }}, 
 		 date > max(date) - histories[[history]])
-        aes_str <- list(x = "date", colour = colour_var)
+        aes_str <- list(x = "date")
         if (spaghetti) {
           plot_df <- plot_df %>%
             mutate(var_sample = interaction(variable, sample))
-          aes_str <- c(aes_str, list(y = "value", group = "var_sample"))
+          aes_str <- c(
+	    aes_str, list(y = "value", group = "var_sample", colour = colour_var)
+	  )
         } else {
           aes_str <- c(aes_str, list(fill = colour_var))
         }
@@ -132,8 +134,9 @@ for (file in files) {
             geom_line(alpha = 0.25)
         } else {
           p <- p +
-            geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`), alpha = 0.5) +
-            geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.125)
+            geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`), alpha = 0.5, colour = NA) +
+            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.25, colour = NA)
+            geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.1, colour = NA)
         }
         p <- p +
           scale_x_date(breaks = breaks[[history]],
