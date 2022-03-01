@@ -9,6 +9,7 @@ library(tidyr)
 
 ## whether to make spaghetti plots
 spaghetti <- FALSE
+filetype <- "png"
 
 ## Get tools
 source(here::here("R", "read.R"))
@@ -155,7 +156,7 @@ for (file in files) {
         }
         ggsave(here::here("figures", "additional",
                           paste0(level, "_", name, "_",
-                                 history, ".svg")), p,
+                                 history, ".", filetype)), p,
                width = 10, height = 5)
       }
     }
