@@ -15,7 +15,7 @@ The model is implemented in `stan` using `cmdstanr`.
 
 S. Abbott, S. Funk. _Estimating epidemiological quantities from repeated cross-sectional prevalence measurements_ (2022). https://github.com/epiforecasts/inc2prev
 
-**Draft paper in progress: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://epiforecasts.io/inc2prev/paper.pdf)**
+**Draft paper in progress: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://github.com/epiforecasts/inc2prev/raw/master/docs/paper.pdf)**
 
 # Real-time estimates
 
