@@ -33,7 +33,7 @@ var_names <- c(
 )
 
 labels <- list(
-  est_prev = scales::percent_format(1L, scale = 1),
+  est_prev = scales::percent_format(0.1, scale = 1),
   infections = scales::percent_format(0.1),
   dcases = scales::percent_format(1L),
   r = waiver(),
@@ -124,7 +124,7 @@ for (file in files) {
             mutate(var_sample = interaction(variable, sample))
           aes_str <- c(aes_str, list(y = "value", group = "var_sample"))
         } else {
-          aes_str <- c(aes_str, list(fill = colour_var))
+          aes_str <- c(aes_str, list(y = "q50", fill = colour_var))
         }
         p <- ggplot(plot_df, do.call(aes_string, aes_str)) +
           ylab(name) + xlab("")
@@ -133,7 +133,7 @@ for (file in files) {
             geom_line(alpha = 0.25)
         } else {
           p <- p +
-            geom_ribbon(mapping = aes(ymin = `q45`, ymax = `q55`)) +
+            geom_line()
             geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35, colour = NA)
             geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.175, colour = NA)
         }
@@ -155,7 +155,7 @@ for (file in files) {
         ggsave(here::here("figures", "additional",
                           paste0(level, "_", name, "_",
                                  history, ".", filetype)), p,
-               width = 10, height = 5)
+               width = 8, height = 4)
       }
     }
   }
