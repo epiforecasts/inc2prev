@@ -40,7 +40,8 @@ Imports:
     piggyback,
     fs,
     forcats,
-    docopt
+    docopt,
+    magick
 Additional_repositories: 
     https://mc-stan.org/r-packages/
 Encoding: UTF-8

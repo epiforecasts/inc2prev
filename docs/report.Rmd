@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, echo = FALSE, include = FALSE}
 library(cowplot)
 library(here)
+library(magick)
 
 estimates <- c(national = "National",
                regional = "Regional",
