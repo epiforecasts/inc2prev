@@ -51,13 +51,16 @@ plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NUL
       inner_join(early_samples, by = c("variable", "sample")) %>%
       mutate(value = value + initial) %>%
       select(-initial)
-    cumulative_exposure_samples <- combined_samples %>%
-      mutate(value = 1 - exp(-value),
-	     name = "cumulative_exposure")
     level_samples <- level_samples %>%
-      filter(!(name %in% c("cumulative_infections", "cumulative_exposure"))) %>%
-      bind_rows(combined_samples, cumulative_exposure_samples)
+      filter(!(name == c("cumulative_infections"))) %>%
+      bind_rows(combined_samples)
   }
+  cumulative_exposure_samples <- level_samples %>%
+    filter(name == "cumulative_infections") %>%
+    mutate(value = 1 - exp(-value),
+           name = "cumulative_exposure")
+  level_samples <- level_samples %>%
+    bind_rows(cumulative_exposure_samples)
   ## split geography and variants
   if (grepl("^variant_", level)) {
     level_prev <- level_prev %>%
