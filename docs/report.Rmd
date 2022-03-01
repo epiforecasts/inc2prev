@@ -33,7 +33,7 @@ for (level in names(estimates)) {
   for (quantity in names(quantities)) {
     cat("\n\n##", quantities[[quantity]], "\n")
     file_name <-
-      paste0(level, "_", quantity, "_", time_horizon[[quantity]], ".svg")
+      paste0(level, "_", quantity, "_", time_horizon[[quantity]], ".png")
     p <- ggdraw() + draw_image(here::here("figures", "additional", file_name))
     print(p)
   }
