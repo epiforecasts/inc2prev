@@ -28,12 +28,12 @@ var_names <- c(
   dcases = "Daily estimated prevalence",
   r = "Growth rate",
   Rt = "Reproduction number",
-  cumulative_infections = "Cumulative infections",
-  cumulative_exposure = "Cumulative exposure"
+  cumulative_infections = "Cumulative incidence",
+  cumulative_exposure = "Proportion ever infected"
 )
 
 labels <- list(
-  est_prev = scales::percent_format(0.1, scale = 1),
+  est_prev = scales::percent_format(1L),
   infections = scales::percent_format(0.1),
   dcases = scales::percent_format(1L),
   r = waiver(),
