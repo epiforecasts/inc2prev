@@ -24,7 +24,9 @@ quantities <- c(est_prev = "PCR+ prevalence",
 time_horizon <- c(est_prev = "1year",
                   infections = "1year",
                   r = "3months",
-                  Rt = "3months")
+                  Rt = "3months",
+                  cumulative_infections = "1year",
+                  cumulative_exposure = "1year")
 
 additional_text <- list(
   est_prev = "Proportion testing PCR positive.",
