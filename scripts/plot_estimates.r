@@ -152,6 +152,10 @@ for (file in files) {
           p <- p +
             facet_wrap(~geography)
         }
+	if (grepl("cumulative_", name)) {
+	  p <- p + 
+            expand_limits(y = 0)
+	}
         ggsave(here::here("figures", "additional",
                           paste0(level, "_", name, "_",
                                  history, ".", filetype)), p,
