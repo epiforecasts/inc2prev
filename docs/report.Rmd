@@ -17,7 +17,7 @@ estimates <- c(national = "National",
 quantities <- c(est_prev = "PCR+ prevalence",
                 infections = "Infection incidence",
                 r = "Growth rate",
-                Rt = "Reproduction number",
+                Rt = "R",
                 cumulative_infections = "Cumulative incidence",
                 cumulative_exposure = "Proportion ever infected")
 
@@ -45,7 +45,7 @@ for (level in names(estimates)) {
   cat("\n\n#", estimates[[level]], "estimates", "{.tabset}", "\n")
   for (quantity in names(quantities)) {
     cat("\n\n##", quantities[[quantity]], "\n")
-    cat(additional_text[[quantity]], "\n")
+    cat(additional_text[[quantity]], "\n\n")
     file_name <-
       paste0(level, "_", quantity, "_", time_horizon[[quantity]], ".png")
     p <- ggdraw() + draw_image(here::here("figures", "additional", file_name))
