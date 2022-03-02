@@ -133,8 +133,8 @@ for (file in files) {
             geom_line(alpha = 0.25)
         } else {
           p <- p +
-            geom_line()
-            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35, colour = NA)
+            geom_line() +
+            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35, colour = NA) +
             geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.175, colour = NA)
         }
         p <- p +
