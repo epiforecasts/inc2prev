@@ -28,7 +28,7 @@ var_names <- c(
   dcases = "Daily estimated prevalence",
   r = "Growth rate",
   Rt = "Reproduction number",
-  cumulative_infections = "Cumulative attack rate",
+  cumulative_infections = "Cumulative infections",
   cumulative_exposure = "Cumulative exposure"
 )
 
