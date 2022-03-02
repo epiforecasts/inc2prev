@@ -14,15 +14,26 @@ estimates <- c(national = "National",
                regional = "Regional",
                age_school = "Age")
 
-quantities <- c(est_prev = "PCR positivity prevalence",
-                infections = "Daily infection incidence",
+quantities <- c(est_prev = "PCR+ prevalence",
+                infections = "Infection incidence",
                 r = "Growth rate",
-                Rt = "Reproduction number")
+                Rt = "Reproduction number",
+                cumulative_infections = "Cumulative incidence",
+                cumulative_exposure = "Proportion ever infected")
 
 time_horizon <- c(est_prev = "1year",
                   infections = "1year",
                   r = "3months",
                   Rt = "3months")
+
+additional_text <- list(
+  est_prev = "Proportion testing PCR positive.",
+  infections = "Daily proportion newly infected.",
+  r = "Growth rate of new infections.",
+  Rt = "Infection reproduction number.",
+  cumulative_infections = "Cumulative incidence of infections, including reinfections.",
+  cumulative_exposure = "Crude estimate of the number of people ever infected under the extremely simplifying assumption that the risk of infection is independent of prior infection or vaccination status."
+)
 ```
 
 Estimates were derived from the modelled daily and weekly data published weekly as part of the Covid-19 Community Infection Survey by the Office of National Statistics. Prevalence and incidence estimates are shown for the last year, and reproduction number for the past three months. Code to reproduce the results and links to data tables with estimates are available at [https://github.com/epiforecasts/inc2prev](https://github.com/epiforecasts/inc2prev).
@@ -32,6 +43,7 @@ for (level in names(estimates)) {
   cat("\n\n#", estimates[[level]], "estimates", "{.tabset}", "\n")
   for (quantity in names(quantities)) {
     cat("\n\n##", quantities[[quantity]], "\n")
+    cat(additional_text[[quantity]], "\n")
     file_name <-
       paste0(level, "_", quantity, "_", time_horizon[[quantity]], ".png")
     p <- ggdraw() + draw_image(here::here("figures", "additional", file_name))
