@@ -21,8 +21,7 @@ library(purrr)
 library(here)
 library(kableExtra)
 ## Get tools
-functions <- list.files(here("R"), full.names = TRUE)
-walk(functions, source)
+devtools::load_all()
 
 params_table <- here::here("outputs", "example-parameters.csv")
 if (!file.exists(params_table)) {
