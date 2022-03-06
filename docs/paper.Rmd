@@ -64,13 +64,12 @@ Here we present estimates of time-varying and static epidemiological quantities 
 
 ## Methods
 
-We used discrete convolutions based to estimate the incidence of infections based on previously published PCR detection curves describing the probability of a positive test as a function of the time since infection.
-We further combined time-varying estimates of antibody prevalence with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
+We used a guassian process to model incidence of infections and then estimated observed PCR prevalence by convolving our modelled incidence estimates with a previously published PCR detection curve describing the probability of a positive test as a function of the time since infection. We refined our incidence estimates using time-varying estimates of antibody prevalence combined with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
 
 ## Results
 
 We produced incidence curves of infection describing the UK epidemic from late April 2020 until early 2022.
-We used these estimates of incidence to estimate the time-varying growth rate of infections, and combined them with estimates of the generation interval to estimate reproduction numbers.
+We used these estimates of incidence to estimate the time-varying growth rate of infections, and combined them with estimates of the generation interval to estimate time-varying reproduction numbers.
 Biological parameters describing seroconversion and waning, while based on a simple model, were broadly in line with plausible ranges from individual-level studies.
 
 ## Conclusions
