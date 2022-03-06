@@ -187,9 +187,9 @@ The peaks of the corresponding incidence curve are earlier, higher and sharper.
 Estimated reproduction numbers highlight some key phases of the UK pandemic between April 2020 and November 2021, in particular rapid increases due to emergence of the Alpha variant in December followed by a period of low transmission during lockdown until March 2021, and rapid spread of the Delta variant in May-July 2021 followed by a period of relatively steady transmission.
 
 ```{r params-table}
-biol_params %>% 
+biol_params %>%
   kbl(caption = paste0(
-    "Estimates and credible intervals (CIs, as quantiles of the posterior",
+    "Estimates and credible intervals (CIs, as quantiles of the posterior ",
     "distribution) of biological parameters."
     ), booktabs = TRUE) %>%
   kable_styling()
