@@ -204,9 +204,9 @@ knitr::include_graphics(here::here("figures", "example", "pairs.png"))
 
 # Discussion
 
-We have presented a method to estimate epidemiological parameters such as infection incidence, time-varying reproduction numbers and growth rates from repeated cross-sectional PCR positivity estimates reported.
+We have presented a method to estimate epidemiological parameters such as infection incidence, time-varying reproduction numbers and growth rates from repeated cross-sectional PCR positivity estimates.
 The estimates of infection incidence are distinct from estimates of PCR positivity incidence that are reported alongside the positivity prevalence estimates, as the probability of detecting infections is low early in the course of an infection, and more generally varies over said course [@hellewell2021].
-When additionally using antibody and vaccination data, we recover estimates of relevant parameters such as seroconversion and waning rates that can be used to estimate antibody prevalence where infection and vaccination data is available but antibody data is not.
+When additionally using antibody and vaccination data, we refine our estimates of infection incidence and recover estimates of relevant parameters such as seroconversion and waning rates that can be used to estimate antibody prevalence where infection and vaccination data is available but antibody data is not.
 
 Our estimated parameters of antibody dynamics are averages across a various combinations of vaccine types and individual factors that are known to affect immunological responses to either infection or vaccination, particularly age [@ward2022]. 
 We estimated that `r 100 - signif(params[name == "beta"]$median, 2) * 100`% (90% credible interval, CI: `r 100 - signif(params[name == "beta"]$q95, 2) * 100`--`r 100 - signif(params[name == "beta"]$q5, 2) * 100`) of individuals do not seroconvert after infection, compared to 24% estimated from the same study population, but also lower estimates such as 10% in a different study [@gudbjartsson2020]. 
@@ -221,7 +221,7 @@ We modelled the growth of infections as a stationary Gaussian process, whereas i
 Lastly, we assumed that antibody waning was exponential, and ignored any consequences of multiple rounds of vaccination or infection apart from converting those without detectable antibodies to having detectable antibodies.
 
 Future directions of this work should help address some of these limitations, for example by including more detail on antibody levels, or by including antibody measurements that may be able to distinguish between natural and vaccine-acquired immunity [@amjadi2021].
-It could further make use of more comprehensive information on PCR detection curves taking into account correlations in detectability since time from infection.
+It could further make use of more comprehensive information on PCR detection curves taking into account correlations in detectability since time from infection and pointly jointly estimating these curves using individual level data.
 Combined with other data streams, for example on test-positive community cases, or severe outcomes resulting in hospitalisations or deaths, our method could be used to understand rates of notification or sever disease given infection, or to generate forecasts of expected burden.
 Lastly, more detailed information on the infections detected, for example viral loads via Cycle threshold (Ct) values, could be used to improve real-time performance of growth rates and reproduction numbers [@hay2021].
 
