@@ -29,19 +29,27 @@ if (!file.exists(params_table)) {
   source(here::here("scripts", "simple-example.R"))
 }
 params <- fread(params_table)
-params[name == "gamma", name := ifelse(index == 1, "gamma (infection)", "gamma (vaccination)")]
-params[, Description := fcase(
-           name == "beta", "Proportion infected that seroconvert",
-           name == "gamma (infection)", "Antibody waning following infection (daily rate)",
-           name == "gamma (vaccination)", "Antibody waning following vaccination (daily rate)",
-           name == "delta", "Proportion vaccinated that seroconvert",
-           name == "k", "Efficacy adjustment of immunity following infection",
-           name == "l", "Efficacy adjustment of immunity following vaccination")]
+params[name == "gamma",
+       name := ifelse(index == 1, "gamma (infection)", "gamma (vaccination)")
+]
+params[,
+  Description := fcase(
+    name == "beta", "Proportion infected that seroconvert",
+    name == "gamma (infection)", "Antibody waning following infection (daily rate)",
+    name == "gamma (vaccination)", "Antibody waning following vaccination (daily rate)",
+    name == "delta", "Proportion vaccinated that seroconvert",
+    name == "k", "Efficacy adjustment of immunity following infection",
+    name == "l", "Efficacy adjustment of immunity following vaccination")
+]
 biol_params <- params[!is.na(Description)]
-biol_params[, `Estimate (90% CI)` := paste0(signif(q50, 2), " (", signif(q5, 2), "--", signif(q95, 2), ")")]
-biol_params <- biol_params[, list(Parameter = name,
-                                  Description,
-                                  `Estimate (90% CI)`)]
+biol_params[, 
+  `Estimate (90% CI)` := paste0(
+    signif(q50, 2), " (", signif(q5, 2), "--", signif(q95, 2), ")"
+  )
+]
+biol_params <- biol_params[,
+  .(Parameter = name, Description, `Estimate (90% CI)`)
+]
 
 ```
 
