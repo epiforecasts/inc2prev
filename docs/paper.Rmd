@@ -96,41 +96,41 @@ Here we present a semi-mechanistic model that combines PCR positivity curves, ge
 
 ## Data
 
-We obtained the published estimates of daily prevalence of Polymerase Chain Reaction (PCR) positivity beginning on 26 April, 2020, from the ONS Community infection survey separately by nation, region, age group and variant, alongside their 95% confidence intervals, from the published spreadsheets on the ONS web site.
+We obtained the published estimates of daily prevalence of Polymerase Chain Reaction (PCR) positivity beginning on 26 April, 2020, from the ONS Community infection survey separately by nation, region, age group and variant, alongside their 95% credible intervals, from the published spreadsheets on the ONS web site.
 ONS estimates of a given prevalence vary between publication dates as the internal model to calculate prevalence involves smoothing, such that new data points in the present affect the estimates of times past.
-We aggregated estimates of PCR positivity for a single day produced for different publication dates by calculating the central estimate and confidence limits as the medians of the different respective central estimates and confidence limits.
+We aggregated estimates of PCR positivity for a single day produced for different publication dates by calculating the central estimate and credible intervals as the medians of the different respective central estimates and credible intervals.
 
 ## Model
 
-We developed Bayesian model to estimate epidemiological quantities from ONS PCR positivity estimates and, optionally, population level antibody prevalence estimates and vaccination coverage.
+We developed a Bayesian model to estimate epidemiological quantities from ONS PCR positivity estimates and, optionally, population level antibody prevalence estimates and vaccination coverage.
 
 ### PCR positivity
 
-We estimated the population proportion newly infected in the population $I(t)$ as a latent variable that is convolved with an PCR positivity curve $p(s)$, the probability of someone infected at time $s=0$ to test PCR positive to yield prevalence of PCR positivity $P(t)$.
+We estimated the population proportion newly infected in the population $I(t)$ as a latent variable that is convolved with a PCR positivity curve $p(s)$, the probability of someone infected at time $s=0$ to test PCR positive to yield prevalence of PCR positivity $P(t)$.
 $$
 P(t) = \sum_{s= 0}^{t_\text{p,max}} p(s) I(t - s)
 $$
 where $t_\text{p,max}=60$ is the maximum time modelled for which a person can stay PCR positive.
-We assumed each $p(s)$ to have an independent normal prior distribution at each time $s$ after infection with given mean and standard deviation estimates from another study [@hellewell2021].
-Infection incidence $I(t)$ is distinct form the estimates of PCR positivity incidence provided by ONS alongside the prevalence estimates, as it allows for the probability of infections testing yielding negative PCR results as a function of the time since infection.
+We assumed each $p(s)$ to have an independent normal prior distribution at each time $s$ after infection with given mean and standard deviation estimates from the posterior estimates of another study [@hellewell2021].
+Infection incidence $I(t)$ is distinct from the estimates of PCR positivity incidence provided by ONS alongside the prevalence estimates, as it allows for the probability of infections yielding negative PCR results as a function of the time since infection and is indexed by date of infection rather than the date of first testing positive.
 
-We used Gaussian Process (GP) priors to ensure smoothness of the estimates and deal with data gaps, whereby alternatively either $I(t)$ is has a GP prior with exponential quadratic kernel.
+We used Gaussian Process (GP) priors to ensure smoothness of the estimates and deal with data gaps, whereby alternatively either $I(t)$ is has a GP prior with exponential quadratic kernel. To reduce the computational requirements of our approach we used an approximate rather than exact GP [@approxGP].
 $$
 \begin{aligned}
-I(t) &\sim \text{logit}(i_0 + i(t))\\
+\text{logit} \left( I(t) \right) &\sim i_0 + i(t)\\
 i(t) &\sim \text{GP}(t)
 \end{aligned}
 $$
-where $i_0$ is the estimated mean of the GP, or the GP prior is applied to higher order differences, for example the growth rate such as
+where $i_0$ is the estimated mean of the GP, or the GP prior is applied to higher order differences when infections are non-stationary, for example the growth rate such as
 $$
 i(t) - i(t - 1) \sim \text{GP}(t)
 $$
-which implies that growth, rather than incidence, remains at an estimated mean level in the absence of data, usually leading to better real-time performance [@abbott2020].
+which implies that growth tends to zero when outside the range of the data, usually leading to better real-time performance [@abbott2020].
 The results shown here were obtained using this formulation with a GP prior on the growth rate.
 
 We assumed that the probability of observing prevalence $Y_{\text{P}, t}$ at time $t$ was given by independent normal distributions with mean $P(t)$ and standard deviation
-$$\sigma_{\text{P}, t} = \sigma_\text{P} + Y^\sigma_{\text{P}, t}$$
-where $\sigma_\text{P}$ was estimated as part of the inference procedure and $Y^\sigma_{\text{P}, t}$ calculated based on the reported confidence intervals in the ONS data, assuming independent normal errors.
+$$\sigma_{\text{P}, t} = \sqrt{\sigma_\text{P}^2 + Y^\sigma_{\text{P}^2, t}}$$
+where $\sigma_\text{P}$ was estimated as part of the inference procedure and $Y^\sigma_{\text{P}, t}$ calculated based on the reported credible intervals in the ONS data, assuming independent normal errors.
 For data sets where only weekly estimates were reported by ONS, for example at the sub-regional level, we calculated average prevalence across the time period reported from our daily prevalence estimates.
 
 Using the estimate infection incidences $I(t)$ we estimated growth rates $r(t)$ as
@@ -167,7 +167,7 @@ $$
 A(t) = A_{\text{I}}(t)  + A_{\text{V}}(t)
 $$
 
-Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropostives preferentially arise in those not seropositive so far.
+Here, the additional parameter $\beta$ can be interpreted as proportion of new infections that does not increase the population proportion with antibodies, either due to lack of seroconversion or because they are breakthrough infections in those with existing antibodies, and parameters $k$ and $l$ govern the degree to which new seropositives preferentially arise in those not seropositive so far.
 Additional parameters $\gamma_\text{I}$ and $\gamma_\text{V}$ can be interpreted as rates of waning from natural infection and vaccination, respectively.
 This formulation implies simplifying assumptions that the rate of waning of detectable antibodies is exponential, that vaccine doses are allocated randomly amongst those with or without existing antibodies, and that the proportion of new vaccinations that lead to seroconversion $\delta$ is constant and independent of age, vaccine use, and dose number.
 
