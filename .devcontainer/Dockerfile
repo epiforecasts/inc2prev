@@ -43,7 +43,7 @@ RUN export TAG=$(git ls-remote --tags --refs --sort='version:refname' https://gi
 RUN apt-get update \
      && export DEBIAN_FRONTEND=noninteractive \
      && apt-get -y install --no-install-recommends libglpk-dev libv8-dev \
-            pandoc-citeproc tmux
+            pandoc-citeproc tmux libmagick++-dev
 
 # install and enable git lfs
 RUN apt-get -y install git-lfs && git-lfs install
