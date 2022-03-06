@@ -48,6 +48,9 @@ RUN apt-get update \
 # install and enable git lfs
 RUN apt-get -y install git-lfs && git-lfs install
 
+# install tinytex
+RUN Rscript -e 'tinytex::install_tinytex()'
+
 # install precommit
 RUN pip install pre-commit
 
