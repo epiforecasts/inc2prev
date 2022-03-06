@@ -64,7 +64,8 @@ Here we present estimates of time-varying and static epidemiological quantities 
 
 ## Methods
 
-We used a guassian process to model incidence of infections and then estimated observed PCR prevalence by convolving our modelled incidence estimates with a previously published PCR detection curve describing the probability of a positive test as a function of the time since infection. We refined our incidence estimates using time-varying estimates of antibody prevalence combined with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
+We used a guassian process to model incidence of infections and then estimated observed PCR prevalence by convolving our modelled incidence estimates with a previously published PCR detection curve describing the probability of a positive test as a function of the time since infection.
+We refined our incidence estimates using time-varying estimates of antibody prevalence combined with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
 
 ## Results
 
@@ -89,7 +90,7 @@ A separate and independent system of collating information on the state of the p
 By adjusting for biases in the sampled population, the study has been used to estimate daily population-wide estimates of infection prevalence, unaffected by testing capacity or reporting behaviour that often varies by age as well as sociodemographic or other factors.
 
 While repeated randomised cross-sectional sampling of positivity and antibodies provides utility in themselves for tracking an epidemic in real time, they can also be used for estimating epidemiological quantities by combining them with information on infection kinetics and immunological responses.
-Here we present a semi-mechanistic model that combines PCR positivity curves, generation interval estimates and vaccination data with ONS PCR positivity and antibody data to estimate infection incidence and its growth rate, reproduction numbers and rates of antibody waning.
+Here we present a semi-mechanistic model that combines PCR positivity curves, generation interval estimates and vaccination data with ONS PCR positivity and antibody data to estimate infection incidence and its growth rates, reproduction numbers and rates of antibody waning.
 
 # Methods
 
