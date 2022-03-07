@@ -8,3 +8,4 @@ vector convolve(vector vec1, vector vec2) {
   }
   return(conv);
 }
+
