@@ -40,7 +40,7 @@ additional_text <- list(
 
 Estimates were derived from the modelled daily and weekly data published weekly as part of the [Coronavirus (COVID-19) Infection Survey](https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/bulletins/coronaviruscovid19infectionsurveypilot/previousReleases) by the [Office of National Statistics](https://www.ons.gov.uk/). Prevalence and incidence estimates are shown for the last year, and reproduction number for the past three months. 
 
-Please consider the limitations mentioned in the [manuscript](https://epiforecasts.io/inc2prev/paper) before interpreting the plots..
+Please consider the limitations mentioned in the [manuscript](https://epiforecasts.io/inc2prev/paper) before interpreting the plots.
 
 Code to reproduce the results and links to data tables with estimates are available at [https://github.com/epiforecasts/inc2prev](https://github.com/epiforecasts/inc2prev).
 
