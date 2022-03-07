@@ -58,8 +58,7 @@ weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
 ## Get tools
-functions <- list.files(here("R"), full.names = TRUE)
-walk(functions, source)
+devtools::load_all()
 
 # Load prevalence data and split by location
 data <- read_cis(nhse_regions = nhse)
