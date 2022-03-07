@@ -5,8 +5,7 @@ library(socialmixr)
 library(dplyr)
 
 ## Get tools
-functions <- list.files(here("R"), full.names = TRUE)
-walk(functions, source)
+devtools::load_all()
 
 prev <- read_cis()
 
