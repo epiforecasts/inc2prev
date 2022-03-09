@@ -62,8 +62,11 @@ i2p_add_var <- function(dt, prev, data, var_col = NULL) {
       ,
       paste(var_col) := fcase(
         name %in% c("est_prev", "est_ab", "infections",
-		    "dcases", "dab", "gen_dab", "r", "R"), 
-			      vars[n_index],
+		    "dcases", "dab", "gen_dab", "r", "R",
+		    "eta", "init_growth"),
+	vars[n_index],
+        name %in% c("rho", "alpha", "init_inc"),
+        vars[p_index],
         name %in% c("beta", "gamma", "delta", "k", "l"),
         paste0(vars[ab_index], collapse = ";")
       )
