@@ -23,38 +23,38 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
   gp <- lapply(seq_len(dat$n), function(i) {
     upd <- update_gp(PHI, dat$M, dat$L, param$alpha[i], param$rho[i], 
 		     param$eta[i, ], 0)
-    return(to_row_vector(upd))
+    return(upd)
   })
   gp <- do.call(rbind, gp)
 
   infections <- lapply(seq_len(dat$n), function(i) {
     inf <- plogis(param$init_inc[i] + gp[i, ])
-    return(to_row_vector(inf))
+    return(inf)
   })
   infections <- do.call(rbind, infections)
 
   dcases <- lapply(seq_len(dat$n), function(i) {
     dca <- convolve(infections[i, ], param$prob_detect)
-    return(to_row_vector(dca))
+    return(dca)
   })
   dcases <- do.call(rbind, dcases)
 
   odcases <- lapply(seq_len(dat$n), function(i) {
     odc <- observed_in_window(dcases[i, ], dat$prev_stime, dat$prev_etime, 
 			      dat$ut, dat$obs)
-    return(to_row_vector(odc))
+    return(odc)
   })
   odcases <- do.call(rbind, odcases)
 
   combined_sigma <- lapply(seq_len(dat$n), function(i) {
     cs <- sqrt(rep(param$sigma^2, ncol(dat$prev_sd2)) + dat$prev_sd2[i, ])
-    return(to_row_vector(cs))
+    return(cs)
   })
   combined_sigma <- do.call(rbind, combined_sigma)
 
   infs_with_potential_abs <- lapply(seq_len(dat$n_ab), function(i) {
     inf <- convolve(infections[dat$ab_index[i], ], dat$inf_ab_delay)
-    return(to_row_vector(inf))
+    return(inf)
   })
   infs_with_potential_abs <- do.call(rbind, infs_with_potential_abs)
 
@@ -64,20 +64,20 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
 			        param$beta, param$gamma, param$delta,
 			        param$k, param$l, 
 			        param$init_dab[dat$ab_index[i]], dat$t)
-    return(to_row_vector(da))
+    return(da)
   })
   dab <- do.call(rbind, dab)
 
   if (type == "observation") {
     odab <- lapply(seq_len(dat$n), function(i) {
       oda <- observed_in_window(dab[i, ], dat$ab_stime, dat$ab_etime, dat$ut, dat$ab_obs)
-      return(to_row_vector(oda))
+      return(oda)
     })
     odab <- do.call(rbind, odab)
 
     combined_ab_sigma <- lapply(seq_len(dat$n), function(i) {
       cs <- sqrt(rep(param$ab_sigma^2, ncol(dat$ab_sd2)) + dat$ab_sd2[i, ])
-      return(to_row_vector(cs))
+      return(cs)
     })
     combined_ab_sigma <- do.call(rbind, combined_ab_sigma)
 
