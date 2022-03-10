@@ -5,13 +5,34 @@ library(here)
 ons_age_limits <- c(2, 11, 16, 25, 35, 50, 70)
 
 vacc <- fread("https://api.coronavirus.data.gov.uk/v2/data?areaType=region&metric=vaccinationsAgeDemographics&format=csv")
+vacc_local <- fread("https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=vaccinationsAgeDemographics&format=csv")
+areas <- fread(here::here("data", "cis_areas.csv"))
+
 vacc[, lower_age_limit := as.integer(sub("[_+].*$", "", age))]
 
 vacc[, vaccinated := rowSums(.SD), .SDcols = grep("^newPeopleVaccinated", names(vacc))]
+vacc_local[, vaccinated := rowSums(.SD), .SDcols = grep("^newPeopleVaccinated", names(vacc_local))]
+
+## need to merge twice to dealt with local area remapping
+vacc_local <- merge(
+  vacc_local, 
+  areas[, list(geography_code, areaName = lad, ltla_name)], 
+  by = "areaName", all.x = TRUE
+)
+vacc_local[, areaName2 := areaName]
+vacc_local <- merge(
+  vacc_local, 
+  unique(areas[, list(geography_code2 = geography_code, areaName2 = ltla_name)]),
+  by = "areaName2", all.x = TRUE
+)
+
+
 vacc[lower_age_limit == min(lower_age_limit), 
      lower_age_limit := max(ons_age_limits[ons_age_limits <= unique(lower_age_limit)])]
 vacc[, lower_age_limit := reduce_agegroups(lower_age_limit, ons_age_limits)]
 vacc <- vacc[, list(vaccinated = sum(vaccinated)), 
+     by = list(vaccination_date = date, areaName, lower_age_limit)]
+vacc_local <- vacc[, list(vaccinated = sum(vaccinated)), 
      by = list(vaccination_date = date, areaName, lower_age_limit)]
 
 vacc_national <- vacc[, list(vaccinated = sum(vaccinated)), by = vaccination_date]
