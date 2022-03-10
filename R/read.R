@@ -219,10 +219,10 @@ read_vacc <- function(nhse_regions = TRUE) {
   pops <- read_pop()
   vacc_read <- readr::read_csv(here::here("data", "vacc.csv")) 
   vacc_regional <- vacc_read %>%
-    filter(level != "age_school") %>%
+    filter(level %in% c("national", "regional")) %>%
     select(-lower_age_limit) %>%
     left_join(pops %>%
-      filter(level != "age_school") %>%
+      filter(level %in% c("national", "regional")) %>%
       select(level, geography, population),
       by = c("level", "geography")
     ) %>%
@@ -241,7 +241,21 @@ read_vacc <- function(nhse_regions = TRUE) {
         .groups = "drop"
       )
   }
-  vacc_age <- vacc_read %>%
+  vacc_local <- vacc_read %>%
+    filter(level == "local") %>%
+    select(-lower_age_limit) %>%
+    left_join(pops %>%
+      filter(level == "local") %>%
+      select(level, geography = geography_code, population),
+      by = c("level", "geography")
+    ) %>%
+    mutate(vaccinated = vaccinated / population) %>%
+    select(level,
+      date = vaccination_date,
+      vaccinated, variable = geography, region,
+      population
+    )
+   vacc_age <- vacc_read %>%
     filter(level == "age_school") %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
@@ -256,7 +270,7 @@ read_vacc <- function(nhse_regions = TRUE) {
       date = vaccination_date,
       vaccinated, variable = age_group
     )
-  vacc <- bind_rows(vacc_regional, vacc_age)
+  vacc <- bind_rows(vacc_regional, vacc_local, vacc_age)
   return(vacc)
 }
 

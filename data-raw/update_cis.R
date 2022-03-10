@@ -424,53 +424,70 @@ areas <- combined %>%
   select(-geography) %>%
   unnest(lad) %>%
   mutate(
-    lad = if_else(lad %in% c("Suffolk Coastal", "Waveney"),
+    ltla_name = if_else(lad %in% c("Suffolk Coastal", "Waveney"),
       "East Suffolk",
       lad
     ),
-    lad = if_else(lad %in% c("Forest Heath", "St Edmundsbury"),
+    ltla_name = if_else(ltla_name %in% c("Forest Heath", "St Edmundsbury"),
       "West Suffolk",
-      lad
+      ltla_name
     ),
-    lad = if_else(lad %in% c("Taunton Deane", "West Somerset"),
+    ltla_name = if_else(ltla_name %in% c("Taunton Deane", "West Somerset"),
       "Somerset West and Taunton",
-      lad
+      ltla_name
     ),
-    lad = if_else(lad %in% c("Bournemouth", "Poole", "Christchurch"),
+    ltla_name = if_else(ltla_name %in% c("Bournemouth", "Poole", "Christchurch"),
       "Bournemouth, Christchurch and Poole",
-      lad
+      ltla_name
     ),
-    lad = if_else(
-      lad %in% c(
+    ltla_name = if_else(
+      ltla_name %in% c(
         "East Dorset", "North Dorset", "West Dorset", "Purbeck",
         "Weymouth and Portland"
       ),
       "Dorset",
-      lad
+      ltla_name
     ),
-    lad = if_else(lad %in% c(
+    ltla_name = if_else(ltla_name %in% c(
       "Aylesbury Vale", "Chiltern", "South Bucks",
       "Wycombe"
     ),
     "Buckinghamshire",
-    lad
+    ltla_name
     ),
-    lad = if_else(lad %in% c(
+    ltla_name = if_else(ltla_name %in% c(
       "Corby", "East Northamptonshire", "Kettering",
       "Wellingborough"
     ),
     "North Northamptonshire",
-    lad
+    ltla_name
     ),
-    lad = if_else(lad %in% c(
+    ltla_name = if_else(ltla_name %in% c(
       "Daventry", "Northampton",
       "South Northamptonshire"
     ),
     "West Northamptonshire",
-    lad
+    ltla_name
+    ),
+    dashboard_name = if_else(ltla_name %in% c(
+      "Hackney", "City of London"
+    ),
+    "Hackney and City of London",
+    ltla_name
+    ),
+    dashboard_name = if_else(dashboard_name %in% c(
+      "Cornwall", "Isles of Scilly"
+    ),
+    "Cornwall and Isles of Scilly",
+    dashboard_name
+    ),
+    dashboard_name = if_else(dashboard_name %in% c(
+      "Na h-Eileanan Siar"
+    ),
+    "Comhairle nan Eilean Siar",
+    dashboard_name
     )
-  ) %>%
-  rename(ltla_name = lad)
+  )
 
 ## get population estimates
 pop_file <- here::here("data-raw", "uk_pop.xls")
