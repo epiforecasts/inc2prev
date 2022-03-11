@@ -124,6 +124,7 @@ linf <- local_samples[name == "infections", list(local_area = variable, sample, 
 
 inf_ab <- rbind(lsims, linf)
 
+inf_ab <- inf_ab[local_area %in% unique(areas$geography_code)]
 saveRDS(as_tibble(inf_ab), here::here("outputs", "inf_ab_local_samples.rds"))
 inf_ab_summary <- inf_ab[, as.list(quantile(.SD, prob = seq(0.05, 0.95, by = 0.05), na.rm = TRUE)), by = c("local_area", "date", "name"), .SDcols = c("value")]
 percentages <- grep("%$", colnames(inf_ab_summary), value = TRUE)
