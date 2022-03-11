@@ -119,9 +119,15 @@ sims <- samples[, list(sim = list(simulate(dat, param[[1]]))), by = sample]
 ## tidy
 lsims <- melt(data.table(unnest(sims, cols = c(sim))), id.vars = c("local_area", "sample"), variable.name = "date")
 lsims <- lsims[, name := "antibodies"]
+lsims <- lsims[, date := as.Date(as.character(date))]
 linf <- local_samples[name == "infections", list(local_area = variable, sample, date, value, name)]
 
 inf_ab <- rbind(lsims, linf)
 
-saveRDS(as.tibble(inf_ab), here::here("outputs", "inf_ab.rds"))
-fwrite(inf_ab, here::here("outputs", "inf_ab.csv"))
+saveRDS(as_tibble(inf_ab), here::here("outputs", "inf_ab_local_samples.rds"))
+inf_ab_summary <- inf_ab[, as.list(quantile(.SD, prob = seq(0.05, 0.95, by = 0.05), na.rm = TRUE)), by = c("local_area", "date", "name"), .SDcols = c("value")]
+percentages <- grep("%$", colnames(inf_ab_summary), value = TRUE)
+qs <- paste0("q", as.numeric(sub("%$", "", percentages)))
+setnames(inf_ab_summary, percentages, qs)
+saveRDS(as_tibble(inf_ab_summary), here::here("outputs", "inf_ab_local_estimates.rds"))
+fwrite(inf_ab_summary, here::here("outputs", "inf_ab_local.csv"))
