@@ -3,7 +3,7 @@ title: "Estimating epidemiological quantities from repeated cross-sectional prev
 author: Sam Abbott, Sebastian Funk
 bibliography: references.bib
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
-date: "`r format(Sys.Date(), format = '%B %d, %Y')` - WORK IN PROGRESS DRAFT"
+date: "`r format(Sys.Date(), format = '%B %d, %Y')`"
 output:
   bookdown::pdf_document2:
     toc: false
@@ -28,14 +28,19 @@ if (!file.exists(params_table)) {
   source(here::here("scripts", "simple-example.R"))
 }
 params <- fread(params_table)
+params <- melt(params, id.vars = c("name", "index"))
+params[name == "gamma", value := 1 - exp(-365.25 / 12 * value)]
+params <- dcast(params, name + index ~ variable)
 params[name == "gamma",
        name := ifelse(index == 1, "gamma (infection)", "gamma (vaccination)")
 ]
 params[,
   Description := fcase(
     name == "beta", "Proportion infected that seroconvert",
-    name == "gamma (infection)", "Antibody waning following infection (daily rate)",
-    name == "gamma (vaccination)", "Antibody waning following vaccination (daily rate)",
+    name ==
+    "gamma (infection)", "Antibody waning following infection (per month)",
+    name ==
+    "gamma (vaccination)", "Antibody waning following vaccination (per month)",
     name == "delta", "Proportion vaccinated that seroconvert",
     name == "k", "Efficacy adjustment of immunity following infection",
     name == "l", "Efficacy adjustment of immunity following vaccination")
@@ -209,9 +214,11 @@ The estimates of infection incidence are distinct from estimates of PCR positivi
 When additionally using antibody and vaccination data, we refine our estimates of infection incidence and recover estimates of relevant parameters such as seroconversion and waning rates that can be used to estimate antibody prevalence where infection and vaccination data is available but antibody data is not.
 
 Our estimated parameters of antibody dynamics are averages across a various combinations of vaccine types and individual factors that are known to affect immunological responses to either infection or vaccination, particularly age [@ward2022]. 
-We estimated that `r 100 - signif(params[name == "beta"]$median, 2) * 100`% (90% credible interval, CI: `r 100 - signif(params[name == "beta"]$q95, 2) * 100`--`r 100 - signif(params[name == "beta"]$q5, 2) * 100`) of individuals do not seroconvert after infection, compared to 24% estimated from the same study population, but also lower estimates such as 10% in a different study [@gudbjartsson2020]. 
+We estimated that `r 100 - signif(params[name == "beta"]$median, 2) * 100`% (90% credible interval, CI: `r 100 - signif(params[name == "beta"]$q95, 2) * 100`--`r 100 - signif(params[name == "beta"]$q5, 2) * 100`) of individuals do not seroconvert after infection, consistent with the 24% estimated from the same study population, but also lower estimates such as 10% in a different study [@gudbjartsson2020]. 
 We further estimated that `r signif(params[name == "delta"]$median, 2) * 100`% (90% CI: `r signif(params[name == "delta"]$q95, 2) * 100`--`r signif(params[name == "delta"]$q5, 2) * 100`) of individuals seroconverted following vaccination, in line with high such proportions estimated in healthcare workers [@eyre2021].
-Our estimates of waning correspond to an average duration of immunity of `r signif(1 / params[name == "gamma (infection)"]$median, 2)` days (90% CI: `r signif(1 / params[name == "gamma (infection)"]$q95, 2)`--`r signif(1 / params[name == "gamma (infection)"]$q5, 2) `) following infection and `r signif(1 / params[name == "gamma (vaccination)"]$median, 2)` days (90% CI: `r signif(1 / params[name == "gamma (vaccination)"]$q95, 2)`--`r signif(1 / params[name == "gamma (vaccination)"]$q5, 2)`) following vaccination.
+Our estimates of waning suggest that detectable antibodies decrease by `r signif(params[name == "gamma (infection)"]$median, 2) * 100`% (90% CI: `r signif(params[name == "gamma (infection)"]$q5, 2) * 100`--`r signif(params[name == "gamma (infection)"]$q95, 2) * 100`) following infection and `r signif(params[name == "gamma (vaccination)"]$median, 2) * 100`% (90% CI: `r signif(params[name == "gamma (vaccination)"]$q5, 2) * 100`--`r signif(params[name == "gamma (vaccination)"]$q95, 2) * 100`) following vaccination.
+All these values depend on the specific cutoff used for seropositivity and combine a range of vaccines, and they ignore additional effects from receiving multiple doses of vaccine, becoming infected as well as vaccinated.
+They cannot be compared directly to estimates of vaccine efficacy or waning thereof.
 
 As currently implemented, our method suffers from a number of limitations that risk biasing the results.
 Several of the key parameters in our model, especially the estimates of PCR positivity over time from infection, generation interval distributions, are fixed and based on estimates derived from wildtype virus in a particular cohort of healthcare workers and may well be incorrect for other circulating variants or populations.
