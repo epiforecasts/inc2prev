@@ -38,7 +38,7 @@ data {
   array[n] real init_inc_mean; // Mean initial/mean incidence (logit)
   array[n_ab > 0 ? n : 0] real init_ab_mean; // mean estimate of initial antibody prevalence
   array[n_ab > 0 ? n : 0] real init_ab_sd; // sd of estimate of initial antibody prevalence
-  array[2] real pbeta; // Mean and sd for prior proportion that don't seroconvert
+  array[2] real pbeta; // Mean and sd for prior proportion that seroconvert
   array[2] real pgamma_mean; // Means for prior infection and vaccine waning
   array[2] real pgamma_sd; // Sds for prior infection and vaccine waning
   array[2] real pdelta; // Mean and sd for prior vaccine efficacy
@@ -73,7 +73,7 @@ parameters {
   real<lower = 0> sigma; // observation error
   array[n_ab > 0 ? 1 : 0] real<lower = 0> ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
-  vector<lower = 0, upper = 1>[n_ab > 0 ? 1 : 0] beta; // proportion that don't seroconvert
+  vector<lower = 0, upper = 1>[n_ab > 0 ? 1 : 0] beta; // proportion that seroconvert
   vector<lower = 0, upper = 1>[n_ab > 0 ? 2 : 0] gamma; // antibody waning (inf & vac)
   vector<lower = 0, upper = 1>[n_ab > 0 ? 1 : 0] delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[n] init_dab; // initial proportion with antibodies
