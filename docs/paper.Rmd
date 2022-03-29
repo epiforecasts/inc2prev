@@ -69,7 +69,7 @@ Here we present estimates of time-varying and static epidemiological quantities 
 
 ## Methods
 
-We used a guassian process to model incidence of infections and then estimated observed PCR prevalence by convolving our modelled incidence estimates with a previously published PCR detection curve describing the probability of a positive test as a function of the time since infection.
+We used a gaussian process to model incidence of infections and then estimated observed PCR prevalence by convolving our modelled incidence estimates with a previously published PCR detection curve describing the probability of a positive test as a function of the time since infection.
 We refined our incidence estimates using time-varying estimates of antibody prevalence combined with a model of antibody positivity and waning that moved individuals between compartments with or without antibodies based on estimates of new infections, vaccination, probability of seroconversion and waning.
 
 ## Results
