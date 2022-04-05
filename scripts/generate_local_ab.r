@@ -120,7 +120,7 @@ sims <- samples[, list(sim = list(simulate(dat, param[[1]]))), by = sample]
 lsims <- melt(data.table(unnest(sims, cols = c(sim))), id.vars = c("local_area", "sample"), variable.name = "date")
 lsims <- lsims[, name := "antibodies"]
 lsims <- lsims[, date := as.Date(as.character(date))]
-linf <- local_samples[name == "infections", list(local_area = variable, sample, date, value, name)]
+linf <- local_samples[name %in% c("infections", "R"), list(local_area = variable, sample, date, value, name)]
 
 inf_ab <- rbind(lsims, linf)
 
