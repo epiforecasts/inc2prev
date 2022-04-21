@@ -146,7 +146,7 @@ read_pop <- function(ab = FALSE) {
   ))
 }
 
-read_ab <- function(nhse_regions = TRUE) {
+read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
   pops <- read_pop(ab = TRUE)
   lower_age_limits <- read_cis() %>%
     filter(level == "age_school") %>%
@@ -155,6 +155,7 @@ read_ab <- function(nhse_regions = TRUE) {
     mutate(lower_age_limit = parse_number(sub("-\\+.*$", "", variable))) %>%
     pull(lower_age_limit)
   ab_regional <- readr::read_csv(here::here("data", "ab.csv")) %>%
+    filter(threshold_level == threshold) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
