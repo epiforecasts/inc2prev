@@ -1,5 +1,6 @@
 library(data.table)
 
+#' @export
 i2p_gp_tune_model <- function(path) {
   if (missing(path)) {
     path <- "stan/tune_inv_gamma.stan"
