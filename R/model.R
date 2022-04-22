@@ -242,7 +242,7 @@ i2p_inits <- function(dat) {
         rnorm(dat$M * dat$n, mean = 0, sd = 0.1), dim = c(dat$n, dat$M)
       ),
       alpha = array(
-        truncnorm::rtruncnorm(dat$n, mean = 0, sd = 0.1, a = 0)
+        truncnorm::rtruncnorm(dat$n, mean = 1, sd = 0.1, a = 0)
       ),
       rho = array(
         truncnorm::rtruncnorm(dat$n, mean = 36, sd = 21, a = 14, b = 90)
@@ -263,9 +263,9 @@ i2p_inits <- function(dat) {
 
     if (dat$ab_obs > 0) {
       init_list <- c(init_list, list(
-        beta = array(inv_logit(rnorm(1, 2, 1))),
-        gamma = array(inv_logit(rnorm(2, -9, 4))),
-        delta = array(inv_logit(rnorm(1, 3, 1))),
+        beta = array(inv_logit(rnorm(1, 2, 0.4))),
+        gamma = array(inv_logit(rnorm(2, -9, 0.4))),
+        delta = array(inv_logit(rnorm(1, 3, 0.4))),
         k = array(exp(rnorm(1, 0, 0.1))),
         l = array(exp(rnorm(1, 0, 0.1))),
         ab_sigma = array(
