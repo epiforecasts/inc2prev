@@ -8,6 +8,9 @@ suppressMessages(library(socialmixr))
 suppressMessages(library(readr))
 suppressMessages(library(purrr))
 suppressMessages(library(docopt))
+suppressMessages(library(inc2prev))
+
+source(here::here("scripts", "read.R"))
 
 doc <- "
 Analyse outputs of the inc2prev model

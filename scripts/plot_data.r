@@ -4,6 +4,7 @@ library(ggplot2)
 library(socialmixr)
 library(dplyr)
 
+source(here::here("scripts", "read.R"))
 prev <- read_cis()
 
 p <- ggplot(prev %>%

@@ -14,8 +14,11 @@ suppressMessages(library(future.apply))
 suppressMessages(library(future.callr))
 suppressMessages(library(future))
 suppressMessages(library(docopt))
+suppressMessages(library(inc2prev))
 
-doc <- "
+source(here::here("scripts", "read.R"))
+
+ddoc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:

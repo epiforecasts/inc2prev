@@ -7,12 +7,13 @@ library(readr)
 library(scales)
 library(tidyr)
 
+source(here::here("scripts", "read.R"))
+
 ## whether to make spaghetti plots
 spaghetti <- FALSE
 filetype <- "png"
 
 ## Get tools
-source(here::here("R", "read.R"))
 prev <- read_cis()
 local_region <- prev %>%
   filter(level == "local") %>%
