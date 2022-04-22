@@ -6,8 +6,9 @@ age_school,50,England,E92000001,7637133
 age_school,60,England,E92000001,3196813
 age_school,65,England,E92000001,2784300
 age_school,70,England,E92000001,2814128
-age_school,75,England,E92000001,4865591
-age_school,NA,England,E92000001,56550138
+age_school,75,England,E92000001,2009992
+age_school,80,England,E92000001,2855599
+national,NA,England,E92000001,56550138
 regional,NA,East Midlands,E12000004,4865583
 regional,NA,East of England,E12000006,6269161
 regional,NA,London,E12000007,9002488

@@ -13,7 +13,7 @@ ons_to_nhse_region <- function(x) {
 read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
   pops <- read_pop()
   ## get prevalence by ONS region
-  prev_regional <- readr::read_csv(here::here("data", "cis.csv")) %>%
+  prev_regional <- readr::read_csv(here::here("data-processed", "cis.csv")) %>%
     filter(level != "local") %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
@@ -21,7 +21,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       by = c("level", "geography_code")
     )
   ## get local prevalence, filling with ONS region estimates where missing
-  prev_local <- readr::read_csv(here::here("data", "cis.csv")) %>%
+  prev_local <- readr::read_csv(here::here("data-processed", "cis.csv")) %>%
     filter(level == "local")
   if (fill_missing) {
     missing_dates_local <- seq(
@@ -87,7 +87,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       variable = geography_code, region,
       population
     )
-  prev_age <- readr::read_csv(here::here("data", "cis_age.csv")) %>%
+  prev_age <- readr::read_csv(here::here("data-processed", "cis_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(level, lower_age_limit, population),
@@ -103,7 +103,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       variable = age_group,
       population
     )
-  prev_variants <- readr::read_csv(here::here("data", "cis_variants.csv")) %>%
+  prev_variants <- readr::read_csv(here::here("data-processed", "cis_variants.csv")) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
       select(level, geography_code, population),
@@ -142,7 +142,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
 
 read_pop <- function(ab = FALSE) {
   readr::read_csv(here::here(
-    "data", paste0("populations", if_else(ab, "_ab", ""), ".csv")
+    "data-processed", paste0("populations", if_else(ab, "_ab", ""), ".csv")
   ))
 }
 
@@ -154,7 +154,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
     distinct() %>%
     mutate(lower_age_limit = parse_number(sub("-\\+.*$", "", variable))) %>%
     pull(lower_age_limit)
-  ab_regional <- readr::read_csv(here::here("data", "ab.csv")) %>%
+  ab_regional <- readr::read_csv(here::here("data-processed", "ab.csv")) %>%
     filter(threshold_level == threshold) %>%
     left_join(pops %>%
       filter(level != "age_school") %>%
@@ -182,7 +182,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
       ) %>%
       pivot_wider()
   }
-  ab_age <- readr::read_csv(here::here("data", "ab_age.csv")) %>%
+  ab_age <- readr::read_csv(here::here("data-processed", "ab_age.csv")) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(level, lower_age_limit, population),
@@ -218,7 +218,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
 
 read_vacc <- function(nhse_regions = TRUE) {
   pops <- read_pop()
-  vacc_read <- readr::read_csv(here::here("data", "vacc.csv")) 
+  vacc_read <- readr::read_csv(here::here("data-processed", "vacc.csv")) 
   vacc_regional <- vacc_read %>%
     filter(level != "age_school") %>%
     select(-lower_age_limit) %>%
@@ -262,7 +262,7 @@ read_vacc <- function(nhse_regions = TRUE) {
 }
 
 read_early <- function(nhse_regions = TRUE) {
-  early <- readr::read_csv(here::here("data", "early-seroprevalence.csv"))
+  early <- readr::read_csv(here::here("data-processed", "early-seroprevalence.csv"))
   if (nhse_regions) {
     pops <- read_pop()
     early <- early %>%
@@ -285,5 +285,5 @@ read_early <- function(nhse_regions = TRUE) {
 }
 
 read_prob_detectable <- function() {
-  data.table::fread("data/prob_detectable.csv")
+  data.table::fread("data-processed/prob_detectable.csv")
 }

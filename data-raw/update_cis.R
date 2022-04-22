@@ -12,7 +12,7 @@ library(lubridate)
 library(socialmixr)
 
 ## create directory for CIS if it doesn't exist
-cis_dir <- here::here("data", "cis")
+cis_dir <- here::here("data-processed", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
@@ -94,8 +94,8 @@ columns <- c(national = 4, regional = 5, local = 6, age_school = 5, variant_nati
 super_headers <- list(regional = "region", age_school = "lower_age_limit", variant_national = c("variant", "nation"), variant_regional = c("variant", "region"))
 
 ## list all files
-files <- list.files(here::here("data", "cis"), full.names = TRUE)
-list_file <- here::here("data", "cis_files.rds")
+files <- list.files(here::here("data-processed", "cis"), full.names = TRUE)
+list_file <- here::here("data-processed", "cis_files.rds")
 
 if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
   warning("Nothing new to extract")
@@ -528,20 +528,20 @@ write_csv(
   aggregated %>%
     filter(level %in% c("national", "regional", "local")) %>%
     remove_empty(which = "cols"),
-  here::here("data", "cis.csv")
+  here::here("data-processed", "cis.csv")
 )
 write_csv(
   aggregated %>%
     filter(level %in% c("age_school")) %>%
     remove_empty(which = "cols"),
-  here::here("data", "cis_age.csv")
+  here::here("data-processed", "cis_age.csv")
 )
 write_csv(
   aggregated %>%
     filter(level %in% c("variant_national", "variant_regional")) %>%
     remove_empty(which = "cols"),
-  here::here("data", "cis_variants.csv")
+  here::here("data-processed", "cis_variants.csv")
 )
-write_csv(populations, here::here("data", "populations.csv"))
-write_csv(areas, here::here("data", "cis_areas.csv"))
+write_csv(populations, here::here("data-processed", "populations.csv"))
+write_csv(areas, here::here("data-processed", "cis_areas.csv"))
 saveRDS(files, list_file)

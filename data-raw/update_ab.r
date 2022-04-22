@@ -11,7 +11,7 @@ library("socialmixr")
 library("readr")
 
 ## create directory for antibody data if it doesn't exist
-ab_dir <- here::here("data", "ab")
+ab_dir <- here::here("data-processed", "ab")
 dir.create(ab_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
@@ -47,8 +47,8 @@ super_headers <- c(regional = "region", age_school = "lower_age_limit")
 threshold_levels <- c(standard = "", higher = "higher threshold")
 
 ## list all files
-files <- list.files(here::here("data", "ab"), full.names = TRUE)
-list_file <- here::here("data", "ab_files.rds")
+files <- list.files(here::here("data-processed", "ab"), full.names = TRUE)
+list_file <- here::here("data-processed", "ab_files.rds")
 
 ## if no new URLs there is nothing to do
 if (nrow(df_dl) > 0) {
@@ -258,11 +258,11 @@ populations <- combined %>%
 write_csv(combined %>%
           filter(level %in% c("national", "regional")) %>%
           remove_empty(which = "cols"),
-          here::here("data", "ab.csv"))
+          here::here("data-processed", "ab.csv"))
 write_csv(combined %>%
           filter(level %in% c("age_school")) %>%
           remove_empty(which = "cols"),
-          here::here("data", "ab_age.csv"))
-write_csv(populations, here::here("data", "populations_ab.csv"))
+          here::here("data-processed", "ab_age.csv"))
+write_csv(populations, here::here("data-processed", "populations_ab.csv"))
 saveRDS(files, list_file)
 

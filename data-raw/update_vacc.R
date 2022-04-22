@@ -5,6 +5,7 @@ library(here)
 ons_age_limits <- c(2, 11, 16, 25, 35, 50, 70)
 
 vacc <- fread("https://api.coronavirus.data.gov.uk/v2/data?areaType=region&metric=vaccinationsAgeDemographics&format=csv")
+
 vacc[, lower_age_limit := as.integer(sub("[_+].*$", "", age))]
 
 vacc[, vaccinated := rowSums(.SD), .SDcols = grep("^newPeopleVaccinated", names(vacc))]
@@ -36,4 +37,4 @@ vacc_all <- rbindlist(list(
 		       lower_age_limit)]
 ))
 setkey(vacc_all, level, geography, lower_age_limit, vaccination_date)
-fwrite(vacc_all, here::here("data", "vacc.csv"))
+fwrite(vacc_all, here::here("data-processed", "vacc.csv"))
