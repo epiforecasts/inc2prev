@@ -20,8 +20,6 @@ library(cowplot)
 # Test target
 example_var <- "England"
 end_date <- "2021-11-01"
-## Get tools
-devtools::load_all()
 
 # Load prevalence data and split by location
 prev <- read_cis() %>%

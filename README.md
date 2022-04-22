@@ -88,7 +88,12 @@ Rscript data-raw/update-ab.R
 
 ## Reproducing the estimates
 
-Estimates provided here can be generated using the `scripts/estimate.R` script.
+Estimates provided here can be generated using the `scripts/estimate.R` script. Before running this, the `inc2prev` package contained in this repository needs to be installed, e.g. using
+
+```{r}
+remotes::install_github("epiforecasts/inc2prev")
+```
+
 The estimates shown in the plots above were generated using
 
 ```{sh}

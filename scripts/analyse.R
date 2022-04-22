@@ -37,9 +37,6 @@ local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 
-## Get tools
-devtools::load_all()
-
 if (local) {
   suffix <- "_local"
 } else if (regional) {
