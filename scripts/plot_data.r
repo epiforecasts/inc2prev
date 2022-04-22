@@ -4,9 +4,6 @@ library(ggplot2)
 library(socialmixr)
 library(dplyr)
 
-## Get tools
-devtools::load_all()
-
 prev <- read_cis()
 
 p <- ggplot(prev %>%

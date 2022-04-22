@@ -57,9 +57,6 @@ start_date <- as.Date(opts$start_date)
 weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
-## Get tools
-devtools::load_all()
-
 # Load prevalence data and split by location
 data <- read_cis(nhse_regions = nhse)
 
