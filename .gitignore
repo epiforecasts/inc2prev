@@ -14,3 +14,4 @@ docs/*.html
 *.tex
 *.log
 *.knit.md
+remote/
