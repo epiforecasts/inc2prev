@@ -8,6 +8,9 @@ suppressMessages(library(socialmixr))
 suppressMessages(library(readr))
 suppressMessages(library(purrr))
 suppressMessages(library(docopt))
+suppressMessages(library(inc2prev))
+
+source(here::here("scripts", "read.R"))
 
 doc <- "
 Analyse outputs of the inc2prev model
@@ -36,9 +39,6 @@ regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
-
-## Get tools
-devtools::load_all()
 
 if (local) {
   suffix <- "_local"

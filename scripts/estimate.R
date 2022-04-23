@@ -14,8 +14,11 @@ suppressMessages(library(future.apply))
 suppressMessages(library(future.callr))
 suppressMessages(library(future))
 suppressMessages(library(docopt))
+suppressMessages(library(inc2prev))
 
-doc <- "
+source(here::here("scripts", "read.R"))
+
+ddoc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
@@ -56,9 +59,6 @@ differencing <- ifelse(is.null(opts$differencing), 0L, as.integer(opts$differenc
 start_date <- as.Date(opts$start_date)
 weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
-
-## Get tools
-devtools::load_all()
 
 # Load prevalence data and split by location
 data <- read_cis(nhse_regions = nhse)

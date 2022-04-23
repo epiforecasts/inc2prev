@@ -13,9 +13,11 @@ The model is implemented in `stan` using `cmdstanr`.
 
 # Citation
 
-S. Abbott, S. Funk. _Estimating epidemiological quantities from repeated cross-sectional prevalence measurements_ (2022). https://github.com/epiforecasts/inc2prev
+Abbott, Sam, and Sebastian Funk. 2022. _Estimating Epidemiological Quantities from Repeated Cross-Sectional Prevalence Measurements._ bioRxiv. https://doi.org/10.1101/2022.03.29.22273101.
 
-**Draft paper: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://github.com/epiforecasts/inc2prev/raw/master/docs/paper.pdf)**
+**[Preprint](https://doi.org/10.1101/2022.03.29.22273101)**
+
+**Working paper: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://github.com/epiforecasts/inc2prev/raw/master/docs/paper.pdf)**
 
 # Real-time estimates
 
@@ -74,22 +76,27 @@ The data used in this repository can be obtained using the scripts in
 `data-raw/`. In particular, PCR positivity data by nation, region, age and
 variant can be downloaded using
 
-```{sh}
+```sh
 Rscript data-raw/update-cis.R
 ```
 
 and antibody data can be downloaded using
 
-```{sh}
+```sh
 Rscript data-raw/update-ab.R
 ```
 
 ## Reproducing the estimates
 
-Estimates provided here can be generated using the `scripts/estimate.R` script.
+Estimates provided here can be generated using the `scripts/estimate.R` script. Before running this, the `inc2prev` package contained in this repository needs to be installed, e.g. using
+
+```r
+remotes::install_github("epiforecasts/inc2prev")
+```
+
 The estimates shown in the plots above were generated using
 
-```{sh}
+```sh
 Rscript scripts/estimate.R -d 1
 ```
 
@@ -97,7 +104,7 @@ Rscript scripts/estimate.R -d 1
 
 All dependencies can be installed using the following, 
 
-```{r}
+```r
 remotes::install_dev_deps()
 ```
 
@@ -107,7 +114,7 @@ Alternatively a docker [container](https://github.com/epiforecasts/inc2prev/blob
 
 If you don’t already have CmdStan installed then it is also necessary to install CmdStan usin CmdStanR’s `install_cmdstan()` function to enable model fitting. A suitable C++ toolchain is also required. Instructions are provided in the [*Getting started with CmdStanR*](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) vignette. See the [CmdStanR documentation](https://mc-stan.org/cmdstanr/) for further details and support.
 
-``` r
+```r
 cmdstanr::install_cmdstan()
 ```
 

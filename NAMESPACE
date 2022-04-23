@@ -2,6 +2,7 @@
 
 export(combine_incidence_fits)
 export(expose_stan_fns)
+export(i2p_gp_tune_model)
 export(i2p_model)
 export(i2p_sample)
 export(incidence)
