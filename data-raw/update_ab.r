@@ -46,17 +46,18 @@ columns <- c(national = 5, regional = 6, age_school = 6)
 super_headers <- c(regional = "region", age_school = "lower_age_limit")
 threshold_levels <- c(standard = "", higher = "higher threshold")
 
+## if no new URLs there is nothing to do
+if (nrow(df_dl) > 0) {
+  df_dl <- df_dl %>%
+    rowwise() %>%
+    mutate(ret = download.file(full_url, file_path)) %>%
+    ungroup()
+  if (any(df_dl$ret != 0)) warning("Some downloads failed")
+}
+
 ## list all files
 files <- list.files(here::here("data-processed", "ab"), full.names = TRUE)
 list_file <- here::here("data-processed", "ab_files.rds")
-
-## if no new URLs there is nothing to do
-if (nrow(df_dl) > 0) {
-  df_dl %>%
-    rowwise() %>%
-    mutate(ret = download.file(full_url, file_path))
-  if (any(df_dl$ret != 0)) warning("Some downloads failed")
-}
 
 ## define geography codes not in data
 geography_codes <- c(England = "E92000001",
@@ -87,7 +88,7 @@ for (threshold_level in names(threshold_levels)) {
         filter(grepl(threshold_levels[threshold_level], contents))
       if (level == "national") {
         contents_sheet <- contents_sheet %>%
-          filter(grepl("Antibodies$", contents)) %>%
+          filter(grepl("Antibodies", contents)) %>%
           head(n = 1)
       } else if (level == "regional") {
         contents_sheet <- contents_sheet %>%
@@ -109,12 +110,13 @@ for (threshold_level in names(threshold_levels)) {
           remove_empty("cols") %>%
           clean_names()
         ## get row that contains the headers
-        headers_row <- min(which(!is.na(preview$x2)))
-	## add 1 if not a true header
-	if (sum(!is.na(unlist(preview[headers_row, ]))) == 1) {
-	  headers_row <- headers_row + 1
-	}
-        skip <- headers_row + if_else(level %in% c("regional", "age_school"), 1, 0)
+        headers_row <- min(which(!is.na(preview[, 2])))
+        ## add 1 if not a true header
+        if (sum(!is.na(unlist(preview[headers_row, ]))) == 1) {
+          headers_row <- headers_row + 1
+        }
+        skip <- headers_row +
+          if_else(level %in% c("regional", "age_school"), 1, 0)
         if (level %in% c("regional", "age_school")) {
           headers <- preview[headers_row, 2:ncol(preview)] %>%
             t() %>%
@@ -123,19 +125,29 @@ for (threshold_level in names(threshold_levels)) {
             fill(header)
           if (level == "age_school") {
             headers <- headers %>%
-              mutate(header = sub("^Age ([0-9]+) *- *([0-9]+).*$", "\\1|\\2", header),
-                     header = sub("^Age ([0-9]+)\\+", "\\1|", header)) %>%
+              mutate(header =
+                       sub("^Age ([0-9]+) *- *([0-9]+).*$", "\\1|\\2", header),
+                     header =
+                       sub("^Age ([0-9]+)(\\+| years and over)", "\\1|", header)) %>%
               separate(header, c("from", "to"), sep = "\\|")
           }
         }
-        ## having figured out where the table is and extracted the date, read the table
+        ## having figured out where the table is and extracted the date,
+        ## read the table
         if (is.infinite(skip)) return(NULL) ## couldn't find data
         ## find max row to read
-        n_max <- min(which(!grepl("^[0-9]", unlist(preview[(skip + 1):nrow(preview), 1])))) - 1
-        data <- read_excel(x, sheet = sheet, skip = skip, n_max = n_max, .name_repair = "minimal") %>%
+        n_max <-
+          min(which(!grepl("^[0-9]",
+                           unlist(preview[(skip + 1):nrow(preview), 1])))) - 1
+        data <- read_excel(x, sheet = sheet, skip = skip,
+                           n_max = n_max, .name_repair = "minimal") %>%
           remove_empty("cols") %>%
           clean_names()
-        colnames(data) <- c("weekly_period", sub("_[0-9]+$", "", colnames(data)[2:ncol(data)]))
+        if (ncol(data) == 0) return(NULL)
+        ## remove trailing numbers
+        colnames(data) <-
+          c("weekly_period",
+            sub("(_[0-9]+)+$", "", colnames(data)[2:ncol(data)]))
         if (level == c("regional")) {
           colnames(data)[2:ncol(data)] <-
             paste(colnames(data)[2:ncol(data)], headers$header, sep = "|")
@@ -144,8 +156,8 @@ for (threshold_level in names(threshold_levels)) {
             paste(colnames(data)[2:ncol(data)], headers$from, sep = "|")
         }
         data <- data[, !duplicated(colnames(data))]
-	data <- data %>% 
-	  select(!matches("^number"))
+        data <- data %>%
+          select(!matches("^number"))
         data <- data %>%
           pivot_longer(2:ncol(.))
         if (level %in% names(super_headers)) {
@@ -229,7 +241,7 @@ pop_geo <- pop %>%
   )
 pop_age <- pop %>%
   filter(name %in% c("ENGLAND", "SCOTLAND",
-		     "WALES", "NORTHERN IRELAND")) %>%
+                     "WALES", "NORTHERN IRELAND")) %>%
   select(name, starts_with("x")) %>%
   pivot_longer(starts_with("x"), names_to = "lower_age_limit") %>%
   mutate(
@@ -265,4 +277,3 @@ write_csv(combined %>%
           here::here("data-processed", "ab_age.csv"))
 write_csv(populations, here::here("data-processed", "populations_ab.csv"))
 saveRDS(files, list_file)
-
