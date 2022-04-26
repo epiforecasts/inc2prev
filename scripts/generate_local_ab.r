@@ -2,14 +2,15 @@
 library("here")
 library("data.table")
 library("tidyr")
+library("inc2prev")
 
 ## load scripts in `R/`
-devtools::load_all()
+source(here::here("scripts", "read.R"))
 
 ## load vaccination data
 vacc <- data.table(read_vacc())[level == "local"]
 ## load ONS/LTLA/LAD/region mapping
-areas <- fread(here::here("data", "cis_areas.csv"))
+areas <- fread(here::here("data-processed", "cis_areas.csv"))
 ## England only for now
 areas <- areas[!(region %in% c("Wales", "Scotland", "Northern Ireland"))]
 
@@ -19,14 +20,14 @@ local_samples <- readRDS(here::here("outputs", "samples_local.rds"))
 local_diag <- readRDS(here::here("outputs", "diagnostics_local.rds"))
 local_dat <- local_diag$data[[1]]
 ## load samples from regional antibody model
-regional_samples <- readRDS(here::here("outputs", "samples_regional_ab.rds"))
+regional_samples <- readRDS(here::here("outputs", "samples_regional_ab_higher.rds"))
 ## load data used for local regional antibody model
-regional_diag <- readRDS(here::here("outputs", "diagnostics_regional_ab.rds"))
+regional_diag <- readRDS(here::here("outputs", "diagnostics_regional_ab_higher.rds"))
 regional_dat <- regional_diag$data[[1]]
 
 ## list of parameters to grab from each model
 prev_params <- c("alpha", "rho", "eta", "init_inc", "prob_detect", "sigma")
-ab_params <- c("beta", "gamma", "delta", "k", "l", "ab_sigma", "ab_sd2")
+ab_params <- c("beta", "gamma", "delta", "k", "l", "init_dab", "ab_sigma", "ab_sd2")
 
 ## list of data sets to grab from each model
 dat <- c(local_dat[c("M", "L", "t", "diff_order", "prev_stime", "prev_etime", "ut", "obs")], 
@@ -125,10 +126,10 @@ linf <- local_samples[name %in% c("infections", "R"), list(local_area = variable
 inf_ab <- rbind(lsims, linf)
 
 inf_ab <- inf_ab[local_area %in% unique(areas$geography_code)]
-saveRDS(as_tibble(inf_ab), here::here("outputs", "inf_ab_local_samples.rds"))
+saveRDS(as_tibble(inf_ab), here::here("outputs", "inf_ab_local_higher_samples.rds"))
 inf_ab_summary <- inf_ab[, as.list(quantile(.SD, prob = seq(0.05, 0.95, by = 0.05), na.rm = TRUE)), by = c("local_area", "date", "name"), .SDcols = c("value")]
 percentages <- grep("%$", colnames(inf_ab_summary), value = TRUE)
 qs <- paste0("q", as.numeric(sub("%$", "", percentages)))
 setnames(inf_ab_summary, percentages, qs)
-saveRDS(as_tibble(inf_ab_summary), here::here("outputs", "inf_ab_local_estimates.rds"))
-fwrite(inf_ab_summary, here::here("outputs", "inf_ab_local.csv"))
+saveRDS(as_tibble(inf_ab_summary), here::here("outputs", "inf_ab_local_higher_estimates.rds"))
+fwrite(inf_ab_summary, here::here("outputs", "inf_ab_local_higher.csv"))
