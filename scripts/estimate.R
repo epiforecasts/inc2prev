@@ -22,12 +22,13 @@ ddoc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
     estimate.R -h | --help
 
 Options:
     -h, --help                 Show this screen
     -a, --ab                   Use antibody data
+    -i, --higher               Use higher antibody threshold
     -r, --regional             Model regional dynamics
     -l, --local                Model local dynamics
     -g, --age                  Model age
@@ -50,6 +51,7 @@ if (interactive()) {
 }
 
 antibodies <- !is.null(opts$ab) && opts$ab
+higher <- !is.null(opts$higher) && opts$higher
 regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
@@ -96,7 +98,8 @@ data <- data %>%
   nest(prevalence = c(-variable))
 
 if (antibodies) {
-  ab <- read_ab(nhse_regions = nhse) %>%
+  threshold <- ifelse(higher, "higher", "standard")
+  ab <- read_ab(nhse_regions = nhse, threshold = threshold) %>%
     filter_opt(start_date) %>%
     nest(antibodies = c(-variable))
   vacc <- read_vacc(nhse_regions = nhse) %>%
@@ -250,7 +253,12 @@ samples <- bind_rows(est$samples)
 est[, variable := data$variable]
 diagnostics <- select(est, -samples, -summary)
 
-suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
+if (antibodies) {
+  suffix <- paste0(suffix, "_ab")
+  if (higher) {
+    suffix <- paste0(suffix, "_higher")
+  }
+}
 
 # Save output
 saveRDS(samples, paste0("outputs/samples", suffix, ".rds"))

@@ -15,12 +15,13 @@ source(here::here("scripts", "read.R"))
 doc <- "
 Analyse outputs of the inc2prev model
 Usage:
-    estimate.R [--ab] [--local | --regional | --age | --variants]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants]
     estimate.R -h | --help
 
 Options:
     -h --help        Show this screen
     -a --ab          Use antibody data
+    -i, --higher     Use higher antibody threshold
     -r, --regional   Analyse regional dynamics
     -l, --local      Analyse local dynamics
     -g, --age        Analyse age
@@ -35,6 +36,7 @@ if (interactive()) {
 }
 
 antibodies <- !is.null(opts$ab) && opts$ab
+higher <- !is.null(opts$higher) && opts$higher
 regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
@@ -51,26 +53,30 @@ if (local) {
 } else {
   suffix <- "_national"
 }
-suffix <- paste0(suffix, ifelse(antibodies, "_ab", ""))
+
+if (antibodies) {
+  suffix <- paste0(suffix, "_ab")
+  if (higher) {
+    suffix <- paste0(suffix, "_higher")
+  }
+}
 
 estimates <- readRDS(paste0("outputs/estimates", suffix, ".rds"))
 samples <- readRDS(paste0("outputs/samples", suffix, ".rds"))
 
 nhse <- "Midlands" %in% estimates$variable
 prev <- read_cis(nhse_regions = nhse)
-if (antibodies) {
-  ab <- read_ab(nhse_regions = nhse)
-} else {
-  ab <- NULL
-}
 
-if (variants) {
+if (variants || local) {
   early <- NULL
 } else {
   early <- read_early(nhse_regions = nhse)
 }
 
 levels <- unique(estimates$level)
+
+dir.create(here::here("figures/additional"), 
+	   showWarnings = FALSE, recursive = TRUE)
 
 updated_samples <- map(
   levels, plot_wrapper,
