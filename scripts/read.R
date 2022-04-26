@@ -13,7 +13,9 @@ ons_to_nhse_region <- function(x) {
   )
 }
 
-read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
+read_cis <-
+  function(fill_missing = TRUE, nhse_regions = TRUE,
+           max_publication_date = NULL) {
   pops <- read_pop()
   ## get prevalence by ONS region
   prev_regional <- readr::read_csv(here::here("data-processed", "cis.csv")) %>%
@@ -53,7 +55,9 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       arrange(geography_code, start_date)
   }
   prev_regional <- prev_regional %>%
-    select(level, start_date,
+    select(level,
+      publication_date,
+      start_date,
       end_date,
       middle = proportion_pos,
       lower = proportion_pos_low_95,
@@ -66,7 +70,9 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     prev_regional <- prev_regional %>%
       mutate(variable = ons_to_nhse_region(variable)) %>%
       pivot_longer(c(middle, lower, upper)) %>%
-      group_by(level, start_date, end_date, variable, name) %>%
+      group_by(
+        level, publication_date, start_date, end_date, variable, name
+      ) %>%
       summarise(
         value = sum(population * value) / sum(population),
         population = sum(population),
@@ -82,6 +88,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       by = c("level", "geography_code")
     ) %>%
     select(level,
+      publication_date,
       start_date,
       end_date,
       middle = proportion_pos,
@@ -98,6 +105,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     ) %>%
     mutate(age_group = limits_to_agegroups(lower_age_limit)) %>%
     select(level,
+      publication_date,
       start_date,
       end_date,
       middle = proportion_pos,
@@ -113,6 +121,7 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
       by = c("level", "geography_code")
     ) %>%
     select(level,
+      publication_date,
       start_date,
       end_date,
       middle = proportion_pos,
@@ -125,7 +134,9 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
     prev_variants <- prev_variants %>%
       mutate(geography = ons_to_nhse_region(geography)) %>%
       pivot_longer(c(middle, lower, upper)) %>%
-      group_by(level, geography, variant, start_date, end_date, name) %>%
+      group_by(
+        level, publication_date, geography, variant, start_date, end_date, name
+      ) %>%
       summarise(
         value = sum(population * value) / sum(population),
         population = sum(population),
@@ -140,6 +151,19 @@ read_cis <- function(fill_missing = TRUE, nhse_regions = TRUE) {
    prev <- bind_rows(prev_regional, prev_local, prev_age, prev_variants) %>%
     mutate(date = start_date + (end_date - start_date) / 2)
 
+  ## combine as quantile-wise median
+  prev <- prev %>%
+    pivot_longer(c(lower, middle, upper)) %>%
+    group_by(
+      level, start_date, end_date, variable,
+      region, date, name
+    ) %>%
+    summarise(
+      value = median(value),
+      population = median(population),
+      .groups = "drop") %>%
+    pivot_wider()
+
   return(prev)
 }
 
@@ -149,7 +173,8 @@ read_pop <- function(ab = FALSE) {
   ))
 }
 
-read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
+read_ab <- function(nhse_regions = TRUE, threshold = "higher",
+                    max_publication_date = NULL) {
   pops <- read_pop(ab = TRUE)
   lower_age_limits <- read_cis() %>%
     filter(level == "age_school") %>%
@@ -164,7 +189,9 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
       select(level, geography_code, population),
       by = c("level", "geography_code")
     ) %>%
-    select(level, start_date,
+    select(level,
+      publication_date,
+      start_date,
       end_date,
       middle = proportion_pos,
       lower = proportion_pos_low_95,
@@ -177,7 +204,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
     ab_regional <- ab_regional %>%
       mutate(variable = ons_to_nhse_region(variable)) %>%
       pivot_longer(c(middle, lower, upper)) %>%
-      group_by(level, start_date, end_date, variable, name) %>%
+      group_by(level, publication_date, start_date, end_date, variable, name) %>%
       summarise(
         value = sum(population * value) / sum(population),
         population = sum(population),
@@ -193,6 +220,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
     ) %>%
     mutate(level = "age_school") %>%
     select(level,
+      publication_date,
       start_date,
       end_date,
       middle = proportion_pos,
@@ -206,7 +234,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
         reduce_agegroups(variable, lower_age_limits)
     ) %>%
     pivot_longer(c(middle, lower, upper)) %>%
-    group_by(level, start_date, end_date, variable, name) %>%
+    group_by(level, publication_date, start_date, end_date, variable, name) %>%
     summarise(
       value = sum(population * value) / sum(population),
       population = sum(population),
@@ -216,10 +244,18 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher") {
     mutate(variable = limits_to_agegroups(variable))
   ab <- bind_rows(ab_regional, ab_age) %>%
     mutate(date = start_date + (end_date - start_date) / 2)
+  if (!is.null(max_publication_date)) {
+    ab <- ab %>%
+      filter(publication_date <= max_publication_date)
+  }
+  ## combine as quantile-wise median
+  ab <- ab %>%
+    filter(publication_date == max(publication_date))
+
   return(ab)
 }
 
-read_vacc <- function(nhse_regions = TRUE) {
+read_vacc <- function(nhse_regions = TRUE, max_publication_date = NULL) {
   pops <- read_pop()
   vacc_read <- readr::read_csv(here::here("data-processed", "vacc.csv")) 
   vacc_regional <- vacc_read %>%
@@ -275,6 +311,10 @@ read_vacc <- function(nhse_regions = TRUE) {
       vaccinated, variable = age_group
     )
   vacc <- bind_rows(vacc_regional, vacc_local, vacc_age)
+  if (!is.null(max_publication_date)) {
+    vacc <- vacc %>%
+      filter(date <= max_publication_date)
+  }
   return(vacc)
 }
 

@@ -11,6 +11,8 @@ library(janitor)
 library(lubridate)
 library(socialmixr)
 
+source(here::here("data-raw", "extract_publication_dates.r"))
+
 ## create directory for CIS if it doesn't exist
 cis_dir <- here::here("data-raw", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
@@ -378,26 +380,24 @@ for (level in names(columns)) {
 ## combine it all into one data frame
 combined <- positivity %>%
   bind_rows() %>%
-  group_by(file_name) %>%
-  mutate(report_date = max(end_date)) %>%
-  ungroup() %>%
-  arrange(report_date, start_date)
+  mutate(publication_date = extract_publication_dates(file_name)) %>%
+  arrange(publication_date, start_date)
 
 ## annoyingly, sometimes percentages are reported on the decimal scale
 percent_dates <- combined %>%
-  select(report_date, level) %>%
+  select(publication_date, level) %>%
   distinct() %>%
   mutate(
     must_divide =
       (level == "national" &
-        report_date > "2020-06-27" & report_date < "2020-07-19") |
-      (level != "national" & report_date < "2020-07-19") |
-      report_date > "2021-06-12" |
+        publication_date > "2020-07-02" & publication_date < "2020-07-24") |
+      (level != "national" & publication_date < "2020-07-24") |
+      publication_date > "2021-06-18" |
       grepl("^variant", level)
   )
 
 combined <- combined %>%
-  left_join(percent_dates, by = c("report_date", "level")) %>%
+  left_join(percent_dates, by = c("publication_date", "level")) %>%
   pivot_longer(starts_with("percentage")) %>%
   mutate(
     value = if_else(must_divide, value / 100, value),
@@ -405,15 +405,6 @@ combined <- combined %>%
   ) %>%
   pivot_wider() %>%
   select(-must_divide)
-
-aggregated <- combined %>%
-  pivot_longer(starts_with("proportion")) %>%
-  group_by(
-    level, start_date, end_date, name, lower_age_limit,
-    variant, geography, geography_code, region
-  ) %>%
-  summarise(value = median(value), .groups = "drop") %>%
-  pivot_wider()
 
 ## save area mapping, correcting for LAD21 changes
 areas <- combined %>%
@@ -524,7 +515,7 @@ pop_local <- areas %>%
   left_join(pop_geo, by = "all_caps_geography") %>%
   group_by(geography_code) %>%
   summarise(local_population = sum(population), .groups = "drop")
-populations <- aggregated %>%
+populations <- combined %>%
   mutate(all_caps_geography = toupper(geography)) %>%
   left_join(pop_geo, by = "all_caps_geography") %>%
   left_join(pop_age, by = c("lower_age_limit", "all_caps_geography")) %>%
@@ -538,23 +529,24 @@ populations <- aggregated %>%
     )
   ) %>%
   select(level, lower_age_limit, geography, geography_code, population) %>%
-  distinct()
+  distinct() %>%
+  arrange(level, geography)
 
 ## save
 write_csv(
-  aggregated %>%
+  combined %>%
     filter(level %in% c("national", "regional", "local")) %>%
     remove_empty(which = "cols"),
   here::here("data-processed", "cis.csv")
 )
 write_csv(
-  aggregated %>%
+  combined %>%
     filter(level %in% c("age_school")) %>%
     remove_empty(which = "cols"),
   here::here("data-processed", "cis_age.csv")
 )
 write_csv(
-  aggregated %>%
+  combined %>%
     filter(level %in% c("variant_national", "variant_regional")) %>%
     remove_empty(which = "cols"),
   here::here("data-processed", "cis_variants.csv")

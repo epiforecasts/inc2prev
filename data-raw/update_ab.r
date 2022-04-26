@@ -10,6 +10,8 @@ library("janitor")
 library("socialmixr")
 library("readr")
 
+source(here::here("data-raw", "extract_publication_dates.r"))
+
 ## create directory for antibody data if it doesn't exist
 ab_dir <- here::here("data-processed", "ab")
 dir.create(ab_dir, showWarnings = FALSE, recursive = TRUE)
@@ -220,11 +222,8 @@ for (threshold_level in names(threshold_levels)) {
 ## combine it all into one data frame
 combined <- ab %>%
   bind_rows() %>%
-  group_by(file_name) %>%
-  mutate(report_date = max(end_date)) %>%
-  ungroup() %>%
-  filter(report_date == max(report_date)) %>%
-  arrange(level, geography, start_date)
+  mutate(publication_date = extract_publication_dates(file_name)) %>%
+  arrange(publication_date, start_date)
 
 pop_file <- here::here("data-raw", "uk_pop.xls")
 if (!file.exists(pop_file)) {
