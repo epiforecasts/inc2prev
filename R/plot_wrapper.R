@@ -1,3 +1,4 @@
+#' @export
 plot_wrapper <- function(level, prev, ab = NULL, samples, estimates, early = NULL,
                          dont_seroconvert = 0, suffix, extension = ".png") {
   level_prev <- prev %>%
