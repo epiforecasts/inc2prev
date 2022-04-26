@@ -39,7 +39,7 @@ i2p_add_date <- function(dt, prev, ab, data) {
     data.table::as.data.table(dt)[
       ,
       date := fcase(
-        name %in% c("infections", "dcases", "dab"),
+        name %in% c("infections", "dcases", "dab", "gen_dab"),
         t_index - 1 + start_date - ut,
         name == "est_prev", prev$date[t_index],
         name == "est_ab", ab$date[t_index],
