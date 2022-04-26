@@ -12,7 +12,7 @@ library(lubridate)
 library(socialmixr)
 
 ## create directory for CIS if it doesn't exist
-cis_dir <- here::here("data-processed", "cis")
+cis_dir <- here::here("data-raw", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
@@ -94,8 +94,8 @@ columns <- c(national = 4, regional = 5, local = 6, age_school = 5, variant_nati
 super_headers <- list(regional = "region", age_school = "lower_age_limit", variant_national = c("variant", "nation"), variant_regional = c("variant", "region"))
 
 ## list all files
-files <- list.files(here::here("data-processed", "cis"), full.names = TRUE)
-list_file <- here::here("data-processed", "cis_files.rds")
+files <- list.files(here::here("data-raw", "cis"), full.names = TRUE)
+list_file <- here::here("data-raw", "cis_files.rds")
 
 if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
   warning("Nothing new to extract")
