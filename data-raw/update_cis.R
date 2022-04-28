@@ -115,12 +115,14 @@ override <- list(
 ## construct list of data frames with positivity
 positivity <- list()
 for (level in names(columns)) {
+  message(level)
   positivity[[level]] <- lapply(files, function(x) {
+    message("  ", x)
     ## are we looking at a "technical" dataset?
     technical <- grepl("technical[a-z0-9]*\\.xlsx", x)
     ## first,  get table of contents sheet to work out which sheet we want
     sheets <- excel_sheets(x)
-    contents_sheet <- read_excel(x, sheet = "Contents") %>%
+    contents_sheet <- suppressMessages(read_excel(x, sheet = "Contents")) %>%
       clean_names()
     if (level %in% c("national", "age_school")) {
       nation <- case_when(
@@ -190,7 +192,7 @@ for (level in names(columns)) {
       }
       ## we found the sheet, now we get a preview so we can work out where in
       ## the sheet the actual table is
-      preview <- read_excel(x, sheet = sheet) %>%
+      preview <- suppressMessages(read_excel(x, sheet = sheet)) %>%
         remove_empty("cols") %>%
         clean_names()
       if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
@@ -229,10 +231,10 @@ for (level in names(columns)) {
       if (is.infinite(skip)) {
         return(NULL)
       } ## couldn't find data
-      data <- read_excel(
+      data <- suppressMessages(read_excel(
         x,
         sheet = sheet, skip = skip, .name_repair = "minimal"
-      ) %>%
+      )) %>%
         remove_empty("cols") %>%
         clean_names()
       if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
@@ -485,7 +487,7 @@ pop_file <- here::here("data-raw", "uk_pop.xls")
 if (!file.exists(pop_file)) {
   download.file("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2020/ukpopestimatesmid2020on2021geography.xls", destfile = pop_file) # nolint
 }
-pop <- read_excel(pop_file, sheet = "MYE2 - Persons", skip = 7) %>%
+pop <- suppressMessages(read_excel(pop_file, sheet = "MYE2 - Persons", skip = 7)) %>%
   clean_names()
 pop_geo <- pop %>%
   mutate(all_caps_geography = sub("[^a-zA-Z]*$", "", toupper(name))) %>%

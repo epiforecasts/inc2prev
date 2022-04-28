@@ -74,17 +74,20 @@ geography_codes <- c(England = "E92000001",
                      `South West` = "E12000009")
 
 if (file.exists(list_file) && setequal(files, readRDS(list_file))) {
-##  stop("Nothing new to extract")
+  warning("Nothing new to extract")
 }
 
 ## construct list of data frames with positivity
 ab <- list()
 for (threshold_level in names(threshold_levels)) {
+  message(threshold_level)
   for (level in names(columns)) {
+    message("  ", level)
     full_level <- paste(threshold_level, level, sep = "_")
     ab[[full_level]] <- lapply(files, function(x) {
+      message("    ", x)
       ## first,  get table of contents sheet to work out which sheet we want
-      contents_sheet <- read_excel(x, sheet = "Contents") %>%
+      contents_sheet <- suppressMessages(read_excel(x, sheet = "Contents")) %>%
         clean_names()
       contents_sheet <- contents_sheet %>%
         filter(grepl(threshold_levels[threshold_level], contents))
@@ -108,7 +111,7 @@ for (threshold_level in names(threshold_levels)) {
       if (length(sheet) == 1) {
         ## we found the sheet, now we get a preview so we can work out where in
         ## the sheet the actual table is
-        preview <- read_excel(x, sheet = sheet) %>%
+        preview <- suppressMessages(read_excel(x, sheet = sheet)) %>%
           remove_empty("cols") %>%
           clean_names()
         ## get row that contains the headers
@@ -141,8 +144,8 @@ for (threshold_level in names(threshold_levels)) {
         n_max <-
           min(which(!grepl("^[0-9]",
                            unlist(preview[(skip + 1):nrow(preview), 1])))) - 1
-        data <- read_excel(x, sheet = sheet, skip = skip,
-                           n_max = n_max, .name_repair = "minimal") %>%
+        data <- suppressMessages(read_excel(x, sheet = sheet, skip = skip,
+                           n_max = n_max, .name_repair = "minimal")) %>%
           remove_empty("cols") %>%
           clean_names()
         if (ncol(data) == 0) return(NULL)
@@ -229,7 +232,7 @@ pop_file <- here::here("data-raw", "uk_pop.xls")
 if (!file.exists(pop_file)) {
   download.file("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2020/ukpopestimatesmid2020on2021geography.xls", destfile = pop_file) # nolint
 }
-pop <- read_excel(pop_file, sheet = "MYE2 - Persons", skip = 7) %>%
+pop <- suppressMessages(read_excel(pop_file, sheet = "MYE2 - Persons", skip = 7)) %>%
   clean_names()
 pop_geo <- pop %>%
   mutate(all_caps_geography = sub("[^a-zA-Z]*$", "", toupper(name))) %>%
