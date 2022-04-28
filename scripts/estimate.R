@@ -22,25 +22,26 @@ ddoc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--gp-frac=<frac>]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--max-report-date=<date>] [[--gp-frac=<frac>]
     estimate.R -h | --help
 
 Options:
-    -h, --help                 Show this screen
-    -a, --ab                   Use antibody data
-    -i, --higher               Use higher antibody threshold
-    -r, --regional             Model regional dynamics
-    -l, --local                Model local dynamics
-    -g, --age                  Model age
-    -v, --variants             Model variants
-    -n, --nhse                 Analyse NHSE regions
-    -d, --differencing=<level> Level of differencing of GP (0 = infections,  1 = growth, 2 = differences in growth etc.)
-    -e, --start_date=<date>    Start date to use for estimation
-    -w, --weekly               Aggregate all data to weekly
-    -c, --gp_frac=<frac>       Fraction of latent timepoints to use in the Gaussian
-                               process approximation. Reducing this improves runtimes at
-                               the cost of reducing the accuracy of the Gaussian process
-                               approximation.
+    -h, --help                   Show this screen
+    -a, --ab                     Use antibody data
+    -i, --higher                 Use higher antibody threshold
+    -r, --regional               Model regional dynamics
+    -l, --local                  Model local dynamics
+    -g, --age                    Model age
+    -v, --variants               Model variants
+    -n, --nhse                   Analyse NHSE regions
+    -d, --differencing=<level>   Level of differencing of GP (0 = infections,  1 = growth, 2 = differences in growth etc.)
+    -s, --start-date=<date>      Start date to use for estimation
+    -m, --max-report-date=<date> Latest report date to use for estimation
+    -w, --weekly                 Aggregate all data to weekly
+    -c, --gp_frac=<frac>         Fraction of latent timepoints to use in the Gaussian
+                                 process approximation. Reducing this improves runtimes at
+                                 the cost of reducing the accuracy of the Gaussian process
+                                 approximation.
 "
 
 ## if running interactively can set opts to run with options
@@ -58,12 +59,15 @@ age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
 differencing <- ifelse(is.null(opts$differencing), 0L, as.integer(opts$differencing))
-start_date <- as.Date(opts$start_date)
+start_date <- as.Date(opts[["start-date"]])
+report_date <- opts[["report-date"]]
+if (!is.null(report_date)) report_date <- as.Date(report_date)
 weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
 # Load prevalence data and split by location
-data <- read_cis(nhse_regions = nhse)
+data <- read_cis(nhse_regions = nhse,
+                 max_publication_date = report_date)
 
 if (regional) {
   filter_level <- "regional"
@@ -99,10 +103,12 @@ data <- data %>%
 
 if (antibodies) {
   threshold <- ifelse(higher, "higher", "standard")
-  ab <- read_ab(nhse_regions = nhse, threshold = threshold) %>%
+  ab <- read_ab(nhse_regions = nhse, threshold = threshold,
+                max_publication_date = report_date) %>%
     filter_opt(start_date) %>%
     nest(antibodies = c(-variable))
-  vacc <- read_vacc(nhse_regions = nhse) %>%
+  vacc <- read_vacc(nhse_regions = nhse,
+                    max_publication_date = report_date) %>%
     filter_opt(start_date) %>%
     nest(vaccination = c(-variable))
   early <- read_early(nhse_regions = nhse) %>%
@@ -258,6 +264,10 @@ if (antibodies) {
   if (higher) {
     suffix <- paste0(suffix, "_higher")
   }
+}
+
+if (!is.null(report_date)) {
+  suffix <- paste0(suffix, "_", report_date)
 }
 
 # Save output
