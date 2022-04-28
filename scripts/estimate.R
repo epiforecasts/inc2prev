@@ -1,4 +1,5 @@
 #! /usr/bin/env Rscript
+options(echo = TRUE)
 
 suppressMessages(library(cmdstanr))
 suppressMessages(library(data.table))
@@ -22,7 +23,7 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--max-report-date=<date>] [[--gp-frac=<frac>]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--max-report-date=<date>] [--gp-frac=<frac>]
     estimate.R -h | --help
 
 Options:
