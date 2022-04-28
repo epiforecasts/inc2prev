@@ -18,7 +18,7 @@ suppressMessages(library(inc2prev))
 
 source(here::here("scripts", "read.R"))
 
-ddoc <- "
+doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
