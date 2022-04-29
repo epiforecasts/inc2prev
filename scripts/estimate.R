@@ -1,4 +1,7 @@
 #! /usr/bin/env Rscript
+
+options(echo = TRUE)
+
 suppressMessages(library(cmdstanr))
 suppressMessages(library(data.table))
 suppressMessages(library(dplyr))
@@ -50,6 +53,8 @@ if (interactive()) {
   opts <- docopt(doc)
 }
 
+opts
+
 antibodies <- !is.null(opts$ab) && opts$ab
 higher <- !is.null(opts$higher) && opts$higher
 regional <- !is.null(opts$regional) && opts$regional
@@ -58,9 +63,10 @@ age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
 nhse <- !is.null(opts$nhse) && opts$nhse
 differencing <- ifelse(is.null(opts$differencing), 0L, as.integer(opts$differencing))
-start_date <- as.Date(opts[["start-date"]])
-report_date <- opts[["report-date"]]
+start_date <- as.Date(opts$start_date)
+report_date <- opts$max_report_date
 if (!is.null(report_date)) report_date <- as.Date(report_date)
+report_date
 weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
 
@@ -255,7 +261,6 @@ est[, samples := map2(samples, level, ~ as.data.table(.x)[, level := .y])]
 # Bind posterior samples/summary together
 estimates <- bind_rows(est$summary)
 samples <- bind_rows(est$samples)
-est[, variable := data$variable]
 diagnostics <- select(est, -samples, -summary)
 
 if (antibodies) {
