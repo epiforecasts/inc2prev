@@ -7,6 +7,7 @@ age_school,35,England,E92000001,10853151
 age_school,50,England,E92000001,13618246
 age_school,70,England,E92000001,7679719
 local,NA,Adur; Arun; Chichester; Crawley; Horsham; Mid Sussex; Worthing,J06000202,867635
+local,NA,Allerdale; Barrow-in-Furness; Carlisle; Copeland; Eden; South Lakeland,J06000107,499781
 local,NA,Amber Valley; Bolsover; Chesterfield; Derbyshire Dales; Erewash; High Peak; North East Derbyshire; South Derbyshire,J06000137,807183
 local,NA,Ashfield; Bassetlaw; Broxtowe; Gedling; Mansfield; Newark and Sherwood; Rushcliffe,J06000135,833377
 local,NA,Ashford; Dartford; Gravesham; Maidstone; Sevenoaks; Folkestone and Hythe; Tonbridge and Malling; Tunbridge Wells,J06000199,1011308
@@ -15,6 +16,7 @@ local,NA,Barking and Dagenham,J06000172,214107
 local,NA,Barnet,J06000165,399007
 local,NA,Barnsley,J06000132,248071
 local,NA,"Bath and North East Somerset; Bristol, City of; North Somerset",J06000209,877797
+local,NA,Belfast Health and Social Care Trust,J06000231,NA
 local,NA,Bexley,J06000181,249301
 local,NA,Birmingham,J06000149,1140525
 local,NA,Blaby; Charnwood; Harborough; Hinckley and Bosworth; Melton; North West Leicestershire; Oadby and Wigston,J06000140,713085
@@ -25,28 +27,37 @@ local,NA,Bournemouth; Poole; Christchurch,J06000214,1190967
 local,NA,Bracknell Forest; Slough; Windsor and Maidenhead; Runnymede; Spelthorne; Surrey Heath,J06000195,704419
 local,NA,Bradford,J06000126,542128
 local,NA,Breckland; Broadland; Great Yarmouth; King's Lynn and West Norfolk; North Norfolk; Norwich; South Norfolk,J06000155,914039
+local,NA,Brent,J06000171,327753
+local,NA,Bridgend; Rhondda Cynon Taf; Merthyr Tydfil,J06000221,449836
 local,NA,Brighton and Hove,J06000204,291738
 local,NA,Bromley,J06000188,332752
 local,NA,Bromsgrove; Redditch; Dudley,J06000152,508500
 local,NA,Broxbourne; Dacorum; Hertsmere; North Hertfordshire; Three Rivers; Watford; St Albans; Welwyn Hatfield; East Hertfordshire; Stevenage,J06000161,1195672
 local,NA,Burnley; Hyndburn; Pendle; Rossendale; Bury,J06000109,524762
+local,NA,Caerphilly; Blaenau Gwent; Torfaen; Monmouthshire; Newport,J06000219,598194
 local,NA,Calderdale,J06000129,211439
 local,NA,Cambridge; East Cambridgeshire; Fenland; Huntingdonshire; South Cambridgeshire,J06000157,657204
 local,NA,Camden,J06000174,279516
 local,NA,Cannock Chase; East Staffordshire; Lichfield; Newcastle-under-Lyme; South Staffordshire; Staffordshire Moorlands; Tamworth,J06000144,745314
 local,NA,Canterbury; Dover; Swale; Thanet,J06000197,577749
+local,NA,Ceredigion; Pembrokeshire; Carmarthenshire; Powys,J06000218,522749
 local,NA,Cheltenham; Cotswold; Forest of Dean; Gloucester; Stroud; Tewkesbury,J06000206,640650
 local,NA,Cheshire East,J06000121,386667
 local,NA,Cheshire West and Chester,J06000122,343823
 local,NA,City of London; Hackney; Islington,J06000173,539994
+local,NA,Clackmannanshire; Falkirk; Stirling; Angus; Dundee City; Fife; Perth and Kinross,J06000224,1096610
 local,NA,Cornwall; Isles of Scilly,J06000215,575525
 local,NA,Coventry,J06000151,379387
 local,NA,Craven; Hambleton; Harrogate; Richmondshire; Ryedale; Scarborough; Selby,J06000123,620610
 local,NA,Croydon,J06000190,388563
 local,NA,Darlington; County Durham,J06000105,640551
 local,NA,Derby,J06000139,256814
+local,NA,Dumfries and Galloway; East Ayrshire; North Ayrshire; Scottish Borders; South Ayrshire,J06000228,631520
 local,NA,Ealing,J06000177,340341
 local,NA,East Devon; Exeter; Mid Devon; North Devon; Teignbridge; Torridge; West Devon,J06000212,722770
+local,NA,East Dorset; North Dorset; Purbeck; West Dorset; Weymouth and Portland,J06000213,1898955
+local,NA,East Lothian; Midlothian; City of Edinburgh; West Lothian,J06000226,912490
+local,NA,East Renfrewshire; Inverclyde; Renfrewshire; West Dunbartonshire; East Dunbartonshire; Glasgow City,J06000225,1185240
 local,NA,East Riding of Yorkshire,J06000125,343201
 local,NA,Eastbourne; Hastings; Lewes; Rother; Wealden,J06000201,558852
 local,NA,Elmbridge; Epsom and Ewell; Guildford; Mole Valley; Reigate and Banstead; Tandridge; Waverley; Woking,J06000198,920466
@@ -54,12 +65,14 @@ local,NA,Enfield,J06000164,333587
 local,NA,Greenwich,J06000180,289034
 local,NA,Halton; Warrington; Trafford,J06000118,576735
 local,NA,Hammersmith and Fulham; Kensington and Chelsea; Westminster,J06000179,610256
+local,NA,Haringey,J06000169,266357
 local,NA,Harrow,J06000167,252338
 local,NA,Hartlepool; Middlesbrough; Redcar and Cleveland; Stockton-on-Tees,J06000106,569768
 local,NA,Havering,J06000170,260651
 local,NA,"Herefordshire, County of; Malvern Hills; Worcester; Wychavon; Wyre Forest",J06000154,605548
 local,NA,Hillingdon,J06000175,309014
 local,NA,Hounslow,J06000184,271767
+local,NA,Isle of Anglesey; Gwynedd; Conwy; Denbighshire; Flintshire; Wrexham,J06000217,703361
 local,NA,Isle of Wight; Basingstoke and Deane; East Hampshire; Eastleigh; Fareham; Gosport; Havant; New Forest; Test Valley; Winchester,J06000200,1339507
 local,NA,"Kingston upon Hull, City of",J06000128,259126
 local,NA,Kingston upon Thames; Merton; Richmond upon Thames,J06000187,583736
@@ -70,16 +83,22 @@ local,NA,Leicester,J06000141,354036
 local,NA,Lewisham,J06000185,305309
 local,NA,Luton; Bedford; Central Bedfordshire,J06000160,682311
 local,NA,Manchester,J06000117,555741
+local,NA,Medway,J06000194,279142
+local,NA,Mendip; Sedgemoor; South Somerset; Taunton Deane; West Somerset,J06000211,719272
 local,NA,Milton Keynes,J06000191,270203
+local,NA,Na h-Eileanan Siar; Highland; Moray; Orkney Islands; Shetland Islands; Aberdeen City; Aberdeenshire; Argyll and Bute,J06000223,978180
 local,NA,Newcastle upon Tyne,J06000103,306824
 local,NA,Newham,J06000176,355266
 local,NA,North East Lincolnshire; North Lincolnshire; Doncaster; Rotherham,J06000133,909881
 local,NA,North Tyneside,J06000102,208871
 local,NA,North Warwickshire; Nuneaton and Bedworth; Rugby; Stratford-on-Avon; Warwick,J06000153,583786
+local,NA,Northern Health and Social Care Trust,J06000229,NA
 local,NA,Northumberland,J06000101,323820
 local,NA,Nottingham,J06000138,337098
 local,NA,Oldham,J06000112,237628
+local,NA,Peterborough,J06000156,202626
 local,NA,Plymouth; Torbay; South Hams,J06000216,487003
+local,NA,Portsmouth,J06000205,214692
 local,NA,Reading; Wokingham; Hart; Rushmoor,J06000196,526277
 local,NA,Redbridge,J06000168,305658
 local,NA,Rochdale,J06000111,223659
@@ -89,60 +108,41 @@ local,NA,Sandwell,J06000148,329042
 local,NA,Sheffield,J06000134,589214
 local,NA,Shropshire,J06000145,325415
 local,NA,Solihull,J06000150,217487
+local,NA,South Eastern Health and Social Care Trust,J06000232,NA
 local,NA,South Gloucestershire,J06000208,287816
+local,NA,South Lanarkshire; North Lanarkshire,J06000227,661960
 local,NA,South Tyneside; Sunderland; Gateshead,J06000104,630929
 local,NA,Southampton,J06000203,252872
 local,NA,Southend-on-Sea; Braintree; Chelmsford; Colchester; Maldon; Rochford; Uttlesford,J06000162,958400
+local,NA,Southern Health and Social Care Trust,J06000233,NA
+local,NA,Southwark,J06000182,320017
 local,NA,Stockport,J06000119,294197
 local,NA,Suffolk Coastal; Waveney,J06000158,500746
+local,NA,Sutton,J06000189,207707
+local,NA,Swansea; Neath Port Talbot,J06000220,390949
+local,NA,Swindon,J06000207,222881
 local,NA,Tameside,J06000116,227117
 local,NA,Telford and Wrekin; Stoke-on-Trent; Stafford,J06000143,575802
 local,NA,Tendring; Babergh; Forest Heath; Ipswich; Mid Suffolk; St Edmundsbury,J06000159,835528
 local,NA,Thurrock; Basildon; Brentwood; Castle Point; Epping Forest; Harlow,J06000163,750310
 local,NA,Tower Hamlets,J06000178,331969
+local,NA,Vale of Glamorgan; Cardiff,J06000222,504497
 local,NA,Wakefield,J06000130,351592
 local,NA,Walsall,J06000146,286716
 local,NA,Waltham Forest,J06000166,276940
 local,NA,Wandsworth,J06000186,329735
 local,NA,West Berkshire; Cherwell; Oxford; South Oxfordshire; Vale of White Horse; West Oxfordshire,J06000193,855345
 local,NA,West Lancashire; Knowsley; Liverpool; Sefton,J06000113,1043321
+local,NA,Western Health and Social Care Trust,J06000230,NA
 local,NA,Wigan; St. Helens,J06000114,511807
+local,NA,Wiltshire,J06000210,504070
 local,NA,Wirral,J06000120,324336
 local,NA,Wolverhampton,J06000147,264407
 local,NA,York,J06000124,211012
-local,NA,Allerdale; Barrow-in-Furness; Carlisle; Copeland; Eden; South Lakeland,J06000107,499781
-local,NA,Brent,J06000171,327753
-local,NA,East Dorset; North Dorset; Purbeck; West Dorset; Weymouth and Portland,J06000213,1898955
-local,NA,Haringey,J06000169,266357
-local,NA,Medway,J06000194,279142
-local,NA,Mendip; Sedgemoor; South Somerset; Taunton Deane; West Somerset,J06000211,719272
-local,NA,Peterborough,J06000156,202626
-local,NA,Portsmouth,J06000205,214692
-local,NA,Southwark,J06000182,320017
-local,NA,Sutton,J06000189,207707
-local,NA,Swindon,J06000207,222881
-local,NA,Wiltshire,J06000210,504070
-local,NA,Belfast Health and Social Care Trust,J06000231,NA
-local,NA,Bridgend; Rhondda Cynon Taf; Merthyr Tydfil,J06000221,449836
-local,NA,Caerphilly; Blaenau Gwent; Torfaen; Monmouthshire; Newport,J06000219,598194
-local,NA,Ceredigion; Pembrokeshire; Carmarthenshire; Powys,J06000218,522749
-local,NA,Clackmannanshire; Falkirk; Stirling; Angus; Dundee City; Fife; Perth and Kinross,J06000224,1096610
-local,NA,Dumfries and Galloway; East Ayrshire; North Ayrshire; Scottish Borders; South Ayrshire,J06000228,631520
-local,NA,East Lothian; Midlothian; City of Edinburgh; West Lothian,J06000226,912490
-local,NA,East Renfrewshire; Inverclyde; Renfrewshire; West Dunbartonshire; East Dunbartonshire; Glasgow City,J06000225,1185240
-local,NA,Isle of Anglesey; Gwynedd; Conwy; Denbighshire; Flintshire; Wrexham,J06000217,703361
-local,NA,Na h-Eileanan Siar; Highland; Moray; Orkney Islands; Shetland Islands; Aberdeen City; Aberdeenshire; Argyll and Bute,J06000223,978180
-local,NA,Northern Health and Social Care Trust,J06000229,NA
-local,NA,South Eastern Health and Social Care Trust,J06000232,NA
-local,NA,South Lanarkshire; North Lanarkshire,J06000227,661960
-local,NA,Southern Health and Social Care Trust,J06000233,NA
-local,NA,Swansea; Neath Port Talbot,J06000220,390949
-local,NA,Vale of Glamorgan; Cardiff,J06000222,504497
-local,NA,Western Health and Social Care Trust,J06000230,NA
 national,NA,England,E92000001,56550138
 national,NA,Northern Ireland,N92000002,1895510
-national,NA,Wales,W92000004,3169586
 national,NA,Scotland,S92000003,5466000
+national,NA,Wales,W92000004,3169586
 regional,NA,East Midlands,E12000004,4865583
 regional,NA,East of England,E12000006,6269161
 regional,NA,London,E12000007,9002488
