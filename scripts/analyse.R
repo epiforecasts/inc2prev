@@ -55,10 +55,14 @@ if (local) {
 }
 
 if (antibodies) {
-  suffix <- paste0(suffix, "_ab")
+  threshold <- ifelse(higher, "higher", "standard")
+  ab <- read_ab(nhse_regions = nhse, threshold = threshold)
+   suffix <- paste0(suffix, "_ab")
   if (higher) {
     suffix <- paste0(suffix, "_higher")
   }
+} else {
+  ab <- NULL
 }
 
 estimates <- readRDS(paste0("outputs/estimates", suffix, ".rds"))
