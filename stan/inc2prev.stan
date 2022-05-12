@@ -73,12 +73,12 @@ parameters {
   real<lower = 0> sigma; // observation error
   array[n_ab > 0 ? 1 : 0] real<lower = 0> ab_sigma; // observation error
   vector<lower = 0, upper = 1>[pbt] prob_detect; // probability of detection as a function of time since infection
-  vector<lower = 0, upper = 1>[n_ab > 0 ? 1 : 0] beta; // proportion that seroconvert
-  vector<lower = 0, upper = 1>[n_ab > 0 ? 2 : 0] gamma; // antibody waning (inf & vac)
-  vector<lower = 0, upper = 1>[n_ab > 0 ? 1 : 0] delta; // vaccine efficacy
+  vector[n_ab > 0 ? 1 : 0] logit_beta; // proportion that seroconvert
+  vector[n_ab > 0 ? 2 : 0] logit_gamma; // antibody waning (inf & vac)
+  vector[n_ab > 0 ? 1 : 0] logit_delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[n] init_dab; // initial proportion with antibodies
-  vector<lower = 0>[n_ab > 0 ? 1 : 0] k; // Potential loss of efficacy from new infections in already seropositive people
-  vector<lower = 0>[n_ab > 0 ? 1 : 0] l; // Potential loss of efficacy from new doses being administered to already seropositive people
+  vector[n_ab > 0 ? 1 : 0] log_k; // Potential loss of efficacy from new infections in already seropositive people
+  vector[n_ab > 0 ? 1 : 0] log_l; // Potential loss of efficacy from new doses being administered to already seropositive people
 }
 
 transformed parameters {
@@ -91,6 +91,12 @@ transformed parameters {
   array[n_ab] vector[ab_obs] odab;
   array[n] vector[obs] combined_sigma;
   array[n_ab] vector[ab_obs] combined_ab_sigma;
+  vector[n_ab > 0 ? 1 : 0] beta = inv_logit(logit_beta); // tranformation to natural scale
+  vector[n_ab > 0 ? 2 : 0] gamma = inv_logit(logit_gamma); // tranformation to natural scale
+  vector[n_ab > 0 ? 1 : 0] delta = inv_logit(logit_delta); // tranformation to natural scale
+  vector[n_ab > 0 ? 1 : 0] k = exp(log_k); // tranformation to natural scale
+  vector[n_ab > 0 ? 1 : 0] l = exp(log_l); // tranformation to natural scale
+
   // update gaussian process
   for (i in 1:n) {
     gp[i][(1 + diff_order):t] = update_gp(PHI, M, L, alpha[i], rho[i], eta[i], 0);
@@ -155,11 +161,11 @@ model {
   // Priors for antibody model
   if (n_ab > 0) {
     init_dab ~ normal(init_ab_mean, init_ab_sd);
-    logit(beta) ~ normal(pbeta[1], pbeta[2]);
-    logit(gamma) ~ normal(pgamma_mean, pgamma_sd); 
-    logit(delta) ~ normal(pdelta[1], pdelta[2]);
-    log(k) ~ normal(0, 0.1);
-    log(l) ~ normal(0, 0.1);
+    logit_beta ~ normal(pbeta[1], pbeta[2]);
+    logit_gamma ~ normal(pgamma_mean, pgamma_sd); 
+    logit_delta ~ normal(pdelta[1], pdelta[2]);
+    log_k ~ normal(0, 0.1);
+    log_l ~ normal(0, 0.1);
     ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
   }
 
