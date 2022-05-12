@@ -16,6 +16,7 @@ areas <- areas[!(region %in% c("Wales", "Scotland", "Northern Ireland"))]
 
 ## load samples from local prealence model
 local_samples <- readRDS(here::here("outputs", "samples_local.rds"))
+local_samples <- local_samples[variable %in% unique(areas$geography_code)]
 ## load data used for local prevalence model
 local_diag <- readRDS(here::here("outputs", "diagnostics_local.rds"))
 local_dat <- local_diag$data[[1]]
@@ -26,12 +27,14 @@ regional_diag <- readRDS(here::here("outputs", "diagnostics_regional_ab_higher.r
 regional_dat <- regional_diag$data[[1]]
 
 ## list of parameters to grab from each model
-prev_params <- c("alpha", "rho", "eta", "init_inc", "prob_detect", "sigma")
-ab_params <- c("beta", "gamma", "delta", "k", "l", "init_dab", "ab_sigma", "ab_sd2")
+prev_params <- c("alpha", "rho", "eta", "init_inc", "sigma")
+ab_params <- c("prob_detect", "beta", "gamma", "delta", "k", "l", "init_dab", "ab_sigma", "ab_sd2")
 
 ## list of data sets to grab from each model
 dat <- c(local_dat[c("M", "L", "t", "diff_order", "prev_stime", "prev_etime", "ut", "obs")], 
 	 regional_dat[c("vacc_ab_delay", "inf_ab_delay")])
+## get standard deviation
+dat$prev_sd2 <- lapply(local_diag$data, "[[", "prev_sd2")
 
 ## get modelled infection dates for later
 inf_dates <- unique(
@@ -55,7 +58,6 @@ dat[["vacc"]] <- t(as.matrix(
   dcast(vacc, date ~ variable, value.var = "vaccinated")[, -1]
 ))
 dat[["n"]] <- dat[["n_ab"]] <- nrow(dat[["vacc"]])
-dat[["ab_index"]] <- seq_len(dat[["n"]])
 
 ## function to combine parameters from local prevalence and regional antibody model
 combine_params <- function(prev, ab, transfer = "init_dab") {
@@ -64,12 +66,13 @@ combine_params <- function(prev, ab, transfer = "init_dab") {
       prev[[1]][name != loop_transfer],
       merge(
         areas[, list(variable = geography_code, region, n_index = 1:.N)],
-        ab[[1]][name == loop_transfer, list(region = variable, lp__, sigma, name, value, t_index, p_index = NA_integer_, date, level)],
+        ab[[1]][name == loop_transfer, list(region = variable, name, value, t_index, p_index = NA_integer_, date, level)],
         by = "region"
       )[, -c("region"), with = TRUE]
     )
   }
   return(list(rbind(prev[[1]][name %in% c(prev_params, transfer)], 
+
 		    ab[[1]][name %in% ab_params])))
 }
 
@@ -91,6 +94,14 @@ get_params <- function(dt, fix = list()) {
     present_indices <- names(indices)[indices > 0]
     ret[[loop_name]] <- array(name_dt$value, dim = indices[present_indices])
   }
+
+  ## set local initial antibodies to corresponding regional ones
+  init_dab_regions <- strsplit(dt[name == "beta"]$variable, split = ";")[[1]]
+  local_areas <- dt[grepl("^J[0-9]+", variable)][!duplicated(variable)]$variable
+  ret[["ab_index"]] <- match(
+    areas[!duplicated(geography_code)][geography_code %in% local_areas]$region,
+    init_dab_regions
+  )
 
   for (loop_name in names(fix)) {
     ret[[loop_name]][] <- fix[[loop_name]]

@@ -1,3 +1,4 @@
+#' @export
 i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
 
   type <- match.arg(type, choices = c("estimate", "observations"))
@@ -46,24 +47,18 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
   })
   odcases <- do.call(rbind, odcases)
 
-  combined_sigma <- lapply(seq_len(dat$n), function(i) {
-    cs <- sqrt(rep(param$sigma^2, ncol(dat$prev_sd2)) + dat$prev_sd2[i, ])
-    return(cs)
-  })
-  combined_sigma <- do.call(rbind, combined_sigma)
-
   infs_with_potential_abs <- lapply(seq_len(dat$n_ab), function(i) {
-    inf <- convolve(infections[dat$ab_index[i], ], dat$inf_ab_delay)
+    inf <- convolve(infections[i, ], dat$inf_ab_delay)
     return(inf)
   })
   infs_with_potential_abs <- do.call(rbind, infs_with_potential_abs)
 
   dab <- lapply(seq_len(dat$n), function(i) {
     da <- detectable_antibodies(infs_with_potential_abs[i, ],
-  			        vacc_with_ab[dat$ab_index[i], ],
+  			        vacc_with_ab[i, ],
 			        param$beta, param$gamma, param$delta,
 			        param$k, param$l, 
-			        param$init_dab[dat$ab_index[i]], dat$t)
+			        param$init_dab[param$ab_index[i]], dat$t)
     return(da)
   })
   dab <- do.call(rbind, dab)
