@@ -32,9 +32,7 @@ ab_params <- c("prob_detect", "beta", "gamma", "delta", "k", "l", "init_dab", "a
 
 ## list of data sets to grab from each model
 dat <- c(local_dat[c("M", "L", "t", "diff_order", "prev_stime", "prev_etime", "ut", "obs")], 
-	 regional_dat[c("vacc_ab_delay", "inf_ab_delay")])
-## get standard deviation
-dat$prev_sd2 <- lapply(local_diag$data, "[[", "prev_sd2")
+         regional_dat[c("vacc_ab_delay", "inf_ab_delay")])
 
 ## get modelled infection dates for later
 inf_dates <- unique(
