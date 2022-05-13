@@ -2,6 +2,8 @@ library(dplyr)
 library(data.table)
 library(readr)
 library(here)
+library(tidyr)
+library(socialmixr)
 
 ons_to_nhse_region <- function(x) {
   recode(
