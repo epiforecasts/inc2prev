@@ -15,3 +15,4 @@ docs/*.html
 *.log
 *.knit.md
 remote/
+stan/inc2prev_threads
