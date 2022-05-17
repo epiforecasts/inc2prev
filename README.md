@@ -13,7 +13,7 @@ The model is implemented in `stan` using `cmdstanr`.
 
 # Citation
 
-Abbott, Sam, and Sebastian Funk. 2022. _Estimating Epidemiological Quantities from Repeated Cross-Sectional Prevalence Measurements._ bioRxiv. https://doi.org/10.1101/2022.03.29.22273101.
+Abbott, Sam, and Sebastian Funk. 2022. _Estimating Epidemiological Quantities from Repeated Cross-Sectional Prevalence Measurements._ medRxiv. https://doi.org/10.1101/2022.03.29.22273101.
 
 **[Preprint](https://doi.org/10.1101/2022.03.29.22273101)**
 
