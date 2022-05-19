@@ -1,14 +1,5 @@
 level,lower_age_limit,geography,geography_code,population
 national,NA,England,E92000001,56550138
-regional,NA,North East,E12000001,2680763
-regional,NA,North West,E12000002,7367456
-regional,NA,Yorkshire and The Humber,E12000003,5526350
-regional,NA,East Midlands,E12000004,4865583
-regional,NA,West Midlands,E12000005,5961929
-regional,NA,East of England,E12000006,6269161
-regional,NA,London,E12000007,9002488
-regional,NA,South East,E12000008,9217265
-regional,NA,South West,E12000009,5659143
 age_school,16,England,E92000001,5950637
 age_school,25,England,E92000001,7596145
 age_school,35,England,E92000001,10853151
@@ -18,3 +9,12 @@ age_school,65,England,E92000001,2784300
 age_school,70,England,E92000001,2814128
 age_school,75,England,E92000001,2009992
 age_school,80,England,E92000001,2855599
+regional,NA,North East,E12000001,2680763
+regional,NA,North West,E12000002,7367456
+regional,NA,Yorkshire and The Humber,E12000003,5526350
+regional,NA,East Midlands,E12000004,4865583
+regional,NA,West Midlands,E12000005,5961929
+regional,NA,East of England,E12000006,6269161
+regional,NA,London,E12000007,9002488
+regional,NA,South East,E12000008,9217265
+regional,NA,South West,E12000009,5659143

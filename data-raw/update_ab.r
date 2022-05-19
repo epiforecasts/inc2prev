@@ -120,8 +120,7 @@ for (threshold_level in names(threshold_levels)) {
         if (sum(!is.na(unlist(preview[headers_row, ]))) == 1) {
           headers_row <- headers_row + 1
         }
-        skip <- headers_row +
-          if_else(level %in% c("regional", "age_school"), 1, 0)
+        skip <- which(preview$contents == "Weekly period")
         if (level %in% c("regional", "age_school")) {
           headers <- preview[headers_row, 2:ncol(preview)] %>%
             t() %>%
@@ -182,7 +181,6 @@ for (threshold_level in names(threshold_levels)) {
           mutate_at(vars(starts_with("proportion")), as.numeric) %>%
           pivot_longer(starts_with("proportion")) %>%
           replace_na(list(value = 0)) %>%
-          mutate(value = value / 100) %>%
           pivot_wider()
         data <- data %>%
           mutate(threshold_level = {{ threshold_level }})
@@ -226,7 +224,12 @@ for (threshold_level in names(threshold_levels)) {
 combined <- ab %>%
   bind_rows() %>%
   mutate(publication_date = extract_publication_dates(file_name)) %>%
-  arrange(publication_date, start_date)
+  arrange(publication_date, start_date)  %>%
+  pivot_longer(starts_with("proportion_")) %>%
+  mutate(value =
+           if_else(publication_date %in% as.Date(c("2021-06-09", "2021-06-22")),
+                   value, value / 100))  %>%
+  pivot_wider()
 
 pop_file <- here::here("data-raw", "uk_pop.xls")
 if (!file.exists(pop_file)) {
