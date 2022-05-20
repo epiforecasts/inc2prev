@@ -53,7 +53,9 @@ read_cis <-
         select(start_date,
           region = geography,
           starts_with("proportion")
-        ))
+        ),
+        by = c("start_date", "region")
+      )
     prev_local <- prev_local %>%
       bind_rows(additional_dates) %>%
       arrange(geography_code, start_date)
