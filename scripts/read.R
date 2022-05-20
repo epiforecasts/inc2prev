@@ -195,7 +195,8 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher",
     select(variable) %>%
     distinct() %>%
     mutate(lower_age_limit = parse_number(sub("-\\+.*$", "", variable))) %>%
-    pull(lower_age_limit)
+    pull(lower_age_limit) %>%
+    sort()
   ab_regional <- readr::read_csv(here::here("data-processed", "ab.csv"),
 				 show_col_types = FALSE) %>%
     filter(threshold_level == threshold) %>%
