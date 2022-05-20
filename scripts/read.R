@@ -159,6 +159,11 @@ read_cis <-
    prev <- bind_rows(prev_regional, prev_local, prev_age, prev_variants) %>%
     mutate(date = start_date + (end_date - start_date) / 2)
 
+  if (!is.null(max_publication_date)) {
+    prev <- prev %>%
+      filter(publication_date <= max_publication_date)
+  }
+
   ## combine as quantile-wise median
   prev <- prev %>%
     pivot_longer(c(lower, middle, upper)) %>%
