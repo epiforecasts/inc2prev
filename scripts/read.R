@@ -265,7 +265,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher",
     ab <- ab %>%
       filter(publication_date <= max_publication_date)
   }
-  ## combine as quantile-wise median
+  ## use latest estimate
   ab <- ab %>%
     filter(publication_date == max(publication_date))
 
