@@ -84,7 +84,6 @@ incidence <- function(prev, ab = NULL, vacc = NULL, init_ab = NULL, prob_detect,
 #' @details Progression information is displayed using the
 #' `progressr` package. See the package documentation for options.
 #' @param prev_list A list of lists of data as produced by `i2p_data()`.
-#' @inheritParams incidence
 #' @param ... Additional arguments passed to `incidence()` and/or
 #' `future_lapply()`.
 #' @return A fit stan model as produced by the option passed to
