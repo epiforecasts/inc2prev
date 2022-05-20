@@ -243,7 +243,7 @@ i2p_inits <- function(dat) {
         rnorm(dat$M * dat$n, mean = 0, sd = 0.1), dim = c(dat$n, dat$M)
       ),
       alpha = array(
-        truncnorm::rtruncnorm(dat$n, mean = 1, sd = 0.1, a = 0)
+        truncnorm::rtruncnorm(dat$n, mean = 0, sd = (0.1)**dat$diff_order, a = 0)
       ),
       rho = array(
         truncnorm::rtruncnorm(dat$n, mean = 36, sd = 21, a = 14, b = 90)
