@@ -16,6 +16,10 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
 
   rstan::expose_stan_functions(rstan::stanc(model_code = functions))
 
+  if (!("ab_index" %in% names(param))) {
+    param$ab_index <- seq_len(dat$n)
+  }
+
   ## transformed data
 
   PHI <- setup_gp(dat$M, dat$L, dat$t - dat$diff_order)
@@ -24,6 +28,12 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
   gp <- lapply(seq_len(dat$n), function(i) {
     upd <- update_gp(PHI, dat$M, dat$L, param$alpha[i], param$rho[i], 
 		     param$eta[i, ], 0)
+    if (dat$diff_order > 0) {
+      upd <- c(param$init_growth[i, 1:dat$diff_order], upd)
+      for (j in 1:dat$diff_order) {
+	upd <- cumsum(upd)
+      }
+    }
     return(upd)
   })
   gp <- do.call(rbind, gp)
@@ -47,7 +57,7 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
   })
   odcases <- do.call(rbind, odcases)
 
-  infs_with_potential_abs <- lapply(seq_len(dat$n_ab), function(i) {
+  infs_with_potential_abs <- lapply(seq_len(dat$n), function(i) {
     inf <- convolve(infections[i, ], dat$inf_ab_delay)
     return(inf)
   })
