@@ -77,8 +77,8 @@ parameters {
   vector[n_ab > 0 ? 2 : 0] logit_gamma; // antibody waning (inf & vac)
   vector[n_ab > 0 ? 1 : 0] logit_delta; // vaccine efficacy
   vector<lower = 0, upper = 1>[n] init_dab; // initial proportion with antibodies
-  vector[n_ab > 0 ? 1 : 0] log_k; // Potential loss of efficacy from new infections in already seropositive people
-  vector[n_ab > 0 ? 1 : 0] log_l; // Potential loss of efficacy from new doses being administered to already seropositive people
+  vector[n_ab > 0 ? 1 : 0] k; // Potential loss of efficacy from new infections in already seropositive people
+  vector[n_ab > 0 ? 1 : 0] l; // Potential loss of efficacy from new doses being administered to already seropositive people
 }
 
 transformed parameters {
@@ -94,8 +94,7 @@ transformed parameters {
   vector[n_ab > 0 ? 1 : 0] beta = inv_logit(logit_beta); // tranformation to natural scale
   vector[n_ab > 0 ? 2 : 0] gamma = inv_logit(logit_gamma); // tranformation to natural scale
   vector[n_ab > 0 ? 1 : 0] delta = inv_logit(logit_delta); // tranformation to natural scale
-  vector[n_ab > 0 ? 1 : 0] k = exp(log_k); // tranformation to natural scale
-  vector[n_ab > 0 ? 1 : 0] l = exp(log_l); // tranformation to natural scale
+  
 
   // update gaussian process
   for (i in 1:n) {
@@ -164,8 +163,8 @@ model {
     logit_beta ~ normal(pbeta[1], pbeta[2]);
     logit_gamma ~ normal(pgamma_mean, pgamma_sd); 
     logit_delta ~ normal(pdelta[1], pdelta[2]);
-    log_k ~ normal(0, 0.1);
-    log_l ~ normal(0, 0.1);
+    k ~ lognormal(0, 0.1);
+    l ~ lognormal(0, 0.1);
     ab_sigma[1] ~ normal(0.025, 0.025) T[0,];
   }
 
