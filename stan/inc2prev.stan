@@ -77,7 +77,7 @@ parameters {
   vector[n_ab > 0 ? 1 : 0] logit_beta; // proportion that seroconvert
   vector[n_ab > 0 ? 2 : 0] logit_gamma; // antibody waning (inf & vac)
   vector[n_ab > 0 ? 1 : 0] logit_delta; // vaccine efficacy
-  vector<lower = 0, upper = 1>[n] init_dab; // initial proportion with antibodies
+  vector<lower = 0, upper = 1>[n_ab > 0 ? n : 0] init_dab; // initial proportion with antibodies
   vector[n_ab > 0 ? 1 : 0] k; // Potential loss of efficacy from new infections in already seropositive people
   vector[n_ab > 0 ? 1 : 0] l; // Potential loss of efficacy from new doses being administered to already seropositive people
 }
