@@ -187,10 +187,10 @@ generated quantities {
   array[n] vector<lower = 0>[t - ut] R;
   array[n] vector[t - ut] r;
   array[n, obs] real<lower = 0, upper = 1> est_prev;
-  array[n, ab_obs] real<lower = 0, upper = 1> est_ab;
-  array[n] vector<lower = 0, upper = 1>[t] gen_dab;
-  array[n] vector<lower = 0, upper = 1>[t] gen_infs_with_potential_abs; // Infections with the potential to have ab
-  array[n] vector<lower = 0, upper = 1>[ab_obs] gen_odab;
+  array[n_ab > 0 ? n : 0, ab_obs] real<lower = 0, upper = 1> est_ab;
+  array[n_ab > 0 ? n : 0] vector<lower = 0, upper = 1>[t] gen_dab;
+  array[n_ab > 0 ? n : 0] vector<lower = 0, upper = 1>[t] gen_infs_with_potential_abs; // Infections with the potential to have ab
+  array[n_ab > 0 ? n : 0] vector<lower = 0, upper = 1>[ab_obs] gen_odab;
   real<lower = 0> gtm_sample;
   real<lower = 0> gtsd_sample;
 
