@@ -92,7 +92,17 @@ updated_samples <- map(
 cumulative <- bind_rows(updated_samples) %>%
   filter(name %in% c("cumulative_infections",
                      "cumulative_exposure"))
-
 saveRDS(cumulative,
         here::here("outputs", paste0("cumulative", suffix, ".rds")))
+
+csum <- cumulative %>%
+  group_by(name, date, variable, level) %>%
+  summarise(x = quantile(value, seq(0.05, 0.95, by = 0.05)),
+	    q = paste0("q", seq(5, 95, by = 5)),
+	    .groups = "drop") %>%
+  pivot_wider(names_from = "q", values_from = "x")
+
+saveRDS(csum,
+        here::here("outputs", paste0("cumulative", suffix, ".csv")))
+
 
