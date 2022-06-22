@@ -86,10 +86,10 @@ transformed parameters {
   array[n] vector[t] gp; // value of gp at time t + initialisation
   array[n_ab] vector[t] infs_with_potential_abs; // Infections with the potential to have ab
   array[n] vector<lower = 0, upper = 1>[t] infections; // incident infections at time t
-  array[n] vector<lower = 0, upper = 1>[t] dcases; // detectable cases at time t
-  array[n_ab] vector<lower = 0, upper = 1>[t] dab; // proportion of individuals with antibodies at time t
-  array[n] vector<lower = 0, upper = 1>[obs] odcases;
-  array[n_ab] vector<lower = 0, upper = 1>[ab_obs] odab;
+  array[n] vector<lower = 0>[t] dcases; // detectable cases at time t
+  array[n_ab] vector<lower = 0>[t] dab; // proportion of individuals with antibodies at time t
+  array[n] vector<lower = 0>[obs] odcases;
+  array[n_ab] vector<lower = 0>[ab_obs] odab;
   array[n] vector[obs] combined_sigma;
   array[n_ab] vector[ab_obs] combined_ab_sigma;
   vector[n_ab > 0 ? 1 : 0] beta = inv_logit(logit_beta); // tranformation to natural scale
