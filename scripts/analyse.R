@@ -102,7 +102,7 @@ csum <- cumulative %>%
 	    .groups = "drop") %>%
   pivot_wider(names_from = "q", values_from = "x")
 
-saveRDS(csum,
-        here::here("outputs", paste0("cumulative", suffix, ".csv")))
+write_csv(csum,
+          here::here("outputs", paste0("cumulative", suffix, ".csv")))
 
 
