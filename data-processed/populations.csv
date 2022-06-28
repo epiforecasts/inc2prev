@@ -1,10 +1,4 @@
 level,lower_age_limit,geography,geography_code,population
-age_school,2,England,E92000001,6254603
-age_school,11,England,E92000001,3370248
-age_school,16,England,E92000001,5950637
-age_school,25,England,E92000001,7596145
-age_school,35,England,E92000001,10853151
-age_school,50,England,E92000001,13618246
 age_school,70,England,E92000001,7679719
 local,NA,Adur; Arun; Chichester; Crawley; Horsham; Mid Sussex; Worthing,J06000202,867635
 local,NA,Allerdale; Barrow-in-Furness; Carlisle; Copeland; Eden; South Lakeland,J06000107,499781
