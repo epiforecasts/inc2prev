@@ -1,84 +1,11 @@
 geography_code,region,lad,ltla_name,dashboard_name
-J06000101,North East,Northumberland,Northumberland,Northumberland
-J06000102,North East,North Tyneside,North Tyneside,North Tyneside
-J06000103,North East,Newcastle upon Tyne,Newcastle upon Tyne,Newcastle upon Tyne
-J06000104,North East,South Tyneside,South Tyneside,South Tyneside
-J06000104,North East,Sunderland,Sunderland,Sunderland
-J06000104,North East,Gateshead,Gateshead,Gateshead
-J06000105,North East,Darlington,Darlington,Darlington
-J06000105,North East,County Durham,County Durham,County Durham
-J06000106,North East,Hartlepool,Hartlepool,Hartlepool
-J06000106,North East,Middlesbrough,Middlesbrough,Middlesbrough
-J06000106,North East,Redcar and Cleveland,Redcar and Cleveland,Redcar and Cleveland
-J06000106,North East,Stockton-on-Tees,Stockton-on-Tees,Stockton-on-Tees
-J06000108,North West,Blackpool,Blackpool,Blackpool
-J06000108,North West,Fylde,Fylde,Fylde
-J06000108,North West,Lancaster,Lancaster,Lancaster
-J06000108,North West,Preston,Preston,Preston
-J06000108,North West,Ribble Valley,Ribble Valley,Ribble Valley
-J06000108,North West,South Ribble,South Ribble,South Ribble
-J06000108,North West,Wyre,Wyre,Wyre
-J06000109,North West,Burnley,Burnley,Burnley
-J06000109,North West,Hyndburn,Hyndburn,Hyndburn
-J06000109,North West,Pendle,Pendle,Pendle
-J06000109,North West,Rossendale,Rossendale,Rossendale
-J06000109,North West,Bury,Bury,Bury
-J06000110,North West,Blackburn with Darwen,Blackburn with Darwen,Blackburn with Darwen
-J06000110,North West,Chorley,Chorley,Chorley
-J06000110,North West,Bolton,Bolton,Bolton
-J06000111,North West,Rochdale,Rochdale,Rochdale
-J06000112,North West,Oldham,Oldham,Oldham
-J06000113,North West,West Lancashire,West Lancashire,West Lancashire
-J06000113,North West,Knowsley,Knowsley,Knowsley
-J06000113,North West,Liverpool,Liverpool,Liverpool
-J06000113,North West,Sefton,Sefton,Sefton
-J06000114,North West,Wigan,Wigan,Wigan
-J06000114,North West,St. Helens,St. Helens,St. Helens
-J06000115,North West,Salford,Salford,Salford
-J06000116,North West,Tameside,Tameside,Tameside
-J06000117,North West,Manchester,Manchester,Manchester
-J06000118,North West,Halton,Halton,Halton
-J06000118,North West,Warrington,Warrington,Warrington
-J06000118,North West,Trafford,Trafford,Trafford
-J06000119,North West,Stockport,Stockport,Stockport
-J06000120,North West,Wirral,Wirral,Wirral
-J06000121,North West,Cheshire East,Cheshire East,Cheshire East
-J06000122,North West,Cheshire West and Chester,Cheshire West and Chester,Cheshire West and Chester
-J06000123,Yorkshire and The Humber,Craven,Craven,Craven
-J06000123,Yorkshire and The Humber,Hambleton,Hambleton,Hambleton
-J06000123,Yorkshire and The Humber,Harrogate,Harrogate,Harrogate
-J06000123,Yorkshire and The Humber,Richmondshire,Richmondshire,Richmondshire
-J06000123,Yorkshire and The Humber,Ryedale,Ryedale,Ryedale
-J06000123,Yorkshire and The Humber,Scarborough,Scarborough,Scarborough
-J06000123,Yorkshire and The Humber,Selby,Selby,Selby
-J06000124,Yorkshire and The Humber,York,York,York
-J06000125,Yorkshire and The Humber,East Riding of Yorkshire,East Riding of Yorkshire,East Riding of Yorkshire
-J06000126,Yorkshire and The Humber,Bradford,Bradford,Bradford
-J06000127,Yorkshire and The Humber,Leeds,Leeds,Leeds
-J06000128,Yorkshire and The Humber,"Kingston upon Hull, City of","Kingston upon Hull, City of","Kingston upon Hull, City of"
-J06000129,Yorkshire and The Humber,Calderdale,Calderdale,Calderdale
-J06000130,Yorkshire and The Humber,Wakefield,Wakefield,Wakefield
-J06000131,Yorkshire and The Humber,Kirklees,Kirklees,Kirklees
-J06000132,Yorkshire and The Humber,Barnsley,Barnsley,Barnsley
-J06000133,Yorkshire and The Humber,North East Lincolnshire,North East Lincolnshire,North East Lincolnshire
-J06000133,Yorkshire and The Humber,North Lincolnshire,North Lincolnshire,North Lincolnshire
-J06000133,Yorkshire and The Humber,Doncaster,Doncaster,Doncaster
-J06000133,Yorkshire and The Humber,Rotherham,Rotherham,Rotherham
-J06000134,Yorkshire and The Humber,Sheffield,Sheffield,Sheffield
-J06000135,East Midlands,Ashfield,Ashfield,Ashfield
-J06000135,East Midlands,Bassetlaw,Bassetlaw,Bassetlaw
-J06000135,East Midlands,Broxtowe,Broxtowe,Broxtowe
-J06000135,East Midlands,Gedling,Gedling,Gedling
-J06000135,East Midlands,Mansfield,Mansfield,Mansfield
-J06000135,East Midlands,Newark and Sherwood,Newark and Sherwood,Newark and Sherwood
-J06000135,East Midlands,Rushcliffe,Rushcliffe,Rushcliffe
-J06000136,East Midlands,Boston,Boston,Boston
-J06000136,East Midlands,East Lindsey,East Lindsey,East Lindsey
-J06000136,East Midlands,Lincoln,Lincoln,Lincoln
-J06000136,East Midlands,North Kesteven,North Kesteven,North Kesteven
-J06000136,East Midlands,South Holland,South Holland,South Holland
-J06000136,East Midlands,South Kesteven,South Kesteven,South Kesteven
-J06000136,East Midlands,West Lindsey,West Lindsey,West Lindsey
+J06000202,South East,Adur,Adur,Adur
+J06000202,South East,Arun,Arun,Arun
+J06000202,South East,Chichester,Chichester,Chichester
+J06000202,South East,Crawley,Crawley,Crawley
+J06000202,South East,Horsham,Horsham,Horsham
+J06000202,South East,Mid Sussex,Mid Sussex,Mid Sussex
+J06000202,South East,Worthing,Worthing,Worthing
 J06000137,East Midlands,Amber Valley,Amber Valley,Amber Valley
 J06000137,East Midlands,Bolsover,Bolsover,Bolsover
 J06000137,East Midlands,Chesterfield,Chesterfield,Chesterfield
@@ -87,8 +14,33 @@ J06000137,East Midlands,Erewash,Erewash,Erewash
 J06000137,East Midlands,High Peak,High Peak,High Peak
 J06000137,East Midlands,North East Derbyshire,North East Derbyshire,North East Derbyshire
 J06000137,East Midlands,South Derbyshire,South Derbyshire,South Derbyshire
-J06000138,East Midlands,Nottingham,Nottingham,Nottingham
-J06000139,East Midlands,Derby,Derby,Derby
+J06000135,East Midlands,Ashfield,Ashfield,Ashfield
+J06000135,East Midlands,Bassetlaw,Bassetlaw,Bassetlaw
+J06000135,East Midlands,Broxtowe,Broxtowe,Broxtowe
+J06000135,East Midlands,Gedling,Gedling,Gedling
+J06000135,East Midlands,Mansfield,Mansfield,Mansfield
+J06000135,East Midlands,Newark and Sherwood,Newark and Sherwood,Newark and Sherwood
+J06000135,East Midlands,Rushcliffe,Rushcliffe,Rushcliffe
+J06000199,South East,Ashford,Ashford,Ashford
+J06000199,South East,Dartford,Dartford,Dartford
+J06000199,South East,Gravesham,Gravesham,Gravesham
+J06000199,South East,Maidstone,Maidstone,Maidstone
+J06000199,South East,Sevenoaks,Sevenoaks,Sevenoaks
+J06000199,South East,Folkestone and Hythe,Folkestone and Hythe,Folkestone and Hythe
+J06000199,South East,Tonbridge and Malling,Tonbridge and Malling,Tonbridge and Malling
+J06000199,South East,Tunbridge Wells,Tunbridge Wells,Tunbridge Wells
+J06000192,South East,Aylesbury Vale,Buckinghamshire,Buckinghamshire
+J06000192,South East,Chiltern,Buckinghamshire,Buckinghamshire
+J06000192,South East,South Bucks,Buckinghamshire,Buckinghamshire
+J06000192,South East,Wycombe,Buckinghamshire,Buckinghamshire
+J06000172,London,Barking and Dagenham,Barking and Dagenham,Barking and Dagenham
+J06000165,London,Barnet,Barnet,Barnet
+J06000132,Yorkshire and The Humber,Barnsley,Barnsley,Barnsley
+J06000209,South West,Bath and North East Somerset,Bath and North East Somerset,Bath and North East Somerset
+J06000209,South West,"Bristol, City of","Bristol, City of","Bristol, City of"
+J06000209,South West,North Somerset,North Somerset,North Somerset
+J06000181,London,Bexley,Bexley,Bexley
+J06000149,West Midlands,Birmingham,Birmingham,Birmingham
 J06000140,East Midlands,Blaby,Blaby,Blaby
 J06000140,East Midlands,Charnwood,Charnwood,Charnwood
 J06000140,East Midlands,Harborough,Harborough,Harborough
@@ -96,45 +48,33 @@ J06000140,East Midlands,Hinckley and Bosworth,Hinckley and Bosworth,Hinckley and
 J06000140,East Midlands,Melton,Melton,Melton
 J06000140,East Midlands,North West Leicestershire,North West Leicestershire,North West Leicestershire
 J06000140,East Midlands,Oadby and Wigston,Oadby and Wigston,Oadby and Wigston
-J06000141,East Midlands,Leicester,Leicester,Leicester
-J06000142,East Midlands,Rutland,Rutland,Rutland
-J06000142,East Midlands,Corby,North Northamptonshire,North Northamptonshire
-J06000142,East Midlands,Daventry,West Northamptonshire,West Northamptonshire
-J06000142,East Midlands,East Northamptonshire,North Northamptonshire,North Northamptonshire
-J06000142,East Midlands,Kettering,North Northamptonshire,North Northamptonshire
-J06000142,East Midlands,Northampton,West Northamptonshire,West Northamptonshire
-J06000142,East Midlands,South Northamptonshire,West Northamptonshire,West Northamptonshire
-J06000142,East Midlands,Wellingborough,North Northamptonshire,North Northamptonshire
-J06000143,West Midlands,Telford and Wrekin,Telford and Wrekin,Telford and Wrekin
-J06000143,West Midlands,Stoke-on-Trent,Stoke-on-Trent,Stoke-on-Trent
-J06000143,West Midlands,Stafford,Stafford,Stafford
-J06000144,West Midlands,Cannock Chase,Cannock Chase,Cannock Chase
-J06000144,West Midlands,East Staffordshire,East Staffordshire,East Staffordshire
-J06000144,West Midlands,Lichfield,Lichfield,Lichfield
-J06000144,West Midlands,Newcastle-under-Lyme,Newcastle-under-Lyme,Newcastle-under-Lyme
-J06000144,West Midlands,South Staffordshire,South Staffordshire,South Staffordshire
-J06000144,West Midlands,Staffordshire Moorlands,Staffordshire Moorlands,Staffordshire Moorlands
-J06000144,West Midlands,Tamworth,Tamworth,Tamworth
-J06000145,West Midlands,Shropshire,Shropshire,Shropshire
-J06000146,West Midlands,Walsall,Walsall,Walsall
-J06000147,West Midlands,Wolverhampton,Wolverhampton,Wolverhampton
-J06000148,West Midlands,Sandwell,Sandwell,Sandwell
-J06000149,West Midlands,Birmingham,Birmingham,Birmingham
-J06000150,West Midlands,Solihull,Solihull,Solihull
-J06000151,West Midlands,Coventry,Coventry,Coventry
-J06000152,West Midlands,Bromsgrove,Bromsgrove,Bromsgrove
-J06000152,West Midlands,Redditch,Redditch,Redditch
-J06000152,West Midlands,Dudley,Dudley,Dudley
-J06000153,West Midlands,North Warwickshire,North Warwickshire,North Warwickshire
-J06000153,West Midlands,Nuneaton and Bedworth,Nuneaton and Bedworth,Nuneaton and Bedworth
-J06000153,West Midlands,Rugby,Rugby,Rugby
-J06000153,West Midlands,Stratford-on-Avon,Stratford-on-Avon,Stratford-on-Avon
-J06000153,West Midlands,Warwick,Warwick,Warwick
-J06000154,West Midlands,"Herefordshire, County of","Herefordshire, County of","Herefordshire, County of"
-J06000154,West Midlands,Malvern Hills,Malvern Hills,Malvern Hills
-J06000154,West Midlands,Worcester,Worcester,Worcester
-J06000154,West Midlands,Wychavon,Wychavon,Wychavon
-J06000154,West Midlands,Wyre Forest,Wyre Forest,Wyre Forest
+J06000110,North West,Blackburn with Darwen,Blackburn with Darwen,Blackburn with Darwen
+J06000110,North West,Chorley,Chorley,Chorley
+J06000110,North West,Bolton,Bolton,Bolton
+J06000108,North West,Blackpool,Blackpool,Blackpool
+J06000108,North West,Fylde,Fylde,Fylde
+J06000108,North West,Lancaster,Lancaster,Lancaster
+J06000108,North West,Preston,Preston,Preston
+J06000108,North West,Ribble Valley,Ribble Valley,Ribble Valley
+J06000108,North West,South Ribble,South Ribble,South Ribble
+J06000108,North West,Wyre,Wyre,Wyre
+J06000136,East Midlands,Boston,Boston,Boston
+J06000136,East Midlands,East Lindsey,East Lindsey,East Lindsey
+J06000136,East Midlands,Lincoln,Lincoln,Lincoln
+J06000136,East Midlands,North Kesteven,North Kesteven,North Kesteven
+J06000136,East Midlands,South Holland,South Holland,South Holland
+J06000136,East Midlands,South Kesteven,South Kesteven,South Kesteven
+J06000136,East Midlands,West Lindsey,West Lindsey,West Lindsey
+J06000214,South West,Bournemouth,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
+J06000214,South West,Poole,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
+J06000214,South West,Christchurch,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
+J06000195,South East,Bracknell Forest,Bracknell Forest,Bracknell Forest
+J06000195,South East,Slough,Slough,Slough
+J06000195,South East,Windsor and Maidenhead,Windsor and Maidenhead,Windsor and Maidenhead
+J06000195,South East,Runnymede,Runnymede,Runnymede
+J06000195,South East,Spelthorne,Spelthorne,Spelthorne
+J06000195,South East,Surrey Heath,Surrey Heath,Surrey Heath
+J06000126,Yorkshire and The Humber,Bradford,Bradford,Bradford
 J06000155,East of England,Breckland,Breckland,Breckland
 J06000155,East of England,Broadland,Broadland,Broadland
 J06000155,East of England,Great Yarmouth,Great Yarmouth,Great Yarmouth
@@ -142,22 +82,11 @@ J06000155,East of England,King's Lynn and West Norfolk,King's Lynn and West Norf
 J06000155,East of England,North Norfolk,North Norfolk,North Norfolk
 J06000155,East of England,Norwich,Norwich,Norwich
 J06000155,East of England,South Norfolk,South Norfolk,South Norfolk
-J06000157,East of England,Cambridge,Cambridge,Cambridge
-J06000157,East of England,East Cambridgeshire,East Cambridgeshire,East Cambridgeshire
-J06000157,East of England,Fenland,Fenland,Fenland
-J06000157,East of England,Huntingdonshire,Huntingdonshire,Huntingdonshire
-J06000157,East of England,South Cambridgeshire,South Cambridgeshire,South Cambridgeshire
-J06000158,East of England,Suffolk Coastal,East Suffolk,East Suffolk
-J06000158,East of England,Waveney,East Suffolk,East Suffolk
-J06000159,East of England,Tendring,Tendring,Tendring
-J06000159,East of England,Babergh,Babergh,Babergh
-J06000159,East of England,Forest Heath,West Suffolk,West Suffolk
-J06000159,East of England,Ipswich,Ipswich,Ipswich
-J06000159,East of England,Mid Suffolk,Mid Suffolk,Mid Suffolk
-J06000159,East of England,St Edmundsbury,West Suffolk,West Suffolk
-J06000160,East of England,Luton,Luton,Luton
-J06000160,East of England,Bedford,Bedford,Bedford
-J06000160,East of England,Central Bedfordshire,Central Bedfordshire,Central Bedfordshire
+J06000204,South East,Brighton and Hove,Brighton and Hove,Brighton and Hove
+J06000188,London,Bromley,Bromley,Bromley
+J06000152,West Midlands,Bromsgrove,Bromsgrove,Bromsgrove
+J06000152,West Midlands,Redditch,Redditch,Redditch
+J06000152,West Midlands,Dudley,Dudley,Dudley
 J06000161,East of England,Broxbourne,Broxbourne,Broxbourne
 J06000161,East of England,Dacorum,Dacorum,Dacorum
 J06000161,East of England,Hertsmere,Hertsmere,Hertsmere
@@ -168,73 +97,68 @@ J06000161,East of England,St Albans,St Albans,St Albans
 J06000161,East of England,Welwyn Hatfield,Welwyn Hatfield,Welwyn Hatfield
 J06000161,East of England,East Hertfordshire,East Hertfordshire,East Hertfordshire
 J06000161,East of England,Stevenage,Stevenage,Stevenage
-J06000162,East of England,Southend-on-Sea,Southend-on-Sea,Southend-on-Sea
-J06000162,East of England,Braintree,Braintree,Braintree
-J06000162,East of England,Chelmsford,Chelmsford,Chelmsford
-J06000162,East of England,Colchester,Colchester,Colchester
-J06000162,East of England,Maldon,Maldon,Maldon
-J06000162,East of England,Rochford,Rochford,Rochford
-J06000162,East of England,Uttlesford,Uttlesford,Uttlesford
-J06000163,East of England,Thurrock,Thurrock,Thurrock
-J06000163,East of England,Basildon,Basildon,Basildon
-J06000163,East of England,Brentwood,Brentwood,Brentwood
-J06000163,East of England,Castle Point,Castle Point,Castle Point
-J06000163,East of England,Epping Forest,Epping Forest,Epping Forest
-J06000163,East of England,Harlow,Harlow,Harlow
-J06000164,London,Enfield,Enfield,Enfield
-J06000165,London,Barnet,Barnet,Barnet
-J06000166,London,Waltham Forest,Waltham Forest,Waltham Forest
-J06000167,London,Harrow,Harrow,Harrow
-J06000168,London,Redbridge,Redbridge,Redbridge
-J06000170,London,Havering,Havering,Havering
-J06000172,London,Barking and Dagenham,Barking and Dagenham,Barking and Dagenham
-J06000173,London,City of London,City of London,Hackney and City of London
-J06000173,London,Hackney,Hackney,Hackney and City of London
-J06000173,London,Islington,Islington,Islington
+J06000109,North West,Burnley,Burnley,Burnley
+J06000109,North West,Hyndburn,Hyndburn,Hyndburn
+J06000109,North West,Pendle,Pendle,Pendle
+J06000109,North West,Rossendale,Rossendale,Rossendale
+J06000109,North West,Bury,Bury,Bury
+J06000129,Yorkshire and The Humber,Calderdale,Calderdale,Calderdale
+J06000157,East of England,Cambridge,Cambridge,Cambridge
+J06000157,East of England,East Cambridgeshire,East Cambridgeshire,East Cambridgeshire
+J06000157,East of England,Fenland,Fenland,Fenland
+J06000157,East of England,Huntingdonshire,Huntingdonshire,Huntingdonshire
+J06000157,East of England,South Cambridgeshire,South Cambridgeshire,South Cambridgeshire
 J06000174,London,Camden,Camden,Camden
-J06000175,London,Hillingdon,Hillingdon,Hillingdon
-J06000176,London,Newham,Newham,Newham
-J06000177,London,Ealing,Ealing,Ealing
-J06000178,London,Tower Hamlets,Tower Hamlets,Tower Hamlets
-J06000179,London,Hammersmith and Fulham,Hammersmith and Fulham,Hammersmith and Fulham
-J06000179,London,Kensington and Chelsea,Kensington and Chelsea,Kensington and Chelsea
-J06000179,London,Westminster,Westminster,Westminster
-J06000180,London,Greenwich,Greenwich,Greenwich
-J06000181,London,Bexley,Bexley,Bexley
-J06000183,London,Lambeth,Lambeth,Lambeth
-J06000184,London,Hounslow,Hounslow,Hounslow
-J06000185,London,Lewisham,Lewisham,Lewisham
-J06000186,London,Wandsworth,Wandsworth,Wandsworth
-J06000187,London,Kingston upon Thames,Kingston upon Thames,Kingston upon Thames
-J06000187,London,Merton,Merton,Merton
-J06000187,London,Richmond upon Thames,Richmond upon Thames,Richmond upon Thames
-J06000188,London,Bromley,Bromley,Bromley
-J06000190,London,Croydon,Croydon,Croydon
-J06000191,South East,Milton Keynes,Milton Keynes,Milton Keynes
-J06000192,South East,Aylesbury Vale,Buckinghamshire,Buckinghamshire
-J06000192,South East,Chiltern,Buckinghamshire,Buckinghamshire
-J06000192,South East,South Bucks,Buckinghamshire,Buckinghamshire
-J06000192,South East,Wycombe,Buckinghamshire,Buckinghamshire
-J06000193,South East,West Berkshire,West Berkshire,West Berkshire
-J06000193,South East,Cherwell,Cherwell,Cherwell
-J06000193,South East,Oxford,Oxford,Oxford
-J06000193,South East,South Oxfordshire,South Oxfordshire,South Oxfordshire
-J06000193,South East,Vale of White Horse,Vale of White Horse,Vale of White Horse
-J06000193,South East,West Oxfordshire,West Oxfordshire,West Oxfordshire
-J06000195,South East,Bracknell Forest,Bracknell Forest,Bracknell Forest
-J06000195,South East,Slough,Slough,Slough
-J06000195,South East,Windsor and Maidenhead,Windsor and Maidenhead,Windsor and Maidenhead
-J06000195,South East,Runnymede,Runnymede,Runnymede
-J06000195,South East,Spelthorne,Spelthorne,Spelthorne
-J06000195,South East,Surrey Heath,Surrey Heath,Surrey Heath
-J06000196,South East,Reading,Reading,Reading
-J06000196,South East,Wokingham,Wokingham,Wokingham
-J06000196,South East,Hart,Hart,Hart
-J06000196,South East,Rushmoor,Rushmoor,Rushmoor
+J06000144,West Midlands,Cannock Chase,Cannock Chase,Cannock Chase
+J06000144,West Midlands,East Staffordshire,East Staffordshire,East Staffordshire
+J06000144,West Midlands,Lichfield,Lichfield,Lichfield
+J06000144,West Midlands,Newcastle-under-Lyme,Newcastle-under-Lyme,Newcastle-under-Lyme
+J06000144,West Midlands,South Staffordshire,South Staffordshire,South Staffordshire
+J06000144,West Midlands,Staffordshire Moorlands,Staffordshire Moorlands,Staffordshire Moorlands
+J06000144,West Midlands,Tamworth,Tamworth,Tamworth
 J06000197,South East,Canterbury,Canterbury,Canterbury
 J06000197,South East,Dover,Dover,Dover
 J06000197,South East,Swale,Swale,Swale
 J06000197,South East,Thanet,Thanet,Thanet
+J06000206,South West,Cheltenham,Cheltenham,Cheltenham
+J06000206,South West,Cotswold,Cotswold,Cotswold
+J06000206,South West,Forest of Dean,Forest of Dean,Forest of Dean
+J06000206,South West,Gloucester,Gloucester,Gloucester
+J06000206,South West,Stroud,Stroud,Stroud
+J06000206,South West,Tewkesbury,Tewkesbury,Tewkesbury
+J06000121,North West,Cheshire East,Cheshire East,Cheshire East
+J06000122,North West,Cheshire West and Chester,Cheshire West and Chester,Cheshire West and Chester
+J06000173,London,City of London,City of London,Hackney and City of London
+J06000173,London,Hackney,Hackney,Hackney and City of London
+J06000173,London,Islington,Islington,Islington
+J06000215,South West,Cornwall,Cornwall,Cornwall and Isles of Scilly
+J06000215,South West,Isles of Scilly,Isles of Scilly,Cornwall and Isles of Scilly
+J06000151,West Midlands,Coventry,Coventry,Coventry
+J06000123,Yorkshire and The Humber,Craven,Craven,Craven
+J06000123,Yorkshire and The Humber,Hambleton,Hambleton,Hambleton
+J06000123,Yorkshire and The Humber,Harrogate,Harrogate,Harrogate
+J06000123,Yorkshire and The Humber,Richmondshire,Richmondshire,Richmondshire
+J06000123,Yorkshire and The Humber,Ryedale,Ryedale,Ryedale
+J06000123,Yorkshire and The Humber,Scarborough,Scarborough,Scarborough
+J06000123,Yorkshire and The Humber,Selby,Selby,Selby
+J06000190,London,Croydon,Croydon,Croydon
+J06000105,North East,Darlington,Darlington,Darlington
+J06000105,North East,County Durham,County Durham,County Durham
+J06000139,East Midlands,Derby,Derby,Derby
+J06000177,London,Ealing,Ealing,Ealing
+J06000212,South West,East Devon,East Devon,East Devon
+J06000212,South West,Exeter,Exeter,Exeter
+J06000212,South West,Mid Devon,Mid Devon,Mid Devon
+J06000212,South West,North Devon,North Devon,North Devon
+J06000212,South West,Teignbridge,Teignbridge,Teignbridge
+J06000212,South West,Torridge,Torridge,Torridge
+J06000212,South West,West Devon,West Devon,West Devon
+J06000125,Yorkshire and The Humber,East Riding of Yorkshire,East Riding of Yorkshire,East Riding of Yorkshire
+J06000201,South East,Eastbourne,Eastbourne,Eastbourne
+J06000201,South East,Hastings,Hastings,Hastings
+J06000201,South East,Lewes,Lewes,Lewes
+J06000201,South East,Rother,Rother,Rother
+J06000201,South East,Wealden,Wealden,Wealden
 J06000198,South East,Elmbridge,Elmbridge,Elmbridge
 J06000198,South East,Epsom and Ewell,Epsom and Ewell,Epsom and Ewell
 J06000198,South East,Guildford,Guildford,Guildford
@@ -243,14 +167,27 @@ J06000198,South East,Reigate and Banstead,Reigate and Banstead,Reigate and Banst
 J06000198,South East,Tandridge,Tandridge,Tandridge
 J06000198,South East,Waverley,Waverley,Waverley
 J06000198,South East,Woking,Woking,Woking
-J06000199,South East,Ashford,Ashford,Ashford
-J06000199,South East,Dartford,Dartford,Dartford
-J06000199,South East,Gravesham,Gravesham,Gravesham
-J06000199,South East,Maidstone,Maidstone,Maidstone
-J06000199,South East,Sevenoaks,Sevenoaks,Sevenoaks
-J06000199,South East,Folkestone and Hythe,Folkestone and Hythe,Folkestone and Hythe
-J06000199,South East,Tonbridge and Malling,Tonbridge and Malling,Tonbridge and Malling
-J06000199,South East,Tunbridge Wells,Tunbridge Wells,Tunbridge Wells
+J06000164,London,Enfield,Enfield,Enfield
+J06000180,London,Greenwich,Greenwich,Greenwich
+J06000118,North West,Halton,Halton,Halton
+J06000118,North West,Warrington,Warrington,Warrington
+J06000118,North West,Trafford,Trafford,Trafford
+J06000179,London,Hammersmith and Fulham,Hammersmith and Fulham,Hammersmith and Fulham
+J06000179,London,Kensington and Chelsea,Kensington and Chelsea,Kensington and Chelsea
+J06000179,London,Westminster,Westminster,Westminster
+J06000167,London,Harrow,Harrow,Harrow
+J06000106,North East,Hartlepool,Hartlepool,Hartlepool
+J06000106,North East,Middlesbrough,Middlesbrough,Middlesbrough
+J06000106,North East,Redcar and Cleveland,Redcar and Cleveland,Redcar and Cleveland
+J06000106,North East,Stockton-on-Tees,Stockton-on-Tees,Stockton-on-Tees
+J06000170,London,Havering,Havering,Havering
+J06000154,West Midlands,"Herefordshire, County of","Herefordshire, County of","Herefordshire, County of"
+J06000154,West Midlands,Malvern Hills,Malvern Hills,Malvern Hills
+J06000154,West Midlands,Worcester,Worcester,Worcester
+J06000154,West Midlands,Wychavon,Wychavon,Wychavon
+J06000154,West Midlands,Wyre Forest,Wyre Forest,Wyre Forest
+J06000175,London,Hillingdon,Hillingdon,Hillingdon
+J06000184,London,Hounslow,Hounslow,Hounslow
 J06000200,South East,Isle of Wight,Isle of Wight,Isle of Wight
 J06000200,South East,Basingstoke and Deane,Basingstoke and Deane,Basingstoke and Deane
 J06000200,South East,East Hampshire,East Hampshire,East Hampshire
@@ -261,75 +198,174 @@ J06000200,South East,Havant,Havant,Havant
 J06000200,South East,New Forest,New Forest,New Forest
 J06000200,South East,Test Valley,Test Valley,Test Valley
 J06000200,South East,Winchester,Winchester,Winchester
-J06000201,South East,Eastbourne,Eastbourne,Eastbourne
-J06000201,South East,Hastings,Hastings,Hastings
-J06000201,South East,Lewes,Lewes,Lewes
-J06000201,South East,Rother,Rother,Rother
-J06000201,South East,Wealden,Wealden,Wealden
-J06000202,South East,Adur,Adur,Adur
-J06000202,South East,Arun,Arun,Arun
-J06000202,South East,Chichester,Chichester,Chichester
-J06000202,South East,Crawley,Crawley,Crawley
-J06000202,South East,Horsham,Horsham,Horsham
-J06000202,South East,Mid Sussex,Mid Sussex,Mid Sussex
-J06000202,South East,Worthing,Worthing,Worthing
-J06000203,South East,Southampton,Southampton,Southampton
-J06000204,South East,Brighton and Hove,Brighton and Hove,Brighton and Hove
-J06000206,South West,Cheltenham,Cheltenham,Cheltenham
-J06000206,South West,Cotswold,Cotswold,Cotswold
-J06000206,South West,Forest of Dean,Forest of Dean,Forest of Dean
-J06000206,South West,Gloucester,Gloucester,Gloucester
-J06000206,South West,Stroud,Stroud,Stroud
-J06000206,South West,Tewkesbury,Tewkesbury,Tewkesbury
-J06000208,South West,South Gloucestershire,South Gloucestershire,South Gloucestershire
-J06000209,South West,Bath and North East Somerset,Bath and North East Somerset,Bath and North East Somerset
-J06000209,South West,"Bristol, City of","Bristol, City of","Bristol, City of"
-J06000209,South West,North Somerset,North Somerset,North Somerset
-J06000212,South West,East Devon,East Devon,East Devon
-J06000212,South West,Exeter,Exeter,Exeter
-J06000212,South West,Mid Devon,Mid Devon,Mid Devon
-J06000212,South West,North Devon,North Devon,North Devon
-J06000212,South West,Teignbridge,Teignbridge,Teignbridge
-J06000212,South West,Torridge,Torridge,Torridge
-J06000212,South West,West Devon,West Devon,West Devon
-J06000214,South West,Bournemouth,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
-J06000214,South West,Poole,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
-J06000214,South West,Christchurch,"Bournemouth, Christchurch and Poole","Bournemouth, Christchurch and Poole"
-J06000215,South West,Cornwall,Cornwall,Cornwall and Isles of Scilly
-J06000215,South West,Isles of Scilly,Isles of Scilly,Cornwall and Isles of Scilly
+J06000128,Yorkshire and The Humber,"Kingston upon Hull, City of","Kingston upon Hull, City of","Kingston upon Hull, City of"
+J06000187,London,Kingston upon Thames,Kingston upon Thames,Kingston upon Thames
+J06000187,London,Merton,Merton,Merton
+J06000187,London,Richmond upon Thames,Richmond upon Thames,Richmond upon Thames
+J06000131,Yorkshire and The Humber,Kirklees,Kirklees,Kirklees
+J06000183,London,Lambeth,Lambeth,Lambeth
+J06000127,Yorkshire and The Humber,Leeds,Leeds,Leeds
+J06000141,East Midlands,Leicester,Leicester,Leicester
+J06000185,London,Lewisham,Lewisham,Lewisham
+J06000160,East of England,Luton,Luton,Luton
+J06000160,East of England,Bedford,Bedford,Bedford
+J06000160,East of England,Central Bedfordshire,Central Bedfordshire,Central Bedfordshire
+J06000117,North West,Manchester,Manchester,Manchester
+J06000191,South East,Milton Keynes,Milton Keynes,Milton Keynes
+J06000103,North East,Newcastle upon Tyne,Newcastle upon Tyne,Newcastle upon Tyne
+J06000176,London,Newham,Newham,Newham
+J06000133,Yorkshire and The Humber,North East Lincolnshire,North East Lincolnshire,North East Lincolnshire
+J06000133,Yorkshire and The Humber,North Lincolnshire,North Lincolnshire,North Lincolnshire
+J06000133,Yorkshire and The Humber,Doncaster,Doncaster,Doncaster
+J06000133,Yorkshire and The Humber,Rotherham,Rotherham,Rotherham
+J06000102,North East,North Tyneside,North Tyneside,North Tyneside
+J06000153,West Midlands,North Warwickshire,North Warwickshire,North Warwickshire
+J06000153,West Midlands,Nuneaton and Bedworth,Nuneaton and Bedworth,Nuneaton and Bedworth
+J06000153,West Midlands,Rugby,Rugby,Rugby
+J06000153,West Midlands,Stratford-on-Avon,Stratford-on-Avon,Stratford-on-Avon
+J06000153,West Midlands,Warwick,Warwick,Warwick
+J06000101,North East,Northumberland,Northumberland,Northumberland
+J06000138,East Midlands,Nottingham,Nottingham,Nottingham
+J06000112,North West,Oldham,Oldham,Oldham
 J06000216,South West,Plymouth,Plymouth,Plymouth
 J06000216,South West,Torbay,Torbay,Torbay
 J06000216,South West,South Hams,South Hams,South Hams
+J06000196,South East,Reading,Reading,Reading
+J06000196,South East,Wokingham,Wokingham,Wokingham
+J06000196,South East,Hart,Hart,Hart
+J06000196,South East,Rushmoor,Rushmoor,Rushmoor
+J06000168,London,Redbridge,Redbridge,Redbridge
+J06000111,North West,Rochdale,Rochdale,Rochdale
+J06000142,East Midlands,Rutland,Rutland,Rutland
+J06000142,East Midlands,Corby,North Northamptonshire,North Northamptonshire
+J06000142,East Midlands,Daventry,West Northamptonshire,West Northamptonshire
+J06000142,East Midlands,East Northamptonshire,North Northamptonshire,North Northamptonshire
+J06000142,East Midlands,Kettering,North Northamptonshire,North Northamptonshire
+J06000142,East Midlands,Northampton,West Northamptonshire,West Northamptonshire
+J06000142,East Midlands,South Northamptonshire,West Northamptonshire,West Northamptonshire
+J06000142,East Midlands,Wellingborough,North Northamptonshire,North Northamptonshire
+J06000115,North West,Salford,Salford,Salford
+J06000148,West Midlands,Sandwell,Sandwell,Sandwell
+J06000134,Yorkshire and The Humber,Sheffield,Sheffield,Sheffield
+J06000145,West Midlands,Shropshire,Shropshire,Shropshire
+J06000150,West Midlands,Solihull,Solihull,Solihull
+J06000208,South West,South Gloucestershire,South Gloucestershire,South Gloucestershire
+J06000104,North East,South Tyneside,South Tyneside,South Tyneside
+J06000104,North East,Sunderland,Sunderland,Sunderland
+J06000104,North East,Gateshead,Gateshead,Gateshead
+J06000203,South East,Southampton,Southampton,Southampton
+J06000162,East of England,Southend-on-Sea,Southend-on-Sea,Southend-on-Sea
+J06000162,East of England,Braintree,Braintree,Braintree
+J06000162,East of England,Chelmsford,Chelmsford,Chelmsford
+J06000162,East of England,Colchester,Colchester,Colchester
+J06000162,East of England,Maldon,Maldon,Maldon
+J06000162,East of England,Rochford,Rochford,Rochford
+J06000162,East of England,Uttlesford,Uttlesford,Uttlesford
+J06000119,North West,Stockport,Stockport,Stockport
+J06000158,East of England,Suffolk Coastal,East Suffolk,East Suffolk
+J06000158,East of England,Waveney,East Suffolk,East Suffolk
+J06000116,North West,Tameside,Tameside,Tameside
+J06000143,West Midlands,Telford and Wrekin,Telford and Wrekin,Telford and Wrekin
+J06000143,West Midlands,Stoke-on-Trent,Stoke-on-Trent,Stoke-on-Trent
+J06000143,West Midlands,Stafford,Stafford,Stafford
+J06000159,East of England,Tendring,Tendring,Tendring
+J06000159,East of England,Babergh,Babergh,Babergh
+J06000159,East of England,Forest Heath,West Suffolk,West Suffolk
+J06000159,East of England,Ipswich,Ipswich,Ipswich
+J06000159,East of England,Mid Suffolk,Mid Suffolk,Mid Suffolk
+J06000159,East of England,St Edmundsbury,West Suffolk,West Suffolk
+J06000163,East of England,Thurrock,Thurrock,Thurrock
+J06000163,East of England,Basildon,Basildon,Basildon
+J06000163,East of England,Brentwood,Brentwood,Brentwood
+J06000163,East of England,Castle Point,Castle Point,Castle Point
+J06000163,East of England,Epping Forest,Epping Forest,Epping Forest
+J06000163,East of England,Harlow,Harlow,Harlow
+J06000178,London,Tower Hamlets,Tower Hamlets,Tower Hamlets
+J06000130,Yorkshire and The Humber,Wakefield,Wakefield,Wakefield
+J06000146,West Midlands,Walsall,Walsall,Walsall
+J06000166,London,Waltham Forest,Waltham Forest,Waltham Forest
+J06000186,London,Wandsworth,Wandsworth,Wandsworth
+J06000193,South East,West Berkshire,West Berkshire,West Berkshire
+J06000193,South East,Cherwell,Cherwell,Cherwell
+J06000193,South East,Oxford,Oxford,Oxford
+J06000193,South East,South Oxfordshire,South Oxfordshire,South Oxfordshire
+J06000193,South East,Vale of White Horse,Vale of White Horse,Vale of White Horse
+J06000193,South East,West Oxfordshire,West Oxfordshire,West Oxfordshire
+J06000113,North West,West Lancashire,West Lancashire,West Lancashire
+J06000113,North West,Knowsley,Knowsley,Knowsley
+J06000113,North West,Liverpool,Liverpool,Liverpool
+J06000113,North West,Sefton,Sefton,Sefton
+J06000114,North West,Wigan,Wigan,Wigan
+J06000114,North West,St. Helens,St. Helens,St. Helens
+J06000120,North West,Wirral,Wirral,Wirral
+J06000147,West Midlands,Wolverhampton,Wolverhampton,Wolverhampton
+J06000124,Yorkshire and The Humber,York,York,York
 J06000107,North West,Allerdale,Allerdale,Allerdale
 J06000107,North West,Barrow-in-Furness,Barrow-in-Furness,Barrow-in-Furness
 J06000107,North West,Carlisle,Carlisle,Carlisle
 J06000107,North West,Copeland,Copeland,Copeland
 J06000107,North West,Eden,Eden,Eden
 J06000107,North West,South Lakeland,South Lakeland,South Lakeland
-J06000156,East of England,Peterborough,Peterborough,Peterborough
-J06000169,London,Haringey,Haringey,Haringey
 J06000171,London,Brent,Brent,Brent
-J06000182,London,Southwark,Southwark,Southwark
-J06000189,London,Sutton,Sutton,Sutton
-J06000194,South East,Medway,Medway,Medway
-J06000205,South East,Portsmouth,Portsmouth,Portsmouth
-J06000207,South West,Swindon,Swindon,Swindon
-J06000210,South West,Wiltshire,Wiltshire,Wiltshire
-J06000211,South West,Mendip,Mendip,Mendip
-J06000211,South West,Sedgemoor,Sedgemoor,Sedgemoor
-J06000211,South West,South Somerset,South Somerset,South Somerset
-J06000211,South West,Taunton Deane,Somerset West and Taunton,Somerset West and Taunton
-J06000211,South West,West Somerset,Somerset West and Taunton,Somerset West and Taunton
 J06000213,South West,East Dorset,Dorset,Dorset
 J06000213,South West,North Dorset,Dorset,Dorset
 J06000213,South West,Purbeck,Dorset,Dorset
 J06000213,South West,West Dorset,Dorset,Dorset
 J06000213,South West,Weymouth and Portland,Dorset,Dorset
-J06000229,Northern Ireland,Northern Health and Social Care Trust,Northern Health and Social Care Trust,Northern Health and Social Care Trust
-J06000230,Northern Ireland,Western Health and Social Care Trust,Western Health and Social Care Trust,Western Health and Social Care Trust
+J06000169,London,Haringey,Haringey,Haringey
+J06000194,South East,Medway,Medway,Medway
+J06000211,South West,Mendip,Mendip,Mendip
+J06000211,South West,Sedgemoor,Sedgemoor,Sedgemoor
+J06000211,South West,South Somerset,South Somerset,South Somerset
+J06000211,South West,Taunton Deane,Somerset West and Taunton,Somerset West and Taunton
+J06000211,South West,West Somerset,Somerset West and Taunton,Somerset West and Taunton
+J06000156,East of England,Peterborough,Peterborough,Peterborough
+J06000205,South East,Portsmouth,Portsmouth,Portsmouth
+J06000182,London,Southwark,Southwark,Southwark
+J06000189,London,Sutton,Sutton,Sutton
+J06000207,South West,Swindon,Swindon,Swindon
+J06000210,South West,Wiltshire,Wiltshire,Wiltshire
 J06000231,Northern Ireland,Belfast Health and Social Care Trust,Belfast Health and Social Care Trust,Belfast Health and Social Care Trust
-J06000232,Northern Ireland,South Eastern Health and Social Care Trust,South Eastern Health and Social Care Trust,South Eastern Health and Social Care Trust
-J06000233,Northern Ireland,Southern Health and Social Care Trust,Southern Health and Social Care Trust,Southern Health and Social Care Trust
+J06000221,Wales,Bridgend,Bridgend,Bridgend
+J06000221,Wales,Rhondda Cynon Taf,Rhondda Cynon Taf,Rhondda Cynon Taf
+J06000221,Wales,Merthyr Tydfil,Merthyr Tydfil,Merthyr Tydfil
+J06000219,Wales,Caerphilly,Caerphilly,Caerphilly
+J06000219,Wales,Blaenau Gwent,Blaenau Gwent,Blaenau Gwent
+J06000219,Wales,Torfaen,Torfaen,Torfaen
+J06000219,Wales,Monmouthshire,Monmouthshire,Monmouthshire
+J06000219,Wales,Newport,Newport,Newport
+J06000218,Wales,Ceredigion,Ceredigion,Ceredigion
+J06000218,Wales,Pembrokeshire,Pembrokeshire,Pembrokeshire
+J06000218,Wales,Carmarthenshire,Carmarthenshire,Carmarthenshire
+J06000218,Wales,Powys,Powys,Powys
+J06000224,Scotland,Clackmannanshire,Clackmannanshire,Clackmannanshire
+J06000224,Scotland,Falkirk,Falkirk,Falkirk
+J06000224,Scotland,Stirling,Stirling,Stirling
+J06000224,Scotland,Angus,Angus,Angus
+J06000224,Scotland,Dundee City,Dundee City,Dundee City
+J06000224,Scotland,Fife,Fife,Fife
+J06000224,Scotland,Perth and Kinross,Perth and Kinross,Perth and Kinross
+J06000228,Scotland,Dumfries and Galloway,Dumfries and Galloway,Dumfries and Galloway
+J06000228,Scotland,East Ayrshire,East Ayrshire,East Ayrshire
+J06000228,Scotland,North Ayrshire,North Ayrshire,North Ayrshire
+J06000228,Scotland,Scottish Borders,Scottish Borders,Scottish Borders
+J06000228,Scotland,South Ayrshire,South Ayrshire,South Ayrshire
+J06000226,Scotland,East Lothian,East Lothian,East Lothian
+J06000226,Scotland,Midlothian,Midlothian,Midlothian
+J06000226,Scotland,City of Edinburgh,City of Edinburgh,City of Edinburgh
+J06000226,Scotland,West Lothian,West Lothian,West Lothian
+J06000225,Scotland,East Renfrewshire,East Renfrewshire,East Renfrewshire
+J06000225,Scotland,Inverclyde,Inverclyde,Inverclyde
+J06000225,Scotland,Renfrewshire,Renfrewshire,Renfrewshire
+J06000225,Scotland,West Dunbartonshire,West Dunbartonshire,West Dunbartonshire
+J06000225,Scotland,East Dunbartonshire,East Dunbartonshire,East Dunbartonshire
+J06000225,Scotland,Glasgow City,Glasgow City,Glasgow City
+J06000217,Wales,Isle of Anglesey,Isle of Anglesey,Isle of Anglesey
+J06000217,Wales,Gwynedd,Gwynedd,Gwynedd
+J06000217,Wales,Conwy,Conwy,Conwy
+J06000217,Wales,Denbighshire,Denbighshire,Denbighshire
+J06000217,Wales,Flintshire,Flintshire,Flintshire
+J06000217,Wales,Wrexham,Wrexham,Wrexham
 J06000223,Scotland,Na h-Eileanan Siar,Na h-Eileanan Siar,Comhairle nan Eilean Siar
 J06000223,Scotland,Highland,Highland,Highland
 J06000223,Scotland,Moray,Moray,Moray
@@ -338,49 +374,13 @@ J06000223,Scotland,Shetland Islands,Shetland Islands,Shetland Islands
 J06000223,Scotland,Aberdeen City,Aberdeen City,Aberdeen City
 J06000223,Scotland,Aberdeenshire,Aberdeenshire,Aberdeenshire
 J06000223,Scotland,Argyll and Bute,Argyll and Bute,Argyll and Bute
-J06000224,Scotland,Clackmannanshire,Clackmannanshire,Clackmannanshire
-J06000224,Scotland,Falkirk,Falkirk,Falkirk
-J06000224,Scotland,Stirling,Stirling,Stirling
-J06000224,Scotland,Angus,Angus,Angus
-J06000224,Scotland,Dundee City,Dundee City,Dundee City
-J06000224,Scotland,Fife,Fife,Fife
-J06000224,Scotland,Perth and Kinross,Perth and Kinross,Perth and Kinross
-J06000225,Scotland,East Renfrewshire,East Renfrewshire,East Renfrewshire
-J06000225,Scotland,Inverclyde,Inverclyde,Inverclyde
-J06000225,Scotland,Renfrewshire,Renfrewshire,Renfrewshire
-J06000225,Scotland,West Dunbartonshire,West Dunbartonshire,West Dunbartonshire
-J06000225,Scotland,East Dunbartonshire,East Dunbartonshire,East Dunbartonshire
-J06000225,Scotland,Glasgow City,Glasgow City,Glasgow City
-J06000226,Scotland,East Lothian,East Lothian,East Lothian
-J06000226,Scotland,Midlothian,Midlothian,Midlothian
-J06000226,Scotland,City of Edinburgh,City of Edinburgh,City of Edinburgh
-J06000226,Scotland,West Lothian,West Lothian,West Lothian
+J06000229,Northern Ireland,Northern Health and Social Care Trust,Northern Health and Social Care Trust,Northern Health and Social Care Trust
+J06000232,Northern Ireland,South Eastern Health and Social Care Trust,South Eastern Health and Social Care Trust,South Eastern Health and Social Care Trust
 J06000227,Scotland,South Lanarkshire,South Lanarkshire,South Lanarkshire
 J06000227,Scotland,North Lanarkshire,North Lanarkshire,North Lanarkshire
-J06000228,Scotland,Dumfries and Galloway,Dumfries and Galloway,Dumfries and Galloway
-J06000228,Scotland,East Ayrshire,East Ayrshire,East Ayrshire
-J06000228,Scotland,North Ayrshire,North Ayrshire,North Ayrshire
-J06000228,Scotland,Scottish Borders,Scottish Borders,Scottish Borders
-J06000228,Scotland,South Ayrshire,South Ayrshire,South Ayrshire
-J06000217,Wales,Isle of Anglesey,Isle of Anglesey,Isle of Anglesey
-J06000217,Wales,Gwynedd,Gwynedd,Gwynedd
-J06000217,Wales,Conwy,Conwy,Conwy
-J06000217,Wales,Denbighshire,Denbighshire,Denbighshire
-J06000217,Wales,Flintshire,Flintshire,Flintshire
-J06000217,Wales,Wrexham,Wrexham,Wrexham
-J06000218,Wales,Ceredigion,Ceredigion,Ceredigion
-J06000218,Wales,Pembrokeshire,Pembrokeshire,Pembrokeshire
-J06000218,Wales,Carmarthenshire,Carmarthenshire,Carmarthenshire
-J06000218,Wales,Powys,Powys,Powys
-J06000219,Wales,Caerphilly,Caerphilly,Caerphilly
-J06000219,Wales,Blaenau Gwent,Blaenau Gwent,Blaenau Gwent
-J06000219,Wales,Torfaen,Torfaen,Torfaen
-J06000219,Wales,Monmouthshire,Monmouthshire,Monmouthshire
-J06000219,Wales,Newport,Newport,Newport
+J06000233,Northern Ireland,Southern Health and Social Care Trust,Southern Health and Social Care Trust,Southern Health and Social Care Trust
 J06000220,Wales,Swansea,Swansea,Swansea
 J06000220,Wales,Neath Port Talbot,Neath Port Talbot,Neath Port Talbot
-J06000221,Wales,Bridgend,Bridgend,Bridgend
-J06000221,Wales,Rhondda Cynon Taf,Rhondda Cynon Taf,Rhondda Cynon Taf
-J06000221,Wales,Merthyr Tydfil,Merthyr Tydfil,Merthyr Tydfil
 J06000222,Wales,Vale of Glamorgan,Vale of Glamorgan,Vale of Glamorgan
 J06000222,Wales,Cardiff,Cardiff,Cardiff
+J06000230,Northern Ireland,Western Health and Social Care Trust,Western Health and Social Care Trust,Western Health and Social Care Trust
