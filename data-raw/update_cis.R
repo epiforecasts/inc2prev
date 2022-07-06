@@ -384,7 +384,7 @@ combined <- positivity %>%
   bind_rows() %>%
   mutate(publication_date = extract_publication_dates(file_name)) %>%
   arrange(publication_date, start_date, file_name) %>%
-  group_by(start_date, geography, level, publication_date) %>%
+  group_by(start_date, geography, variant, lower_age_limit, level, publication_date) %>%
   slice(n()) %>%
   ungroup()
 
