@@ -15,7 +15,7 @@ source(here::here("scripts", "read.R"))
 doc <- "
 Analyse outputs of the inc2prev model
 Usage:
-    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--max-report-date=<date>] 
     estimate.R -h | --help
 
 Options:
@@ -26,6 +26,7 @@ Options:
     -l, --local      Analyse local dynamics
     -g, --age        Analyse age
     -v, --variants   Analyse variants
+    -m, --max-report-date=<date> Latest report date to use for estimation
 "
 
 ## if running interactively can set opts to run with options
@@ -41,6 +42,8 @@ regional <- !is.null(opts$regional) && opts$regional
 local <- !is.null(opts$local) && opts$local
 age <- !is.null(opts$age) && opts$age
 variants <- !is.null(opts$variants) && opts$variants
+report_date <- opts$max_report_date
+if (!is.null(report_date)) report_date <- as.Date(report_date)
 
 if (local) {
   suffix <- "_local"
@@ -55,21 +58,30 @@ if (local) {
 }
 
 if (antibodies) {
+  suffix <- paste0(suffix, "_ab")
   threshold <- ifelse(higher, "higher", "standard")
-  ab <- read_ab(nhse_regions = nhse, threshold = threshold)
-   suffix <- paste0(suffix, "_ab")
   if (higher) {
     suffix <- paste0(suffix, "_higher")
   }
-} else {
-  ab <- NULL
+}
+
+if (!is.null(report_date)) {
+  suffix <- paste0(suffix, "_", report_date)
 }
 
 estimates <- readRDS(paste0("outputs/estimates", suffix, ".rds"))
 samples <- readRDS(paste0("outputs/samples", suffix, ".rds"))
 
 nhse <- "Midlands" %in% estimates$variable
-prev <- read_cis(nhse_regions = nhse)
+prev <- read_cis(nhse_regions = nhse,
+                 max_publication_date = report_date)
+
+if (antibodies) {
+  ab <- read_ab(nhse_regions = nhse, threshold = threshold,
+		max_publication_date = report_date)
+} else {
+  ab <- NULL
+}
 
 if (variants || local) {
   early <- NULL
