@@ -65,7 +65,7 @@ i2p_add_var <- function(dt, prev, data, var_col = NULL) {
 		    "dcases", "dab", "gen_dab", "r", "R",
 		    "eta", "init_growth"),
 	vars[n_index],
-        name %in% c("rho", "alpha", "init_inc"),
+        name %in% c("rho", "alpha", "init_inc", "init_dab"),
         vars[p_index],
         name %in% c("beta", "gamma", "delta", "k", "l"),
         paste0(vars[ab_index], collapse = ";")
