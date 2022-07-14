@@ -41,7 +41,8 @@ Imports:
     fs,
     forcats,
     docopt,
-    magick
+    magick,
+    svglite
 Additional_repositories: 
     https://mc-stan.org/r-packages/
 Encoding: UTF-8
