@@ -267,7 +267,9 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher",
   }
   ## use latest estimate
   ab <- ab %>%
-    filter(publication_date == max(publication_date))
+    group_by(level) %>%
+    filter(publication_date == max(publication_date)) %>%
+    ungroup()
 
   return(ab)
 }
