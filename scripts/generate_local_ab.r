@@ -3,9 +3,40 @@ library("here")
 library("data.table")
 library("tidyr")
 library("inc2prev")
+library("docopt")
 
 ## load scripts in `R/`
 source(here::here("scripts", "read.R"))
+
+doc <- "
+Generate local antibody estimates from regional and local estimates
+Usage:
+    generate_local_ab.r [--higher] [--max-report-date=<date>] 
+    estimate.R -h | --help
+
+Options:
+    -h --help        Show this screen
+    -i, --higher     Use higher antibody threshold
+    -m, --max-report-date=<date> Latest report date to use for estimation
+"
+
+## if running interactively can set opts to run with options
+if (interactive()) {
+  if (!exists("opts")) opts <- list()
+} else {
+  opts <- docopt(doc)
+}
+
+higher <- !is.null(opts$higher) && opts$higher
+report_date <- opts$max_report_date
+if (!is.null(report_date)) report_date <- as.Date(report_date)
+
+ab_suffix <- if_else(higher, "_higher", "")
+suffix <- ""
+
+if (!is.null(report_date)) {
+  suffix <- paste0(suffix, "_", report_date)
+}
 
 ## load vaccination data
 vacc <- data.table(read_vacc())[level == "local"]
@@ -21,9 +52,13 @@ local_samples <- local_samples[variable %in% unique(areas$geography_code)]
 local_diag <- readRDS(here::here("outputs", "diagnostics_local.rds"))
 local_dat <- local_diag$data[[1]]
 ## load samples from regional antibody model
-regional_samples <- readRDS(here::here("outputs", "samples_regional_ab_higher.rds"))
+regional_samples <- readRDS(
+  here::here("outputs", paste0("samples_regional_ab", ab_suffix, ".rds"))
+)
 ## load data used for local regional antibody model
-regional_diag <- readRDS(here::here("outputs", "diagnostics_regional_ab_higher.rds"))
+regional_diag <- readRDS(
+  here::here("outputs", paste0("diagnostics_regional_ab", ab_suffix, ".rds"))
+)
 regional_dat <- regional_diag$data[[1]]
 
 ## list of parameters to grab from each model
@@ -64,13 +99,14 @@ combine_params <- function(prev, ab, transfer = "init_dab") {
       prev[[1]][name != loop_transfer],
       merge(
         areas[, list(variable = geography_code, region, n_index = 1:.N)],
-        ab[[1]][name == loop_transfer, list(region = variable, name, value, t_index, p_index = NA_integer_, date, level)],
-        by = "region"
+## FIXME should be fixed in postprocess.r
+##        ab[[1]][name == loop_transfer, list(region = variable, name, value, t_index, p_index = NA_integer_, date, level)],
+        ab[[1]][name == loop_transfer][, region := ab[[1]][name == "rho"]$variable][, -c("variable", "n_index"), with = TRUE],
+        by = c("region")
       )[, -c("region"), with = TRUE]
     )
   }
   return(list(rbind(prev[[1]][name %in% c(prev_params, transfer)], 
-
 		    ab[[1]][name %in% ab_params])))
 }
 
@@ -135,10 +171,19 @@ linf <- local_samples[name %in% c("infections", "R"), list(local_area = variable
 inf_ab <- rbind(lsims, linf)
 
 inf_ab <- inf_ab[local_area %in% unique(areas$geography_code)]
-saveRDS(as_tibble(inf_ab), here::here("outputs", "inf_ab_local_higher_samples.rds"))
+saveRDS(
+  as_tibble(inf_ab), 
+  here::here("outputs", paste0("inf_ab_local", ab_suffix, "_samples", suffix, ".rds"))
+)
 inf_ab_summary <- inf_ab[, as.list(quantile(.SD, prob = seq(0.05, 0.95, by = 0.05), na.rm = TRUE)), by = c("local_area", "date", "name"), .SDcols = c("value")]
 percentages <- grep("%$", colnames(inf_ab_summary), value = TRUE)
 qs <- paste0("q", as.numeric(sub("%$", "", percentages)))
 setnames(inf_ab_summary, percentages, qs)
-saveRDS(as_tibble(inf_ab_summary), here::here("outputs", "inf_ab_local_higher_estimates.rds"))
-fwrite(inf_ab_summary, here::here("outputs", "inf_ab_local_higher.csv"))
+saveRDS(
+  as_tibble(inf_ab_summary),
+  here::here("outputs", paste0("inf_ab_local", ab_suffix, "_estimates", suffix, ".rds"))
+)
+fwrite(
+  inf_ab_summary,
+  here::here("outputs", paste0("inf_ab_local", ab_suffix, suffix, ".csv"))
+)
