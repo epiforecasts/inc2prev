@@ -47,6 +47,7 @@ df_dl <- tibble(file_url = file_urls) %>%
 columns <- c(national = 5, regional = 6, age_school = 6)
 super_headers <- c(regional = "region", age_school = "lower_age_limit")
 threshold_levels <- c(standard = "", higher = "higher threshold")
+threshold_ng_ml <- c(standard = 179, higher = 800)
 
 ## if no new URLs there is nothing to do
 if (nrow(df_dl) > 0) {
@@ -136,7 +137,7 @@ for (threshold_level in names(threshold_levels)) {
               separate(header, c("from", "to"), sep = "\\|")
           }
         }
-        ## having figured out where the table is and extracted the date,
+	## having figured out where the table is and extracted the date,
         ## read the table
         if (is.infinite(skip)) return(NULL) ## couldn't find data
         ## find max row to read
@@ -158,7 +159,11 @@ for (threshold_level in names(threshold_levels)) {
         } else if (level == "age_school") {
           colnames(data)[2:ncol(data)] <-
             paste(colnames(data)[2:ncol(data)], headers$from, sep = "|")
-        }
+        } else if (level == "national" && any(grepl("ng_ml", colnames(data)))) {
+	  remove_cols <- which(grepl("ng_ml", colnames(data)) &
+			       !grepl(threshold_ng_ml, colnames(data))) + 0:2
+	  if (length(remove_cols) > 0) data <- data[, -remove_cols]
+	}
         data <- data[, !duplicated(colnames(data))]
         data <- data %>%
           select(!matches("^number"))
@@ -167,7 +172,7 @@ for (threshold_level in names(threshold_levels)) {
         if (level %in% names(super_headers)) {
           data <- data %>%
             separate(name, c("name", super_headers[level]), sep = "\\|")
-        }
+	}
         data <- data %>%
           pivot_wider() %>%
           separate(weekly_period, c("start_date", "end_date"), sep = " to ") %>%
