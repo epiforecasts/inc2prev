@@ -161,7 +161,7 @@ for (threshold_level in names(threshold_levels)) {
             paste(colnames(data)[2:ncol(data)], headers$from, sep = "|")
         } else if (level == "national" && any(grepl("ng_ml", colnames(data)))) {
 	  remove_cols <- which(grepl("ng_ml", colnames(data)) &
-			       !grepl(threshold_ng_ml, colnames(data))) + 0:2
+			       !grepl(threshold_ng_ml[threshold_level], colnames(data))) + 0:2
 	  if (length(remove_cols) > 0) data <- data[, -remove_cols]
 	}
         data <- data[, !duplicated(colnames(data))]
