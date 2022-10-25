@@ -124,6 +124,11 @@ for (level in names(columns)) {
     sheets <- excel_sheets(x)
     contents_sheet <- suppressMessages(read_excel(x, sheet = "Contents")) %>%
       clean_names()
+
+    if ("table_of_contents" %in% colnames(contents_sheet)) {
+      contents_sheet <- contents_sheet %>%
+        rename(contents = table_of_contents)
+    }
     if (level %in% c("national", "age_school")) {
       nation <- case_when(
         grepl("(northernireland|ni[0-9]*)\\.xlsx?", x) ~
