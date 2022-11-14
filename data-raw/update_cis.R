@@ -127,7 +127,7 @@ for (level in names(columns)) {
 
     if ("table_of_contents" %in% colnames(contents_sheet)) {
       contents_sheet <- contents_sheet %>%
-        rename(contents = table_of_contents)
+        rename(contents = table_of_contents, table = x2)
     }
     if (level %in% c("national", "age_school")) {
       nation <- case_when(
@@ -149,18 +149,18 @@ for (level in names(columns)) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
-          grepl("(Region|region$)", contents)
+          grepl("(Region|region(,|$))", contents)
         ) %>%
         head(n = 1)
     } else if (level == "local" && !technical) {
       contents_sheet <- contents_sheet %>%
-        filter(grepl("CIS sub-region", contents)) %>%
+        filter(grepl("sub-region", contents)) %>%
         head(n = 1)
     } else if (level == "age_school" && !technical) {
       contents_sheet <- contents_sheet %>%
         filter(
           grepl("daily", contents),
-          grepl("age/school year$", contents)
+          grepl("age/school year(,|$)", contents)
         ) %>%
         head(n = 1)
     } else if (level == "variant_national" && technical) {
@@ -181,10 +181,14 @@ for (level in names(columns)) {
       found <- FALSE
     }
     if (found) {
-      ## extract table number
-      sheet <- sub("^Table ([^ ]+) ?- .*$", "\\1", contents_sheet$contents)
-      ## care for slight name discrepancies
-      sheet <- grep(paste0("^", sheet, "( |$)"), sheets, value = TRUE)
+      if ("table" %in% colnames(contents_sheet)) {
+	sheet <- contents_sheet$table
+      } else {
+        ## extract table number
+        sheet <- sub("^Table ([^ ]+) ?- .*$", "\\1", contents_sheet$contents)
+        ## care for slight name discrepancies
+        sheet <- grep(paste0("^", sheet, "( |$)"), sheets, value = TRUE)
+      }
     } else {
       sheet <- c()
     }
@@ -201,13 +205,17 @@ for (level in names(columns)) {
         remove_empty("cols") %>%
         clean_names()
       if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
-        headers_row <- min(grep("(%|[Nn]umber)", unlist(preview[, 2]))) - 1
-        skip <- headers_row + 1
+        headers_row <- min(grep("(%|[Nn]umber)", unlist(preview[, 2])))
+        skip <- headers_row
+        if (colnames(preview)[1] == "contents") {
+	  headers_row <- headers_row - 1
+	}
         if (level %in% c("regional", "age_school", "variant_national", "variant_regional")) {
           headers <- preview[headers_row, 2:ncol(preview)] %>%
             t() %>%
             as_tibble(.name_repair = "minimal") %>%
             rename(header = 1) %>%
+	    mutate(header = sub("\r.*$", "", header)) %>%
             fill(header)
           if (level == "age_school") {
             headers <- headers %>%
@@ -227,9 +235,15 @@ for (level in names(columns)) {
           }
         }
       } else if (level == "local") {
+	if (grepl("^table", colnames(preview)[1])) {
+          date_field <- colnames(preview)[1]
+          colnames(preview)[1] <- "contents"
+	} else {
+          date_field <- preview$contents[3]
+	}
         skip <- which(preview$contents == "Geography Code")
         ## work out the date of the survey
-        date_end <- dmy(sub("^.* to ", "", preview$contents[3]))
+        date_end <- dmy(sub("^.*[_ ]to[_ ]", "", date_field))
         date_start <- date_end - 6
       }
       ## having figured out where the table is and extracted the date, read the table # nolint
@@ -240,7 +254,9 @@ for (level in names(columns)) {
         x,
         sheet = sheet, skip = skip, .name_repair = "minimal"
       )) %>%
-        remove_empty("cols") %>%
+        remove_empty("cols")
+      colnames(data) <- sub("^.*\n", "", colnames(data))
+      data <- data %>%
         clean_names()
       if (level %in% c("national", "regional", "age_school", "variant_national", "variant_regional")) {
         colnames(data) <-
@@ -271,9 +287,11 @@ for (level in names(columns)) {
         data <- data %>%
           filter(grepl("^[0-9]+", date)) %>%
           mutate(
-            date = if_else(grepl("^[0-9]+$", date),
-              as.Date(as.integer(date), origin = "1899-12-30"),
-              dmy(date)
+            date = case_when(
+	      grepl("^[0-9]+$", date) ~ 
+	        as.Date(as.integer(date), origin = "1899-12-30"),
+              grepl("^20[0-9]{2}-", date) ~ ymd(date),
+	      TRUE ~ dmy(date)
             )
           ) %>%
           filter(!is.na(date)) %>%
