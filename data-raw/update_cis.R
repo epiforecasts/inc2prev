@@ -241,7 +241,7 @@ for (level in names(columns)) {
 	} else {
           date_field <- preview$contents[3]
 	}
-        skip <- which(preview$contents == "Geography Code")
+        skip <- which(grepl("Geography Code", preview$contents, ignore.case = TRUE))
         ## work out the date of the survey
         date_end <- dmy(sub("^.*[_ ]to[_ ]", "", date_field))
         date_start <- date_end - 6
