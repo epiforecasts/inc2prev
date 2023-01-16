@@ -247,7 +247,7 @@ for (level in names(columns)) {
         date_start <- date_end - 6
       }
       ## having figured out where the table is and extracted the date, read the table # nolint
-      if (is.infinite(skip)) {
+      if (length(skip) == 0 || is.infinite(skip)) {
         return(NULL)
       } ## couldn't find data
       data <- suppressMessages(read_excel(
