@@ -18,14 +18,14 @@ cis_dir <- here::here("data-raw", "cis")
 dir.create(cis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
-england_years <- c(2020 + seq(0, 2))
+england_years <- c(2020 + seq(0, 3))
 england_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
   "coronaviruscovid19infectionsurveydata/", england_years
 ) # nolint
 
-other_years <- c(2020 + seq(1, 2))
+other_years <- c(2020 + seq(1, 3))
 other_base_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
@@ -34,7 +34,7 @@ other_base_urls <- paste0(
 ) # nolint
 other_urls <- unlist(lapply(other_base_urls, paste, other_years, sep = "/"))
 
-technical_years <- c(2020 + seq(1, 2))
+technical_years <- c(2020 + seq(1, 3))
 technical_urls <- paste0(
   "https://www.ons.gov.uk/peoplepopulationandcommunity/",
   "healthandsocialcare/conditionsanddiseases/datasets/",
