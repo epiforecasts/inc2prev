@@ -51,9 +51,12 @@ read_cis <-
       ) %>%
       inner_join(prev_regional %>%
         select(start_date,
+          publication_date,
           region = geography,
           starts_with("proportion")
-        ),
+        ) %>%
+        group_by(start_date, region) %>%
+        summarise_at(vars(starts_with("proportion")), median),
         by = c("start_date", "region")
       )
     prev_local <- prev_local %>%
