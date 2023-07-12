@@ -1,4 +1,4 @@
-# Estimating epidemiological quantities from prevalence and antibody estimates in the ONS Community Infection Survey
+# Estimate epidemiological quantities from repeated cross-sectional prevalence measurements 
 
 In this work, we use a semi-mechanistic method to estimating epidemiological quantities such as infection incidence, infection growth rates, reproduction numbers and immunological parameters from Office for National Statistics (ONS) prevalence and antibody positivity estimates at the national, and subnational levels, as well as across age groups.
 Our approach assumes that unobserved infections can be represented using an initial intercept and a Gaussian process with a logit link function.
