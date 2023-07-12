@@ -1,7 +1,6 @@
 *.xlsx
 stan/model_threads
 pkgdown/assets/figures/additional
-*.pdf       
 !writeup/paper.pdf
 data/cis
 outputs/*.rds
