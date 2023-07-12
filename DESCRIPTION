@@ -43,8 +43,8 @@ Imports:
     docopt,
     magick,
     svglite
-Additional_repositories: 
-    https://mc-stan.org/r-packages/
+Remotes:
+    stan-dev/cmdstanr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
