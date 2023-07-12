@@ -13,6 +13,9 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/paper.html</loc>
+  </url>
+  <url>
     <loc>/reference/combine_incidence_fits.html</loc>
   </url>
   <url>
@@ -44,5 +47,8 @@
   </url>
   <url>
     <loc>/reference/tune_inv_gamma.html</loc>
+  </url>
+  <url>
+    <loc>/report.html</loc>
   </url>
 </urlset>
