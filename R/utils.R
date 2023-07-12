@@ -1,9 +1,10 @@
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param files PARAM_DESCRIPTION
-#' @param target_dir PARAM_DESCRIPTION
-#' @param ... PARAM_DESCRIPTION
-#' @return OUTPUT_DESCRIPTION
+#' @title Expose Stan functions
+#' @description Exposes stan functions to R
+#' @param files Stan files containing functions to expose
+#' @param target_dir Directory containing Stan files
+#' @param ... Additional arguments passed to
+#'   \code{\link{rstan::expose_stan_functions}}
+#' @return NULL (invisible)
 #' @family utils
 #' @export
 #' @importFrom purrr map_chr
@@ -23,10 +24,10 @@ expose_stan_fns <- function(files, target_dir, ...) {
   return(invisible(NULL))
 }
 
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param x PARAM_DESCRIPTION
-#' @return OUTPUT_DESCRIPTION
+#' @title Inverse logit function
+#' @description The inverse logit function
+#' @param x a logit values or vector of logit values
+#' @return the probability calculated as inverse logit
 #' @family utils
 #' @examples
 #' inv_logit(c(-10, 1, 0, 100))
@@ -36,10 +37,10 @@ inv_logit <- function(x) {
   return(il)
 }
 
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param p PARAM_DESCRIPTION
-#' @return OUTPUT_DESCRIPTION
+#' @title Logit function
+#' @description The logit function
+#' @param p a probability or vector of probabilities
+#' @return the logit of the probability
 #' @family utils
 #' @examples
 #' logit(c(0.01, 0.1, 0.5, 0.9, 1))

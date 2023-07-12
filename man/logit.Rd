@@ -2,18 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{logit}
 \alias{logit}
-\title{FUNCTION_TITLE}
+\title{Logit function}
 \usage{
 logit(p)
 }
 \arguments{
-\item{p}{PARAM_DESCRIPTION}
+\item{p}{a probability or vector of probabilities}
 }
 \value{
-OUTPUT_DESCRIPTION
+the logit of the probability
 }
 \description{
-FUNCTION_DESCRIPTION
+The logit function
 }
 \examples{
 logit(c(0.01, 0.1, 0.5, 0.9, 1))

@@ -2,18 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{inv_logit}
 \alias{inv_logit}
-\title{FUNCTION_TITLE}
+\title{Inverse logit function}
 \usage{
 inv_logit(x)
 }
 \arguments{
-\item{x}{PARAM_DESCRIPTION}
+\item{x}{a logit values or vector of logit values}
 }
 \value{
-OUTPUT_DESCRIPTION
+the probability calculated as inverse logit
 }
 \description{
-FUNCTION_DESCRIPTION
+The inverse logit function
 }
 \examples{
 inv_logit(c(-10, 1, 0, 100))
