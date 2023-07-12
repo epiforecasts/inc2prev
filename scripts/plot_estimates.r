@@ -20,8 +20,8 @@ local_region <- prev %>%
   select(level, variable, region) %>%
   distinct()
 
-dir.create(here::here("figures", "additional"),
-           showWarnings = FALSE, recursive = TRUE)
+fig_dir <- here::here("pkgdown", "assets", "figures", "additional")
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
 
 var_names <- c(
   est_prev = "Prevalence estimate",
@@ -117,8 +117,10 @@ for (file in files) {
     for (history in names(histories)) {
       for (name in unique(level_data$name)) {
         plot_df <- level_data %>%
-          filter(name == {{ name }}, 
-		 date > max(date) - histories[[history]])
+          filter(
+            name == {{ name }},
+            date > max(date) - histories[[history]]
+          )
         aes_str <- list(x = "date", colour = colour_var)
         if (spaghetti) {
           plot_df <- plot_df %>%
@@ -135,8 +137,14 @@ for (file in files) {
         } else {
           p <- p +
             geom_line() +
-            geom_ribbon(mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35, colour = NA) +
-            geom_ribbon(mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.175, colour = NA)
+            geom_ribbon(
+              mapping = aes(ymin = `q25`, ymax = `q75`), alpha = 0.35,
+              colour = NA
+            ) +
+            geom_ribbon(
+              mapping = aes(ymin = `q5`, ymax = `q95`), alpha = 0.175,
+              colour = NA
+            )
         }
         p <- p +
           scale_x_date(breaks = breaks[[history]],
@@ -153,14 +161,16 @@ for (file in files) {
           p <- p +
             facet_wrap(~geography)
         }
-	if (grepl("cumulative_", name)) {
-	  p <- p + 
+        if (grepl("cumulative_", name)) {
+          p <- p +
             expand_limits(y = 0)
-	}
-        ggsave(here::here("figures", "additional",
-                          paste0(level, "_", name, "_",
-                                 history, ".", filetype)), p,
-               width = 8, height = 4)
+        }
+        ggsave(
+          file.path(
+            fig_dir, paste0(level, "_", name, "_", history, ".", filetype
+          ), p,
+          width = 8, height = 4
+        )
       }
     }
   }

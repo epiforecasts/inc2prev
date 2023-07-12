@@ -73,15 +73,16 @@ fit <- incidence(
 dir.create(here::here("outputs"), showWarnings = FALSE)
 fit$fit[[1]]$save_object(here::here("outputs", "example-fit.rds"))
 
-dir.create(here::here("figures", "example"), 
-	   showWarnings = FALSE, recursive = TRUE)
+fig_dir <- here::here("pkgdown", "assets", "figures", "example")
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+
 # plot modelled and observed (but also modelled) prevalence
 prev_plot <- plot_prev(
   fit$summary[[1]], fit$samples[[1]][sample <= 100],
   joint_data$prevalence[[1]]
 ) +
   scale_x_date(date_breaks = "4 months", date_label = "%b %Y")
-ggsave(here::here("figures", "example", "prev.png"), prev_plot, width = 9, height = 6)
+ggsave(file.path(fig_dir, "prev.png"), prev_plot, width = 9, height = 6)
 
 # plot modelled and observed (but also modelled) antibodies
 ab_plot <- plot_prev(
@@ -93,7 +94,7 @@ ab_plot <- plot_prev(
   scale_y_continuous("Antibody prevalence", labels = scales::percent) +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
 
-ggsave(here::here("figures", "example", "ab.png"), ab_plot, width = 9, height = 6)
+ggsave(file.path(fig_dir, "ab.png"), ab_plot, width = 9, height = 6)
 
 # pairs plot
 stanfit <- read_stan_csv(fit$fit[[1]]$output_files())
@@ -102,7 +103,7 @@ pairs <- mcmc_pairs(fit$fit[[1]]$draws(),
   np = np,
   pars = c("beta[1]", "gamma[1]", "gamma[2]", "delta[1]", "k[1]", "l[1]")
 )
-ggsave(here::here("figures", "example", "pairs.png"), pairs, width = 16, height = 16)
+ggsave(file.path(fig_dir, "pairs.png"), pairs, width = 16, height = 16)
 
 # plot infections
 inc_plot <- plot_trace(
@@ -111,7 +112,7 @@ inc_plot <- plot_trace(
   scale_y_continuous("Incident infections", labels = scales::percent) +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
 
-ggsave(here::here("figures", "example", "infections.png"), inc_plot, width = 9, height = 6)
+ggsave(file.path(fig_dir, "infections.png"), inc_plot, width = 9, height = 6)
 
 # plot growth
 growth_plot <- plot_trace(
@@ -119,7 +120,7 @@ growth_plot <- plot_trace(
 ) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
-ggsave(here::here("figures", "example", "growth.png"), growth_plot, width = 9, height = 6)
+ggsave(file.path(fig_dir, "growth.png"), growth_plot, width = 9, height = 6)
 
 # plot Rt
 rt_plot <- plot_trace(
@@ -128,10 +129,10 @@ rt_plot <- plot_trace(
   labs(y = "Reproduction number") +
   scale_x_date("Date", date_breaks = "4 months", date_label = "%b %Y")
   geom_hline(yintercept = 1, linetype = 2)
-ggsave(here::here("figures", "example", "Rt.png"), rt_plot, width = 9, height = 6)
+ggsave(file.path(fig_dir, "Rt.png"), rt_plot, width = 9, height = 6)
 
 p <- plot_grid(prev_plot, inc_plot, ab_plot, rt_plot, labels = c("A", "B", "C", "D"))
-ggsave(here::here("figures", "example", "example-estimates.png"), p, width = 12, height = 6)
+ggsave(file.path(fig_dir, "example-estimates.png"), p, width = 12, height = 6)
 
 params <- fit$summary[[1]][is.na(date)]
 params[, c("n_index", "t_index", "date") := NULL]

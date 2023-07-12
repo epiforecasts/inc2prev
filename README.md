@@ -17,7 +17,7 @@ Abbott, Sam, and Sebastian Funk. 2022. _Estimating Epidemiological Quantities fr
 
 **[Preprint](https://doi.org/10.1101/2022.03.29.22273101)**
 
-**Working paper: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://github.com/epiforecasts/inc2prev/raw/master/docs/paper.pdf)**
+**Working paper: [as html](https://epiforecasts.io/inc2prev/paper), [or pdf](https://github.com/epiforecasts/inc2prev/paper.pdf)**
 
 # Real-time estimates
 

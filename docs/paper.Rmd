@@ -23,6 +23,8 @@ library(kableExtra)
 ## Get tools
 devtools::load_all()
 
+fig_dir <- here::here("pkgdown", "assets", "figures")
+
 params_table <- here::here("outputs", "example-parameters.csv")
 if (!file.exists(params_table)) {
   source(here::here("scripts", "simple-example.R"))
@@ -184,7 +186,7 @@ All code needed to reproduce the results shown here is available at https://gith
 # Results
 
 ```{r prevalence-plot, out.width=".7\\paperwidth", fig.cap = "Model posteriors for England. A. Estimates of daily modelled prevalence and modelled prevalence as published by ONS. B. Estimated incidence of new infections. C. Estimated antibody prevalence and estimes as published by ONS. D. Estimated reproduction numbers."}
-knitr::include_graphics(here::here("figures", "example", "example-estimates.png"))
+knitr::include_graphics(file.path(fig_dir, "example", "example-estimates.png"))
 ```
 
 The model was able to reproduce the daily prevalence estimates and weekly antibody prevalence estimates published by ONS with reasonable accuracy when run until 15 November 2021 (Figure \@ref(fig:prevalence-plot)).
@@ -204,7 +206,7 @@ Posterior estimates of recovered biological parameters are shown in Table \@ref(
 Some of the parameter estimates show high levels of correlation suggesting issues of identifiability (Figure \@ref(fig:pairs-plot)).
 
 ```{r pairs-plot, out.width=".7\\paperwidth", fig.cap = "Scatter plots and histograms of posterior parameter samples."}
-knitr::include_graphics(here::here("figures", "example", "pairs.png"))
+knitr::include_graphics(file.path(fig_dir, "example", "pairs.png"))
 ```
 
 # Discussion
