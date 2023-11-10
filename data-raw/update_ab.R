@@ -17,7 +17,7 @@ ab_dir <- here::here("data-processed", "ab")
 dir.create(ab_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## creata URLs that list spreadsheets
-years <- c(2020 + seq(1, 2))
+years <- c(2020 + seq(1, 3))
 urls <- paste0("https://www.ons.gov.uk/peoplepopulationandcommunity/",
                "healthandsocialcare/conditionsanddiseases/datasets/",
                "/coronaviruscovid19antibodydatafortheuk/", years)
@@ -160,8 +160,11 @@ for (threshold_level in names(threshold_levels)) {
           colnames(data)[2:ncol(data)] <-
             paste(colnames(data)[2:ncol(data)], headers$from, sep = "|")
         } else if (level == "national" && any(grepl("ng_ml", colnames(data)))) {
-	  remove_cols <- which(grepl("ng_ml", colnames(data)) &
-			       !grepl(threshold_ng_ml[threshold_level], colnames(data))) + 0:2
+	  remove_cols <- unlist(lapply(
+            which(grepl("ng_ml", colnames(data)) &
+	    !grepl(threshold_ng_ml[threshold_level], colnames(data))),
+	    function(x) x + 0:2
+	  ))
 	  if (length(remove_cols) > 0) data <- data[, -remove_cols]
 	}
         data <- data[, !duplicated(colnames(data))]
