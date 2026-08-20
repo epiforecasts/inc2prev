@@ -63,12 +63,12 @@ We ONS estimates for prevalence and antibody positivity in England to estimate i
 
 Folder | Purpose
 ---|---
-[`data-raw`](data-raw/) | Raw data and scripts to generate processed data.
-[`data-processed`](data-processed/) | Data processed ready for use in downstream analyses.
-[`R`](R/) | R functions for preprocessing data, model fitting, and model postprocessing.
-[`scripts`](scripts/) | Scripts used to estimate models and analyse result.
-[`stan`](stan/) | The backend stan model code and support functions.
-[`.devcontainer`](.devcontainer/) | Contains the projects `Dockerfile` and setup instructions for using the code with `vscode`.
+[`data-raw`](https://github.com/epiforecasts/inc2prev/tree/main/data-raw) | Raw data and scripts to generate processed data.
+[`data-processed`](https://github.com/epiforecasts/inc2prev/tree/main/data-processed) | Data processed ready for use in downstream analyses.
+[`R`](https://github.com/epiforecasts/inc2prev/tree/main/R) | R functions for preprocessing data, model fitting, and model postprocessing.
+[`scripts`](https://github.com/epiforecasts/inc2prev/tree/main/scripts) | Scripts used to estimate models and analyse result.
+[`stan`](https://github.com/epiforecasts/inc2prev/tree/main/stan) | The backend stan model code and support functions.
+[`.devcontainer`](https://github.com/epiforecasts/inc2prev/tree/main/.devcontainer) | Contains the projects `Dockerfile` and setup instructions for using the code with `vscode`.
 
 ## Obtaining data
 
