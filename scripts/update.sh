@@ -17,5 +17,5 @@ echo Variants
 git status | grep -q cis_variants.csv && Rscript scripts/estimate.R -v -d 1 && Rscript scripts/analyse.R -v
 
 Rscript scripts/plot_estimates.r
-Rscript -e 'rmarkdown::render("docs/report.Rmd", output_dir = "pkdown/assets")'
-Rscript -e 'rmarkdown::render("docs/paper.Rmd", output_format = "all", output_dir = "pkdown/assets")'
+Rscript -e 'rmarkdown::render("writeup/report.Rmd", output_dir = "pkgdown/assets")'
+Rscript -e 'rmarkdown::render("writeup/paper.Rmd", output_format = "all", output_dir = "pkgdown/assets")'
