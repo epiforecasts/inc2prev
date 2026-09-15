@@ -157,11 +157,11 @@ for (level in names(columns)) {
         filter(grepl("sub-region", contents)) %>%
         head(n = 1)
     } else if (level == "age_school" && !technical) {
+      ## the final release labels the daily table without "daily", and has no
+      ## other table by age/school year
       contents_sheet <- contents_sheet %>%
-        filter(
-          grepl("daily", contents),
-          grepl("age/school year(,|$)", contents)
-        ) %>%
+        filter(grepl("age/school year(,|$)", contents)) %>%
+        arrange(!grepl("daily", contents)) %>%
         head(n = 1)
     } else if (level == "variant_national" && technical) {
       contents_sheet <- contents_sheet %>%
