@@ -233,6 +233,7 @@ read_ab <- function(nhse_regions = TRUE, threshold = "higher",
   }
   ab_age <- readr::read_csv(here::here("data-processed", "ab_age.csv"),
 			    show_col_types = FALSE) %>%
+    filter(threshold_level == threshold) %>%
     left_join(pops %>%
       filter(level == "age_school") %>%
       select(level, lower_age_limit, population),
