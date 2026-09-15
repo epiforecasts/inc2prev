@@ -193,7 +193,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   if (!is.null(ab)) {
     dat <- c(dat, list(
       ab = data_ab,
-      ab_sd2 = data_ab_sd^2,
+      ab_sd2 = data_ab_sd,
       ab_stime = unique(ab$stime),
       ab_etime = unique(ab$etime),
       init_ab_mean = array(init_ab$prev),
