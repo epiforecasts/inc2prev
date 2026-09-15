@@ -248,7 +248,7 @@ i2p_inits <- function(dat) {
       rho = array(
         truncnorm::rtruncnorm(dat$n, mean = 36, sd = 21, a = 14, b = 90)
       ),
-      sigma = array(truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0)),
+      sigma = truncnorm::rtruncnorm(1, mean = 0.005, sd = 0.0025, a = 0),
       prob_detect = purrr::map2_dbl(
         dat$prob_detect_mean, dat$prob_detect_sd / 10,
         ~ truncnorm::rtruncnorm(1, a = 0, b = 1, mean = .x, sd = .y)
