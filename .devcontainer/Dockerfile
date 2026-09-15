@@ -13,6 +13,8 @@ ARG UPGRADE_PACKAGES="false"
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
+# The base image is a disposable container, so pip may install into the system Python (PEP 668)
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 COPY .devcontainer/library-scripts/*.sh /tmp/library-scripts/
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && /bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
@@ -32,6 +34,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         languageserver \
         httpgd \
         git2r \
+        remotes \
         tinytex \
     && rm -rf /tmp/downloaded_packages
 
@@ -43,7 +46,7 @@ RUN export TAG=$(git ls-remote --tags --refs --sort='version:refname' https://gi
 RUN apt-get update \
      && export DEBIAN_FRONTEND=noninteractive \
      && apt-get -y install --no-install-recommends libglpk-dev libv8-dev \
-            pandoc-citeproc tmux libmagick++-dev
+            tmux libmagick++-dev
 
 # install and enable git lfs
 RUN apt-get -y install git-lfs && git-lfs install
