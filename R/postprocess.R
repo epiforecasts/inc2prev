@@ -1,9 +1,11 @@
 i2p_draws <- function(fit, variables = NULL, samples = 100) {
-  fit$draws(variables) %>%
-    posterior::as_draws_df() %>%
+  draws <- posterior::as_draws_df(fit$draws(variables))
+  n_draws <- posterior::ndraws(draws)
+  keep <- unique(round(seq(1, n_draws, length.out = min(samples, n_draws))))
+  draws %>%
     dplyr::as_tibble() %>%
-    dplyr::mutate(sample = 1:dplyr::n()) %>%
-    dplyr::filter(sample <= samples) %>%
+    dplyr::filter(.draw %in% keep) %>%
+    dplyr::mutate(sample = seq_len(dplyr::n()), chain = .chain) %>%
     dplyr::select(-.chain, -.iteration, -.draw) %>%
     tidyr::pivot_longer(matches("[0-9]")) %>%
     dplyr::mutate(
