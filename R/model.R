@@ -59,7 +59,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   data_prev <- t(as.matrix(
       dcast(prev, start_date ~ `..variable`, value.var = "prev")[, -1]
   ))
-  data_prev_sd <- t(as.matrix(
+  data_prev_var <- t(as.matrix(
       dcast(prev, start_date ~ `..variable`, value.var = "sd")[, -1]
   ))^2
   if (!is.null(ab)) {
@@ -80,7 +80,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     data_ab <- t(as.matrix(
       dcast(ab, start_date ~ `..variable`, value.var = "prev")[, -1]
     ))
-    data_ab_sd <- t(as.matrix(
+    data_ab_var <- t(as.matrix(
       dcast(ab, start_date ~ `..variable`, value.var = "sd")[, -1]
     ))^2
     ab_index <- match(rownames(data_ab), rownames(data_prev))
@@ -170,7 +170,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
     n_ab = ifelse(is.null(ab), 0L, nrow(data_ab)),
     obs = ncol(data_prev),
     prev = data_prev,
-    prev_sd2 = data_prev_sd,
+    prev_var = data_prev_var,
     prev_stime = unique(prev$stime),
     prev_etime = unique(prev$etime),
     prob_detect_mean = rev(prob_detectable$mean),
@@ -193,7 +193,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   if (!is.null(ab)) {
     dat <- c(dat, list(
       ab = data_ab,
-      ab_sd2 = data_ab_sd,
+      ab_var = data_ab_var,
       ab_stime = unique(ab$stime),
       ab_etime = unique(ab$etime),
       init_ab_mean = array(init_ab$prev),
@@ -204,7 +204,7 @@ i2p_data <- function(prev, ab, vacc, init_ab,
   } else {
     dat <- c(dat, list(
       ab = numeric(0),
-      ab_sd2 = numeric(0),
+      ab_var = numeric(0),
       ab_stime = numeric(0),
       ab_etime = numeric(0),
       init_ab_mean = numeric(0),
