@@ -11,7 +11,7 @@ data {
   int t;
   int obs;
   vector[obs] prev;
-  vector[obs] prev_sd2;
+  vector[obs] prev_var;
   int prev_stime[obs];
   int prev_etime[obs];
   int pbt;
@@ -55,7 +55,7 @@ transformed parameters {
   // calculate observed detectable cases
   odcases = observed_in_window(dcases, prev_stime, prev_etime, ut, obs);
   //combined standard error
-  combined_sigma = sqrt(square(sigma) + prev_sd2);
+  combined_sigma = sqrt(square(sigma) + prev_var);
 }
 
 model {

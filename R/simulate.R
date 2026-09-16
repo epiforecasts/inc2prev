@@ -81,7 +81,7 @@ i2p_simulate <- function(dat, param, nsamples = NULL, type = "estimate") {
     odab <- do.call(rbind, odab)
 
     combined_ab_sigma <- lapply(seq_len(dat$n), function(i) {
-      cs <- sqrt(rep(param$ab_sigma^2, ncol(dat$ab_sd2)) + dat$ab_sd2[i, ])
+      cs <- sqrt(rep(param$ab_sigma^2, ncol(dat$ab_var)) + dat$ab_var[i, ])
       return(cs)
     })
     combined_ab_sigma <- do.call(rbind, combined_ab_sigma)

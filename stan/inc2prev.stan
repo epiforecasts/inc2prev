@@ -17,9 +17,9 @@ data {
   int<lower = 0> obs; // number of prevalence observations
   int<lower = 0> ab_obs; // presence/absence of antibody observations (1 = present; 0 = absent)
   array[n] vector<lower = 0, upper = 1>[obs] prev; // observed positivity prevalence
-  array[n] vector<lower = 0>[obs] prev_sd2; // squared standard deviation of observed positivity prevalence
+  array[n] vector<lower = 0>[obs] prev_var; // variance of observed positivity prevalence
   array[n_ab] vector<lower = 0, upper = 1>[ab_obs] ab; // observed antibody posivitiy prevalence
-  array[n_ab] vector<lower = 0>[ab_obs] ab_sd2; // squared standard deviation of observed antibody prevalence
+  array[n_ab] vector<lower = 0>[ab_obs] ab_var; // variance of observed antibody prevalence
   array[obs] int<lower = 0> prev_stime; // starting times of positivity prevalence observations
   array[obs] int <lower = 0>prev_etime; // end times of positivity prevalence observations
   array[ab_obs] int<lower = 0> ab_stime; // starting times of antibody prevalence observations
@@ -117,7 +117,7 @@ transformed parameters {
     // calculate observed detectable cases
     odcases[i] = observed_in_window(dcases[i], prev_stime, prev_etime, ut, obs);
     //combined standard error
-    combined_sigma[i] = sqrt(square(sigma) + prev_sd2[i]);
+    combined_sigma[i] = sqrt(square(sigma) + prev_var[i]);
   }
 
   //calculate infections with potential to have antibodies
@@ -131,7 +131,7 @@ transformed parameters {
     // calculate observed detectable antibodies
     odab[i] = observed_in_window(dab[i], ab_stime, ab_etime, ut, ab_obs);
     //combined standard error
-    combined_ab_sigma[i] = sqrt(square(ab_sigma[1]) + ab_sd2[i]);
+    combined_ab_sigma[i] = sqrt(square(ab_sigma[1]) + ab_var[i]);
   }
 }
 

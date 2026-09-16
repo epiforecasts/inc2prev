@@ -63,7 +63,7 @@ regional_dat <- regional_diag$data[[1]]
 
 ## list of parameters to grab from each model
 prev_params <- c("alpha", "rho", "eta", "init_inc", "sigma")
-ab_params <- c("prob_detect", "beta", "gamma", "delta", "k", "l", "init_dab", "ab_sigma", "ab_sd2")
+ab_params <- c("prob_detect", "beta", "gamma", "delta", "k", "l", "init_dab", "ab_sigma", "ab_var")
 
 ## list of data sets to grab from each model
 dat <- c(local_dat[c("M", "L", "t", "diff_order", "prev_stime", "prev_etime", "ut", "obs")], 
