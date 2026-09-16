@@ -232,6 +232,14 @@ for (threshold_level in names(threshold_levels)) {
 combined <- ab %>%
   bind_rows() %>%
   mutate(publication_date = extract_publication_dates(file_name)) %>%
+  arrange(publication_date, start_date, file_name) %>%
+  ## some releases were published as more than one file; keep one of each
+  group_by(
+    start_date, geography, lower_age_limit, threshold_level, level,
+    publication_date
+  ) %>%
+  slice(n()) %>%
+  ungroup() %>%
   arrange(publication_date, start_date)  %>%
   pivot_longer(starts_with("proportion_")) %>%
   mutate(value =
