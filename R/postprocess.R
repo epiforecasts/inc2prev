@@ -1,8 +1,6 @@
 i2p_draws <- function(fit, variables = NULL, samples = 100) {
   draws <- posterior::as_draws_df(fit$draws(variables))
   n_draws <- posterior::ndraws(draws)
-  # spread retained draws evenly over all chains so between-chain differences
-  # remain visible in the saved samples
   keep <- unique(round(seq(1, n_draws, length.out = min(samples, n_draws))))
   draws %>%
     dplyr::as_tibble() %>%
