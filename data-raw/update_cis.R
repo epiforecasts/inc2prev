@@ -112,6 +112,12 @@ override <- list(
     )
 )
 
+## the final release labels its daily table by age/school year without "daily";
+## the same label marks the weekly table in earlier releases
+daily_age_sheet <- list(
+  `20230310covid19infectionsurveydatasetsengland.xlsx` = "1f"
+)
+
 ## construct list of data frames with positivity
 positivity <- list()
 for (level in names(columns)) {
@@ -191,6 +197,9 @@ for (level in names(columns)) {
       }
     } else {
       sheet <- c()
+    }
+    if (level == "age_school" && basename(x) %in% names(daily_age_sheet)) {
+      sheet <- daily_age_sheet[[basename(x)]]
     }
     if (length(sheet) >= 1) {
       sheet <- sheet[1]
