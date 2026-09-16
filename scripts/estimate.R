@@ -22,7 +22,7 @@ doc <- "
 Estimate incidence from ONS positivity prevalence data,
 possibly including antibody and vaccination data
 Usage:
-    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--max-report-date=<date>] [--gp-frac=<frac>]
+    estimate.R [--ab] [--higher] [--local | --regional | --age | --variants] [--nhse] [--differencing=<level>] [--start-date=<date>] [--max-report-date=<date>] [--gp-frac=<frac>] [--chains=<n>] [--warmup=<n>] [--iterations=<n>]
     estimate.R -h | --help
 
 Options:
@@ -42,6 +42,9 @@ Options:
                                  process approximation. Reducing this improves runtimes at
                                  the cost of reducing the accuracy of the Gaussian process
                                  approximation.
+    --chains=<n>                 Number of MCMC chains [default: 2]
+    --warmup=<n>                 Number of warmup iterations per chain [default: 250]
+    --iterations=<n>             Number of sampling iterations per chain [default: 1000]
 "
 
 ## if running interactively can set opts to run with options
@@ -67,6 +70,9 @@ if (!is.null(report_date)) report_date <- as.Date(report_date)
 report_date
 weekly <- !is.null(opts$weekly) && opts$weekly
 gp_frac <- ifelse(is.null(opts$gp_frac), 0.3, as.numeric(opts$gp_frac))
+chains <- ifelse(is.null(opts$chains), 2L, as.integer(opts$chains))
+warmup <- ifelse(is.null(opts$warmup), 250L, as.integer(opts$warmup))
+iterations <- ifelse(is.null(opts$iterations), 1000L, as.integer(opts$iterations))
 
 # Load prevalence data and split by location
 data <- read_cis(nhse_regions = nhse,
@@ -218,8 +224,9 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
     vacc = vacc,
     init_ab = init_ab,
     var_col = "variable",
-    prob_detect = pb, parallel_chains = 2, iter_warmup = 250,
-    chains = 2, model = model, adapt_delta = 0.9, max_treedepth = 12,
+    prob_detect = pb, chains = chains, parallel_chains = chains,
+    iter_warmup = warmup, iter_sampling = iterations,
+    model = model, adapt_delta = 0.9, max_treedepth = 12,
     data_args = list(
       gp_tune_model = gp_model, gp_m = gp_frac, differencing = differencing
     ),
@@ -241,7 +248,7 @@ incidence_with_var <- function(data, pb, model, gp_model, differencing = 0, week
 }
 
 # Run model fits in parallel
-plan(callr, workers = future::availableCores() %/% 2)
+plan(callr, workers = max(1, future::availableCores() %/% chains))
 est <- future_lapply(
   data, incidence_with_var,
   pb = prob_detect,
