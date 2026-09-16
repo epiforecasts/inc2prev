@@ -14,7 +14,7 @@ api_url <- paste0(
   "https://api.ukhsa-dashboard.data.gov.uk/themes/infectious_disease/",
   "sub_themes/respiratory/topics/COVID-19/geography_types"
 )
-booster_campaigns <- c("autumn22", "spring23")
+booster_campaigns <- c("autumn22", "spring23", "autumn23")
 
 raw_dir <- here::here("data-raw", "vacc")
 dir.create(raw_dir, showWarnings = FALSE, recursive = TRUE)
@@ -220,6 +220,11 @@ vacc_all <- rbindlist(list(
     geography = "England", lower_age_limit
   )]
 ), fill = TRUE)
+## campaign metrics report a tail of near-zero doses beyond the end of the
+## archive, where first, second and third doses are no longer available, so the
+## series stops where all sources are present
+vacc_all <- vacc_all[vaccination_date <= max(national$date)]
+
 vacc_all[, vaccinated := round(vaccinated)]
 setkey(vacc_all, level, geography, lower_age_limit, vaccination_date)
 fwrite(vacc_all, here::here("data-processed", "vacc.csv"))
