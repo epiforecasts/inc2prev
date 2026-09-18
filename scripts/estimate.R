@@ -298,3 +298,52 @@ format_estimates <- estimates %>%
   pivot_wider(names_from = "quantile")
 
 fwrite(format_estimates, paste0("outputs/estimates", suffix, ".csv"))
+
+## record how this run was produced, so the settings behind each file in
+## outputs/ can be recovered later
+code_version <- function() {
+  from_git <- suppressWarnings(try(
+    system2("git", c("rev-parse", "--short", "HEAD"), stdout = TRUE, stderr = FALSE),
+    silent = TRUE
+  ))
+  if (!inherits(from_git, "try-error") && length(from_git) == 1) {
+    return(from_git)
+  }
+  ## runs on a cluster use a copy of the source without the git history, which
+  ## records its version in a COMMIT file instead
+  if (file.exists("COMMIT")) {
+    return(readLines("COMMIT", n = 1))
+  }
+  NA_character_
+}
+
+provenance <- data.table(
+  output = paste0("estimates", suffix),
+  run_date = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
+  code_version = code_version(),
+  differencing = differencing,
+  chains = chains,
+  warmup = warmup,
+  iterations = iterations,
+  gp_frac = gp_frac,
+  weekly = weekly,
+  nhse = nhse,
+  antibodies = antibodies,
+  threshold = if (antibodies) ifelse(higher, "higher", "standard") else NA_character_,
+  start_date = ifelse(length(start_date) > 0, as.character(start_date), NA_character_),
+  max_report_date = ifelse(is.null(report_date), NA_character_, as.character(report_date)),
+  cmdstan = as.character(cmdstanr::cmdstan_version()),
+  r_version = paste(R.version$major, R.version$minor, sep = ".")
+)
+
+provenance_file <- here::here("outputs", "provenance.csv")
+if (file.exists(provenance_file)) {
+  previous <- fread(provenance_file, colClasses = "character")
+  provenance <- rbind(
+    previous[output != provenance$output],
+    provenance[, lapply(.SD, as.character)],
+    fill = TRUE
+  )
+}
+setkey(provenance, output)
+fwrite(provenance, provenance_file)
