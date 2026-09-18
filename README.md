@@ -97,7 +97,7 @@ remotes::install_github("epiforecasts/inc2prev")
 The estimates shown in the plots above were generated using
 
 ```sh
-Rscript scripts/estimate.R -d 1
+Rscript scripts/estimate.R
 ```
 
 ## Dependencies
