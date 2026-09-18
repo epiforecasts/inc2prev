@@ -25,7 +25,7 @@ The latest estimates are available in a [real-time report](https://epiforecasts.
 
 The code in this repository can be used to [reproduce the results](https://github.com/epiforecasts/inc2prev/blob/master/scripts/estimate.R),
 and [create the figures](https://github.com/epiforecasts/inc2prev/blob/master/scripts/plot_estimates.R)
-Estimates are also available as [data tables](https://github.com/epiforecasts/inc2prev/blob/master/outputs/) (labelled estimates_{level}.csv). The settings each of these was fitted with are recorded in [outputs/provenance.csv](https://github.com/epiforecasts/inc2prev/blob/master/outputs/provenance.csv).
+Estimates are also available as [data tables](https://github.com/epiforecasts/inc2prev/blob/master/outputs/) (labelled estimates_{level}.csv).
 
 # Example estimates from England
 
