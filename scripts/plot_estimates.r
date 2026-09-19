@@ -166,7 +166,7 @@ for (file in files) {
         }
         ggsave(
           file.path(
-            fig_dir, paste0(level, "_", name, "_", history, ".", filetype
+            fig_dir, paste0(level, "_", name, "_", history, ".", filetype)
           ), p,
           width = 8, height = 4
         )
