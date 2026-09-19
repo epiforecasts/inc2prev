@@ -109,9 +109,8 @@ saveRDS(cumulative,
 
 csum <- cumulative %>%
   group_by(name, date, variable, level) %>%
-  summarise(x = quantile(value, seq(0.05, 0.95, by = 0.05)),
-	    q = paste0("q", seq(5, 95, by = 5)),
-	    .groups = "drop") %>%
+  reframe(x = quantile(value, seq(0.05, 0.95, by = 0.05)),
+	  q = paste0("q", seq(5, 95, by = 5))) %>%
   pivot_wider(names_from = "q", values_from = "x")
 
 write_csv(csum,

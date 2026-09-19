@@ -84,10 +84,9 @@ for (file in files) {
       quantiles <- parse_number(grep("^q", colnames(data), value = TRUE)) / 100
       cum_data <- cum_data %>%
         group_by_at(vars(intersect(colnames(data), colnames(.)))) %>%
-        summarise(
+        reframe(
           value = quantile(value, quantiles),
-          q = paste0("q", quantiles * 100),
-          .groups = "drop"
+          q = paste0("q", quantiles * 100)
         ) %>%
         pivot_wider(names_from = "q")
     }
